@@ -75,6 +75,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.GRAPH_BFS,
+        title = "Graph BFS",
+        description = "Explore level by level, driven by a queue.",
+        category = "Advanced",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,
         title = "Bubble Sort",
         description = "Compare neighbours and swap the ones out of order.",

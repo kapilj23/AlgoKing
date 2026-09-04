@@ -28,6 +28,16 @@ data class GraphScene(
      * exactly the route a backtrack will unwind.
      */
     val stack: List<String>,
+    /**
+     * The queue, front first — BFS only.
+     *
+     * Empty for a lesson that does not use one, so DFS draws no queue and needed
+     * no change when this arrived. It is a `List` rather than a set because the
+     * *order* is the entire idea: first in, first out.
+     */
+    val queue: List<String> = emptyList(),
+    /** What the path strip is called. A stack for DFS, a queue for BFS. */
+    val pathLabel: String = "Path",
     val legendLabels: Map<CellState, String> = emptyMap(),
 ) : Scene
 

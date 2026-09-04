@@ -47,6 +47,9 @@ enum class AlgorithmId {
     // Advanced: the first lesson whose data is a graph rather than an array.
     GRAPH_DFS,
 
+    // Advanced: the same graph as DFS, driven by a queue instead of a stack.
+    GRAPH_BFS,
+
     BUBBLE_SORT,
     SELECTION_SORT,
     INSERTION_SORT,

@@ -1381,6 +1381,67 @@ judgement.
 
 ---
 
+## ADR-035 — Graph BFS reuses DFS's scene and gesture, so the queue is the only difference
+
+**Decision.** BFS ships as a `LessonPack` with WATCH and TRY, on the **same graph** as DFS,
+projecting into the **same `GraphScene`**, driven by the **same gesture**. `GraphScene` gains an
+optional `queue` and a `pathLabel`. Full detail: `docs/graph-bfs.md`.
+
+**Why sameness is the design.** The pair exists to make one point: on identical data, DFS gives
+`A → B → D → E → C` and BFS gives `A → B → C → D → E`. That point only lands if *everything
+else* is held constant. A second graph, a second renderer or a second interaction model would
+each give the learner somewhere to misattribute the difference.
+
+So: same `GraphDatasets.teachingGraph`, same adjacency order, same start node, same
+`GraphStage`, same "tap the node the algorithm touches next". A test asserts both traversals
+from the one shared graph, which is the claim stated as code.
+
+The queue is a defaulted field on the existing scene, so DFS needed no change and draws no
+queue — the same additive move `Dataset.queryLeft` and `Dataset.graph` made before it.
+
+### Visited on the way in, not on the way out
+
+A node is marked visited the moment it is **enqueued**. This is the rule the brief called out
+and it is not a detail: mark on dequeue instead and a cyclic graph enqueues the same node
+several times before its turn arrives, then processes it more than once.
+
+It has a visible consequence the lesson has to be honest about — there are **two orders**:
+
+| | |
+|---|---|
+| `visited` | enqueue order — what BFS has *seen* |
+| `dequeued` | the traversal — what BFS has *processed* |
+
+Conflating them is the most common way a BFS visual lies, so the traversal strip renders
+`dequeued` and a test pins it: after enqueuing B and C, `visited` is `[A, B, C]` while the
+traversal is still `[A]`.
+
+### Queued is its own node state
+
+Three states were not enough. A node that has been *seen and is waiting* is neither unvisited
+nor processed, and that middle state is the frontier — the thing that makes level-order
+visible. It reuses `CellState.CANDIDATE`, the amber Selection Sort uses for a value it is
+holding on to, which is exactly the right meaning: found, not yet acted on.
+
+### The queue is drawn, not written
+
+BFS *is* the queue, so it gets cells flanked by `OUT ←` and `← IN` — the language the Queue
+lesson already established (ADR-027) — rather than a line of text. An empty queue reads
+`empty`, because it is the termination condition and not a blank.
+
+**Alternatives considered.**
+- *A different graph for BFS.* Rejected: it would let the learner blame the graph for the
+  different traversal, which is the one conclusion the lesson must prevent.
+- *Separate ENQUEUE / DEQUEUE buttons.* Rejected for the reason ADR-034 rejected a BACKTRACK
+  button, and additionally because it would make BFS's controls differ from DFS's — putting the
+  difference in the UI rather than in the algorithm.
+- *Enqueue all of a node's neighbours in one step.* Rejected: the per-neighbour beat is where
+  "skip the visited one" is asked, and that is one of the five judgements.
+- *Show `visited` as the traversal.* Rejected above — it is a different sequence, and on a
+  bigger graph it is visibly wrong rather than merely imprecise.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

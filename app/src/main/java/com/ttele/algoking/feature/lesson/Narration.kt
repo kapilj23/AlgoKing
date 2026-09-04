@@ -371,6 +371,101 @@ object Narration {
             NarrationId.DFS_IDEA_3 -> "At a dead end, backtrack to the node you came from."
             NarrationId.DFS_IDEA_4 -> "Recursion does the remembering; the call stack is the path."
 
+
+            // ── Graph BFS ─────────────────────────────────────────────────
+            // Standard vocabulary: node, edge, neighbour, visited, current,
+            // queue, enqueue, dequeue, traversal, level.
+            NarrationId.BFS_OPTION_NODE -> arg(0)
+            NarrationId.BFS_ASK_ENQUEUE ->
+                "${arg(0)} is out of the queue. Which neighbour joins the queue next?"
+
+            NarrationId.BFS_ASK_DEQUEUE -> "Nothing left to add. Which node comes off the queue?"
+            NarrationId.BFS_SEEDED -> "${arg(0)} is visited and in the queue."
+            NarrationId.BFS_ENQUEUED -> "Enqueued ${arg(0)}."
+            NarrationId.BFS_DEQUEUED -> "Dequeued ${arg(0)}."
+
+            NarrationId.BFS_HINT_ENQUEUE ->
+                "Go through ${arg(0)}'s neighbours in order and add the first one BFS has " +
+                    "not seen."
+
+            NarrationId.BFS_HINT_DEQUEUE ->
+                "A queue is first in, first out. ${arg(1)} has been waiting longest."
+
+            NarrationId.BFS_RETRY_ENQUEUE_LOOK ->
+                "Not quite. Check ${arg(0)}'s neighbours again — which has BFS not seen?"
+
+            NarrationId.BFS_RETRY_ENQUEUE_ASK ->
+                "${arg(0)} still has a neighbour to add. Which one, and in what order?"
+
+            NarrationId.BFS_RETRY_ENQUEUE_EXPLAIN ->
+                "BFS adds ${arg(0)}'s unseen neighbours in order, so ${arg(1)} goes to the " +
+                    "back of the queue next."
+
+            NarrationId.BFS_RETRY_DEQUEUE_LOOK ->
+                "Not quite. ${arg(0)} has nothing left to add, so something comes off the queue."
+
+            NarrationId.BFS_RETRY_DEQUEUE_ASK ->
+                "Which node has been in the queue longest? That is the one BFS takes."
+
+            NarrationId.BFS_RETRY_DEQUEUE_EXPLAIN ->
+                "The queue is first in, first out, so ${arg(1)} comes off the front."
+
+            // Each wrong tap named for the misconception it encodes.
+            NarrationId.BFS_WHY_ALREADY_VISITED ->
+                "${arg(0)} is already visited. BFS marks a node the moment it joins the " +
+                    "queue, so it never gets added twice."
+
+            NarrationId.BFS_WHY_NOT_THE_FRONT ->
+                "${arg(0)} is in the queue, but ${arg(3)} is at the front. BFS processes " +
+                    "them in the order they arrived."
+
+            NarrationId.BFS_WHY_STILL_ADDING ->
+                "${arg(0)} is already in the queue and will get its turn. ${arg(2)} still " +
+                    "has a neighbour to add first."
+
+            NarrationId.BFS_WHY_WRONG_ORDER ->
+                "${arg(0)} is a neighbour BFS has not seen, but ${arg(1)} comes first in " +
+                    "${arg(2)}'s list."
+
+            NarrationId.BFS_CORRECT_ENQUEUE ->
+                "${arg(0)} joins the back of the queue, and is marked visited straight away."
+
+            NarrationId.BFS_CORRECT_DEQUEUE ->
+                "${arg(0)} was at the front, so it comes off first."
+
+            // ── Graph BFS — WATCH ─────────────────────────────────────────
+            NarrationId.BFS_WATCH_SETUP -> "Breadth-first search, starting at ${arg(0)}."
+            NarrationId.BFS_WATCH_SETUP_SUPPORT ->
+                "Finish the whole current level before going deeper. A queue is what makes " +
+                    "that happen."
+
+            NarrationId.BFS_WATCH_SEED -> "Visit ${arg(0)} and put it in the queue."
+            NarrationId.BFS_WATCH_SEED_SUPPORT ->
+                "A node is marked visited when it *joins* the queue, not when it leaves — " +
+                    "that is what stops it being queued twice."
+
+            NarrationId.BFS_WATCH_ENQUEUE -> "${arg(1)} → ${arg(0)}. Enqueue it."
+            NarrationId.BFS_WATCH_DEQUEUE -> "Dequeue ${arg(0)} from the front."
+            NarrationId.BFS_WATCH_QUEUE_NOW -> "Queue: ${arg(0)}."
+            NarrationId.BFS_WATCH_QUEUE_EMPTYING -> "The queue is empty."
+            NarrationId.BFS_WATCH_SKIPPED ->
+                "${arg(0)} is already visited, so BFS skips it and adds ${arg(1)}."
+
+            NarrationId.BFS_WATCH_COMPLETE ->
+                "The queue is empty, so BFS is complete. Traversal: ${arg(0)}."
+
+            NarrationId.BFS_WATCH_INSIGHT -> "Level by level, because the queue says so."
+            NarrationId.BFS_WATCH_INSIGHT_SUPPORT ->
+                "BFS gave ${arg(0)}. DFS on this same graph gives A → B → D → E → C. Same " +
+                    "graph, same neighbour order — the queue is the only difference."
+
+            NarrationId.BFS_WATCH_SUMMARY -> "Traversal: ${arg(0)}."
+            NarrationId.BFS_WATCH_SUMMARY_SUPPORT -> "Now run it yourself."
+            NarrationId.BFS_IDEA_1 -> "Mark a node visited when it joins the queue, not when it leaves."
+            NarrationId.BFS_IDEA_2 -> "Take the front of the queue; add unseen neighbours to the back."
+            NarrationId.BFS_IDEA_3 -> "First in, first out is what produces level-by-level order."
+            NarrationId.BFS_IDEA_4 -> "Empty queue means every reachable node has been processed."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

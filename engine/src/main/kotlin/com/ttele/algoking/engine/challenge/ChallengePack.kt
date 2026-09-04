@@ -145,6 +145,7 @@ object ChallengeCatalog {
         AlgorithmId.TWO_POINTERS -> null
         AlgorithmId.PREFIX_SUM -> null
         AlgorithmId.GRAPH_DFS -> null
+        AlgorithmId.GRAPH_BFS -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

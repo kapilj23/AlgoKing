@@ -331,4 +331,8 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
     AlgorithmId.GRAPH_DFS ->
         "DFS finished one branch completely before it looked at the next — and backtracking " +
             "is what let it come back. O(V + E): every node once, every edge once."
+
+    AlgorithmId.GRAPH_BFS ->
+        "The queue is the whole difference: first in, first out means BFS finishes a level " +
+            "before it goes deeper. O(V + E), same as DFS."
 }

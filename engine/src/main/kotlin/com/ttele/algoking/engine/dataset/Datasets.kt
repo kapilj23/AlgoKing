@@ -534,3 +534,42 @@ object GraphDatasets {
         startNode = "A",
     )
 }
+
+/**
+ * Graph BFS teaching data.
+ *
+ * **Deliberately the same graph as DFS** — `GraphDatasets.teachingGraph`, the same
+ * adjacency order, the same start node. That is the whole comparison: on
+ * identical data DFS gives `A → B → D → E → C` and BFS gives `A → B → C → D → E`,
+ * so the difference cannot be blamed on the graph or on neighbour order. The
+ * queue is the only thing that changed.
+ *
+ * ```
+ * queue [A]        dequeue A   enqueue B, C   queue [B, C]
+ * queue [B, C]     dequeue B   enqueue D, E   queue [C, D, E]
+ * queue [C, D, E]  dequeue C   (A seen)       queue [D, E]
+ * queue [D, E]     dequeue D   (B seen)       queue [E]
+ * queue [E]        dequeue E   (B seen)       queue []
+ * ```
+ */
+object BfsDatasets {
+
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        graph = GraphDatasets.teachingGraph,
+        startNode = "A",
+    )
+
+    /**
+     * Same graph again, for the reason DFS uses the same one twice: five nodes are
+     * memorisable either way, and what makes TRY hard is producing the queue
+     * operations rather than meeting new data.
+     */
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        graph = GraphDatasets.teachingGraph,
+        startNode = "A",
+    )
+}

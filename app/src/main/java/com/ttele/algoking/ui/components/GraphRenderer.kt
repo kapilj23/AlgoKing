@@ -251,11 +251,67 @@ private fun TraversalStrip(scene: GraphScene) {
             emphasis = true,
         )
         Gap(Spacing.xxs)
-        StripLine(
-            caption = "Path",
-            value = scene.stack.takeIf { it.isNotEmpty() }?.joinToString("  ›  ") ?: "—",
-            emphasis = false,
+        // A stack for DFS, a queue for BFS. Only one is ever populated, so the
+        // strip shows whichever structure is actually driving the lesson.
+        if (scene.stack.isNotEmpty()) {
+            StripLine(
+                caption = scene.pathLabel,
+                value = scene.stack.joinToString("  ›  "),
+                emphasis = false,
+            )
+        } else {
+            QueueStrip(scene)
+        }
+    }
+}
+
+/**
+ * The queue, drawn as cells with its two ends named.
+ *
+ * BFS *is* the queue, so it gets a picture rather than a line of text. FRONT is
+ * where nodes leave and REAR is where they join, and watching B and C sit there
+ * while D and E line up behind them is what makes level-order visible — the same
+ * `OUT ←` / `← IN` language the Queue lesson already uses (DESIGN_SYSTEM §6.16).
+ */
+@Composable
+private fun QueueStrip(scene: GraphScene) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AlgoColors.surfaceVariant, Radius.card)
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        Text(
+            text = scene.pathLabel.uppercase(),
+            style = AlgoType.labelSmall,
+            color = AlgoColors.textMuted,
         )
+        if (scene.queue.isEmpty()) {
+            // An empty queue is the termination condition, not a blank.
+            Text(
+                text = "empty",
+                style = AlgoType.bodyMedium,
+                color = AlgoColors.textMuted,
+            )
+            return@Row
+        }
+        Text("OUT ←", style = AlgoType.labelSmall, color = AlgoColors.textMuted)
+        scene.queue.forEach { label ->
+            Box(
+                modifier = Modifier
+                    .background(AlgoViz.next, Radius.cell)
+                    .padding(horizontal = Spacing.sm, vertical = Spacing.xxs),
+            ) {
+                Text(
+                    text = label,
+                    style = AlgoType.titleSmall,
+                    color = Color.White,
+                )
+            }
+        }
+        Text("← IN", style = AlgoType.labelSmall, color = AlgoColors.textMuted)
     }
 }
 

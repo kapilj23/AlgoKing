@@ -13,6 +13,10 @@ import com.ttele.algoking.engine.dataset.BinarySearchDatasets
 import com.ttele.algoking.engine.dataset.TwoPointersDatasets
 import com.ttele.algoking.engine.dataset.PrefixSumDatasets
 import com.ttele.algoking.engine.dataset.GraphDatasets
+import com.ttele.algoking.engine.dataset.BfsDatasets
+import com.ttele.algoking.engine.algorithms.graphbfs.BreadthFirstSearchAlgorithm
+import com.ttele.algoking.engine.algorithms.graphbfs.BfsProjector
+import com.ttele.algoking.engine.algorithms.graphbfs.BfsWatchNarrator
 import com.ttele.algoking.engine.algorithms.graphdfs.DepthFirstSearchAlgorithm
 import com.ttele.algoking.engine.algorithms.graphdfs.DfsProjector
 import com.ttele.algoking.engine.algorithms.graphdfs.DfsWatchNarrator
@@ -139,6 +143,21 @@ object AlgorithmCatalog {
         tryDataset = GraphDatasets.tryIt,
     )
 
+    /**
+     * The fourth Advanced lesson, and DFS-s pair. Same graph, same adjacency,
+     * same start — a queue instead of a stack, and a different traversal falls
+     * out. That contrast is the reason both exist.
+     */
+    fun graphBfs() = LessonPack(
+        id = AlgorithmId.GRAPH_BFS,
+        displayName = "Graph BFS",
+        algorithm = BreadthFirstSearchAlgorithm(),
+        projector = BfsProjector(),
+        watchNarrator = BfsWatchNarrator(),
+        watchDataset = BfsDatasets.watch,
+        tryDataset = BfsDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -242,6 +261,7 @@ object AlgorithmCatalog {
         AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()
+        AlgorithmId.GRAPH_BFS -> graphBfs()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

@@ -546,10 +546,13 @@ The fourth scene shape, and the first that is two-dimensional. Node positions ar
 | edge, just taken | 4dp `comparing` |
 | edge, backtracking | 3dp **dashed** `secondary` — a retreat is not progress, and it is the half of DFS learners lose |
 | traversal strip | `primarySoft` card, `A  →  B  →  D` in `titleSmall`/`primary` |
-| path strip | `surfaceVariant` card, `A  ›  B  ›  D` in `textSecondary` |
+| path strip (DFS) | `surfaceVariant` card, `A  ›  B  ›  D` in `textSecondary` |
+| queue strip (BFS) | `surfaceVariant` card of `next`-amber cells flanked by `OUT ←` and `← IN` — the Queue lesson's own language (§6.16). An empty queue reads `empty`: it is the termination condition, not a blank |
+| queued node | `CANDIDATE` amber — seen, waiting its turn. The frontier, and what makes level-order visible |
 
-Both strips are read straight from engine state — the traversal *is* the visited list and the
-path *is* the stack — so the display and the algorithm cannot disagree.
+Both strips are read straight from engine state, so the display and the algorithm cannot
+disagree. For DFS the path *is* the call stack; for BFS the traversal *is* the dequeue order —
+not the enqueue order, which is a different sequence and the most common way a BFS visual lies.
 
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
