@@ -1,3 +1,14 @@
+> **⚠ SUPERSEDED — historical draft, do not build from this.**
+>
+> This is the original v1.0 product direction, kept for its reasoning trail. It describes a
+> four-stage spine (`WATCH → TRY → CHALLENGE → MASTER`) that no longer exists: MASTER was
+> removed by ADR-017, and CHALLENGE was deferred to V2 by ADR-031.
+>
+> **The live specification is [`PRODUCT_SPEC.md`](../PRODUCT_SPEC.md).**
+> The MVP spine is `WATCH → TRY`; see [`v2-challenge.md`](v2-challenge.md).
+
+---
+
 Interactive DSA Learning App — Product & UX Specification
 
 Version: 1.0

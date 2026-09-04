@@ -315,7 +315,12 @@ the contrast-validation surface before a single lesson exists.
 **Decision.** The lesson spine is **WATCH → TRY → CHALLENGE**, followed by a Result screen.
 `MASTER` is removed as a stage everywhere: from `StageStepper`, from the lesson screens, and
 from `PRODUCT_SPEC.md` §2. Mastery is awarded on the Result screen (★★ or better) and shown
-on the Home card. `StageStepper` renders exactly three nodes, by contract.
+on the Home card. `StageStepper` renders exactly one node per stage, by contract.
+
+> **Amended by ADR-031 (2026-09-04):** CHALLENGE is deferred to V2, so the MVP spine is
+> **WATCH → TRY** and the stepper renders two nodes. The rule this ADR establishes is unchanged
+> and is the reason the change was cheap: a stage is somewhere the learner *goes and does
+> something*, and completion is a status, not a node.
 
 **Why.** A stage is somewhere the learner *goes and does something*. Mastery is something that
 *happens to them* as a consequence of the challenge. Modelling it as a fourth node promised a

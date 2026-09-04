@@ -125,7 +125,7 @@ AlgoKing/
 > `:design` ever imports anything from `engine.algorithms.*`, extract a fifth `:scene` module
 > immediately — that import is the tripwire.
 
-Feature modules are deliberately **not** created. At nine lessons and eight screens they would
+Feature modules are deliberately **not** created. At ten lessons and four screens they would
 add build configuration without buying anything; features are packages inside `:app`.
 
 ### Package layout
@@ -394,7 +394,7 @@ sealed interface Outcome {
 }
 ```
 
-Thirteen events cover all nine MVP algorithms, and `Insert`/`Remove`/`Region`/`Meter` already
+Thirteen events cover all ten MVP algorithms, and `Insert`/`Remove`/`Region`/`Meter` already
 cover the v1.1 grid and window work. Adding an algorithm should add **zero** events; if it does
 not, that is a real signal worth stopping for.
 
