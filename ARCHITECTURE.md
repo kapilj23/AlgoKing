@@ -4,6 +4,14 @@
 **Scope:** all technical decisions. Product behaviour lives in `PRODUCT_SPEC.md`; visual
 decisions live in `DESIGN_SYSTEM.md`; the reasoning trail lives in `DECISIONS.md`.
 
+> **⚠ MVP AMENDMENT — 2026-09-04.** The MVP spine is **WATCH → TRY**; CHALLENGE is
+> **deferred to V2** (`docs/v2-challenge.md`). The challenge machinery described below is
+> **built, tested and retained**, but quarantined behind `engine/challenge/ChallengePack.kt`
+> and reached by no MVP screen. Three things below now read differently:
+> `Stage` is `{WATCH, TRY}` and progress derives 0 / 50 / 100 (§6.4); `LessonPack` no longer
+> carries `challengeBrief`, `starFamily` or `challengeFactory`; and the `:app` lesson flow ends
+> on `LessonCompleteScreen` rather than a scored Result.
+
 ---
 
 ## 0. The one architectural idea
@@ -517,12 +525,18 @@ pure comparison rather than a special case), but in Try nothing ever calls it wi
 class LessonPack<S : Any, A : Action>(
     val id: AlgorithmId,
     val displayName: String,
-    val challengeBrief: String,
     val algorithm: Algorithm<S, A>,
     val projector: SceneProjector<S>,
     private val watchNarrator: WatchNarrator<S>,
     val watchDataset: Dataset,          // authored
     val tryDataset: Dataset,            // authored, different values
+)
+
+// The challenge-only fields moved to `engine/challenge/ChallengePack.kt` when
+// CHALLENGE was deferred to V2, so nothing on the MVP path carries them:
+class ChallengePack(
+    val id: AlgorithmId,
+    val challengeBrief: String,
     val starFamily: StarFamily,
     private val challengeFactory: (round: Int, seed: Long) -> Challenge,
 )
@@ -540,8 +554,8 @@ only carry an `AlgorithmId`. It stops there: every screen below it is fully type
 Stage completion lives in `:engine` as pure data, so the rule is testable without a device:
 
 ```kotlin
-data class AlgorithmProgress(watchCompleted, tryCompleted, challengeCompleted) {
-    val percent: Int   // 0 / 33 / 66 / 100 — DERIVED, never stored
+data class AlgorithmProgress(watchCompleted, tryCompleted) {
+    val percent: Int   // 0 / 50 / 100 — DERIVED, never stored
 }
 ```
 

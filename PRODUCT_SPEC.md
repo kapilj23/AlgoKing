@@ -5,6 +5,13 @@
 
 > Every other app shows you the algorithm. This one makes you run it.
 
+> **⚠ MVP AMENDMENT — 2026-09-04.** The MVP spine is **WATCH → TRY**. The CHALLENGE
+> stage is **deferred to V2**, not cancelled — see `docs/v2-challenge.md`. The
+> CHALLENGE passages below (§2 · §6 · §7 · §8 · §15) describe the V2 target and are
+> **not** what the MVP ships; where this amendment and a section disagree, the
+> amendment wins. They are retained deliberately: the engine still implements them,
+> and they are what V2 builds from.
+
 This file is the single source of truth for **product behaviour**.
 Technical decisions live in `ARCHITECTURE.md`. Visual decisions live in `DESIGN_SYSTEM.md`.
 Any change to this file requires product-owner approval.
@@ -14,7 +21,8 @@ Any change to this file requires product-owner approval.
 ## 1. Locked principles
 
 ```
-WATCH → TRY → CHALLENGE → RESULT
+MVP:  WATCH → TRY → COMPLETE
+V2:   WATCH → TRY → CHALLENGE → RESULT
 ```
 
 - **Animation teaches.** The animation is not decoration; it is the lesson.
@@ -27,23 +35,28 @@ WATCH → TRY → CHALLENGE → RESULT
 
 ---
 
-## 2. The three learning stages
+## 2. The learning stages
 
-| Stage | Length | The learner's job | Scored |
-|---|---|---|---|
-| **WATCH** | ~60 s | Observe. One optional checkpoint prediction. | No |
-| **TRY** | ~2 min | Same dataset, full guidance, the learner decides. | No |
-| **CHALLENGE** | ~2 min | New dataset, no guidance, metrics HUD. | Yes |
+| Stage | Ships in | Length | The learner's job | Scored |
+|---|---|---|---|---|
+| **WATCH** | **MVP** | ~60 s | Observe, at their own pace. | No |
+| **TRY** | **MVP** | ~2 min | Same dataset, full guidance, the learner decides. | No |
+| **CHALLENGE** | *V2* | ~2 min | New dataset, no guidance, metrics HUD. | Yes |
 
-**There are exactly three stages, and there is no MASTER stage.** Mastery is a *status* —
-awarded on the **Result screen** after a challenge is passed at ★★ or better (§7), and shown
-on the algorithm card on Home. It is never a place the learner navigates to, never a fourth
-node in the stage spine, and never a tab.
+**In the MVP there are exactly two stages, and there is no MASTER stage.** Finishing TRY
+completes the algorithm. The learner lands on **COMPLETE**, which reports what the run was —
+decisions, comparisons, wrong turns — and states the one idea the lesson existed to leave
+behind. The Home card then reads **Completed** at 100 %.
 
-After CHALLENGE the learner lands on **RESULT**: stars, the run metrics, one generated verdict
-line, and either 🏆 Mastered or ⭐ Keep practising.
+**Try is never scored, so COMPLETE has no stars.** Try exists so a learner can be wrong as
+often as they like at no cost; grading that run would turn the guidance ladder into something
+to avoid rather than something to use. Assessment is CHALLENGE's job, and it returns with
+CHALLENGE.
 
-**Try is never scored.** It exists so Challenge can be honest.
+> *V2:* CHALLENGE becomes a third stage, followed by **RESULT** — stars, the run metrics, one
+> generated verdict line, and either 🏆 Mastered or ⭐ Keep practising. Mastery is a *status*
+> awarded there at ★★ or better (§7) and shown on the Home card; it is never a place the
+> learner navigates to, never a node in the stage spine, and never a tab.
 
 ---
 
@@ -213,7 +226,10 @@ advances **with the correct action**, so one mistake cannot cascade into a ruine
 algorithm is never corrupted there either — it simply is not paused to teach.
 
 ---
-## 6. Challenge
+## 6. Challenge — *V2, deferred*
+
+> **Not in the MVP.** This whole section describes the deferred CHALLENGE stage
+> (`docs/v2-challenge.md`). The engine still implements all of it; no MVP screen reaches it.
 
 > **WATCH** — "let me show you." **TRY** — "let's do it together."
 > **CHALLENGE** — "now you do it yourself."
@@ -322,7 +338,11 @@ summarised as one quiet line (`3 checks · 1 missed`). The full picture belongs 
 - Two failed attempts auto-unlock the full walkthrough — free, no ad, no friction.
 
 ---
-## 7. Result & Mastery
+## 7. Result & Mastery — *V2, deferred*
+
+> **Not in the MVP.** Stars, star families and mastery all belong to CHALLENGE
+> (`docs/v2-challenge.md`). The MVP ends a lesson on **COMPLETE**, which reports the run and
+> scores none of it — see §2. `Scorer`, `StarFamily` and `Verdict` remain in `:engine` for V2.
 
 ### Star formulas — three families
 
@@ -362,7 +382,10 @@ scoreboard and a tutor.
 
 ---
 
-## 8. Daily Challenge
+## 8. Daily Challenge — *V2, deferred*
+
+> **Not in the MVP.** Daily Challenge draws on algorithms at ≥ 🎮 Driven and on the challenge
+> generator, so it follows CHALLENGE into V2 (`docs/v2-challenge.md`).
 
 | | Lesson Challenge | Daily Challenge |
 |---|---|---|
@@ -440,7 +463,7 @@ Three tabs. Settings behind a gear in Progress. No search, no profile tab, no sh
 | **Journey** | browse and choose — the full algorithm map by section |
 | **Progress** | proof of work — mastery map, streak calendar, personal bests, achievements |
 
-**Full-screen flows (bottom nav hidden, no ads):** Watch · Try · Challenge · Result ·
+**Full-screen flows (bottom nav hidden, no ads):** Watch · Try · Complete *(MVP)* · Challenge ·
 Code Reveal · Daily Challenge · Onboarding.
 
 **Back-stack rule:** leaving a lesson mid-flow stores `{algorithm, phase, stepIndex}`. Home's
@@ -540,14 +563,21 @@ is a legitimate retention engine for the first year.
 
 ## 15. MVP boundaries
 
-### MUST HAVE — v1.0
-Step-trace engine + Array/Sequence renderer · 9 lessons (Binary Search, The Race, Two Pointers,
-Bubble, Selection, Insertion, Sliding Window, Stack or Queue, +1 buffer) · Watch with full timing
-contract and one insight frame each · Try with guidance ladder + mercy exit · Challenge in both
-formats · wrong-answer consequence on Binary/Two Pointers/Sliding Window/Stack-Queue · Result
-with three star families + verdict line · Code Reveal (display, Java/Python, static ◆) ·
-3-tab nav · Daily Challenge + streak + freeze · local persistence, fully offline · AdMob
-banner + interstitial + 3 rewarded slots + UMP · **dark theme only**.
+### MUST HAVE — MVP
+Step-trace engine + Sequence / Chain / Bucket renderers · **10 lessons** (Binary Search,
+Bubble, Selection, Insertion, Merge, Quick, Stack, Queue, Linked List, Hash Map) ·
+**Watch** as a user-paced walkthrough with one insight frame each · **Try** with the full
+guidance ladder · **Complete**, reporting the run and scoring none of it · progress at
+0 / 50 / 100 · local persistence, fully offline · light theme.
+
+### DEFERRED TO V2 — was MUST HAVE
+**Challenge in both formats · Result with three star families + verdict line · Daily Challenge
++ streak + freeze.** All three depend on the CHALLENGE stage and move together —
+`docs/v2-challenge.md`. The engine machinery for them is built, tested and quarantined.
+
+### NOT YET BUILT — still v1.0 scope
+Code Reveal (display, Java/Python, static ◆) · 3-tab nav (Home is the only destination today) ·
+AdMob banner + interstitial + rewarded + UMP · analytics · notifications · onboarding.
 
 ### SHOULD HAVE — v1.1
 Light theme (fully contrast-validated) · home-screen widget · Rusty + spaced repetition ·

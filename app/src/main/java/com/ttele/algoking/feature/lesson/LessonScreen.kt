@@ -33,11 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.ttele.algoking.ads.InstantRewardedAdHost
-import com.ttele.algoking.ads.Reward
-import com.ttele.algoking.ads.RewardedPlacement
-import com.ttele.algoking.engine.challenge.Challenge
-import com.ttele.algoking.engine.challenge.HintAccess
 import com.ttele.algoking.engine.catalog.LessonPack
 import com.ttele.algoking.engine.decision.Action
 import com.ttele.algoking.engine.core.Dataset
@@ -75,16 +70,14 @@ import com.ttele.algoking.ui.theme.Radius
 import com.ttele.algoking.ui.theme.Spacing
 
 /**
- * The interactive stages — TRY and CHALLENGE.
+ * The interactive stage — TRY.
  *
  * WATCH is a walkthrough and lives in [WatchScreen]; it shares every component on
- * this screen but is driven by NEXT rather than by decisions.
+ * this screen but is driven by NEXT rather than by decisions. Finishing TRY
+ * completes the algorithm and hands over to [LessonCompleteScreen].
  *
- * There is deliberately no MASTER stage. Mastery is the *result* of a completed
- * challenge and lives on the Result screen; it is never a place the learner goes.
- *
- * Chrome, spacing, cards, buttons and the renderer are identical in all three
- * stages, so the sequence reads as one continuous experience — DESIGN_SYSTEM.md §7.
+ * Chrome, spacing, cards, buttons and the renderer are identical in both stages,
+ * so the sequence reads as one continuous experience — DESIGN_SYSTEM.md §7.
  */
 @Composable
 fun <S : Any, A : Action> LessonScreen(
@@ -92,25 +85,20 @@ fun <S : Any, A : Action> LessonScreen(
     pack: LessonPack<S, A>,
     dataset: Dataset,
     modifier: Modifier = Modifier,
-    challenge: Challenge? = null,
     /** Change to start the same problem over from scratch. */
     key: Int = 0,
     onBack: () -> Unit = {},
-    onAdvance: (Phase) -> Unit = {},
-    onFinishChallenge: (LessonController<S, A>) -> Unit = {},
     /** Fired when the learner drives this stage to its terminal state. */
     onStageComplete: () -> Unit = {},
+    /** Fired when TRY finishes, carrying the run for the completion screen. */
+    onFinishLesson: (LessonController<S, A>) -> Unit = {},
 ) {
     val algorithmName = pack.displayName
     val controller = remember(phase, dataset, key) {
-        LessonController(phase, pack, dataset, challenge)
+        LessonController(phase, pack, dataset)
     }
     val ui = controller.ui
     val scroll = rememberScrollState()
-    // The rewarded-hint offer. Local to the screen: declining it must leave no
-    // trace anywhere, least of all in the run being scored.
-    var offeringHint by remember(phase, dataset, key) { mutableStateOf(false) }
-    val adHost = remember { InstantRewardedAdHost() }
 
     // Feedback that lands below the fold has not been given. Bring it into view.
     LaunchedEffect(ui.feedback, ui.wrongTick) {
@@ -122,20 +110,6 @@ fun <S : Any, A : Action> LessonScreen(
     // whether the stage counts as learned.
     LaunchedEffect(ui.finished) {
         if (ui.finished) onStageComplete()
-    }
-
-    if (offeringHint) {
-        HintUnlockDialog(
-            onWatchAd = {
-                offeringHint = false
-                adHost.show(RewardedPlacement.EXTRA_HINT) { reward ->
-                    // The reward is exactly the hint, and only on a completed
-                    // watch. A dismissed ad costs the learner nothing.
-                    if (reward is Reward.Earned) controller.requestHint()
-                }
-            },
-            onDismiss = { offeringHint = false },
-        )
     }
 
     AlgoScreen(modifier) {
@@ -157,31 +131,6 @@ fun <S : Any, A : Action> LessonScreen(
             ) {
                 Gap(Spacing.xxs)
                 StageStepper(stagesFor(phase))
-                ui.mission?.let { mission ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(AlgoColors.surfaceVariant, Radius.card)
-                            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(mission.icon, style = AlgoType.titleMedium)
-                        Gap(Spacing.sm)
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                text = mission.title,
-                                style = AlgoType.labelSmall,
-                                color = AlgoColors.textMuted,
-                            )
-                            Text(
-                                text = mission.goal,
-                                style = AlgoType.titleSmall,
-                                color = AlgoColors.textPrimary,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
                 Gap(Spacing.xxs)
 
                 // ── The lesson card: question, canvas, decision ────────────────
@@ -202,13 +151,10 @@ fun <S : Any, A : Action> LessonScreen(
                             style = AlgoType.headlineLarge,
                             color = AlgoColors.textPrimary,
                         )
-                        // Try leads with the comparison as its headline; Challenge
-                        // leads with the question. Neither repeats itself, and neither
-                        // hints at which half survives — that is the decision.
 
                         Gap(Spacing.md)
-                        // The array itself is the control when the learner has to
-                        // find the middle — Challenge's first decision every round.
+                        // The array itself is the control when the decision is a cell
+                        // rather than a choice between named options.
                         val cellPick = ui.decision?.takeIf { it.kind == DecisionKind.CELL }
                         SceneRenderer(
                             scene = ui.scene,
@@ -221,7 +167,7 @@ fun <S : Any, A : Action> LessonScreen(
                         Gap(Spacing.md)
                         SceneLegend(ui.scene)
 
-                        // The decision, for Try and Challenge. Watch answers itself.
+                        // The decision. Watch answers its own; here the learner does.
                         val decision = ui.decision?.takeIf {
                             it.kind == DecisionKind.OPTIONS
                         }
@@ -273,19 +219,7 @@ fun <S : Any, A : Action> LessonScreen(
                 }
 
                 // ── Teaching and consequence — Try only ───────────────────────
-                Guidance(ui, phase) { controller.dismissFeedback() }
-
-                // The learner should be solving, not watching a dashboard, so the
-                // run is reported as one quiet line (PRODUCT_SPEC.md §6).
-                if (phase == Phase.Challenge && !ui.finished) {
-                    Text(
-                        text = challengeStatus(ui),
-                        style = AlgoType.labelSmall,
-                        color = AlgoColors.textMuted,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                Guidance(ui) { controller.dismissFeedback() }
 
                 Gap(Spacing.xxs)
             }
@@ -295,17 +229,7 @@ fun <S : Any, A : Action> LessonScreen(
                 algorithmName = algorithmName,
                 ui = ui,
                 controller = controller,
-                onAdvance = onAdvance,
-                onFinishChallenge = { onFinishChallenge(controller) },
-                // The free rung goes straight through; anything past it is an
-                // offer the learner can decline.
-                onHint = {
-                    if (ui.hintAccess is HintAccess.Rewarded) {
-                        offeringHint = true
-                    } else {
-                        controller.requestHint()
-                    }
-                },
+                onFinishLesson = { onFinishLesson(controller) },
             )
         }
     }
@@ -321,7 +245,7 @@ fun <S : Any, A : Action> LessonScreen(
  * point at the evidence, ask the reasoning question, then say it plainly.
  */
 @Composable
-private fun Guidance(ui: LessonUiState<*>, phase: Phase, onRetry: () -> Unit) {
+private fun Guidance(ui: LessonUiState<*>, onRetry: () -> Unit) {
     // Once the lesson is over the celebration supersedes step feedback; showing
     // both stacks two green cards on top of each other.
     val feedback = ui.feedback.takeUnless { ui.finished }
@@ -395,11 +319,8 @@ private fun Guidance(ui: LessonUiState<*>, phase: Phase, onRetry: () -> Unit) {
                     // A miscounted middle gets the working, not another nudge.
                     // There is nothing to reason toward in an arithmetic answer,
                     // so withholding it only makes the learner guess.
-                    // Try only. Challenge answers a wrong middle with one neutral
-                    // clue and records the mistake (PRODUCT_SPEC.md §6); handing
-                    // over the working there would be handing over the answer.
                     val midpoint = ui.decision?.midpoint
-                        ?.takeIf { feedback is Feedback.Wrong && phase == Phase.Try }
+                        ?.takeIf { feedback is Feedback.Wrong }
                     if (midpoint != null) {
                         Gap(Spacing.sm)
                         MidpointChip(
@@ -432,7 +353,6 @@ private fun Guidance(ui: LessonUiState<*>, phase: Phase, onRetry: () -> Unit) {
 
 private fun feedbackTitle(feedback: Feedback?): String = when (feedback) {
     is Feedback.Correct -> "Correct"
-    is Feedback.Hint -> "Hint"
     is Feedback.Wrong -> if (feedback.level >= 3) "Here is the reasoning" else "Not quite"
     null -> ""
 }
@@ -443,9 +363,7 @@ private fun <S : Any, A : Action> Controls(
     algorithmName: String,
     ui: LessonUiState<*>,
     controller: LessonController<S, A>,
-    onAdvance: (Phase) -> Unit,
-    onFinishChallenge: () -> Unit,
-    onHint: () -> Unit,
+    onFinishLesson: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -457,7 +375,7 @@ private fun <S : Any, A : Action> Controls(
         if (ui.finished) {
             CelebrationBanner(
                 badge = celebrationBadge(ui),
-                headline = celebrationHeadline(phase, ui, algorithmName),
+                headline = celebrationHeadline(ui, algorithmName),
                 support = celebrationSupport(ui),
                 accent = if (ui.outcome is Outcome.Found) AlgoAccent.Green else AlgoAccent.Violet,
                 stats = celebrationStats(ui),
@@ -467,43 +385,12 @@ private fun <S : Any, A : Action> Controls(
 
         when {
             // The lesson is over — one forward action, lowest on the screen.
-            ui.finished && phase == Phase.Challenge -> PrimaryButton(
-                label = "See results",
+            ui.finished -> PrimaryButton(
+                label = "Finish lesson",
                 modifier = Modifier.fillMaxWidth(),
                 icon = AlgoIcons.ArrowForward,
-                onClick = onFinishChallenge,
+                onClick = onFinishLesson,
             )
-
-            ui.finished && phase == Phase.Try -> PrimaryButton(
-                label = "Take the challenge",
-                modifier = Modifier.fillMaxWidth(),
-                icon = AlgoIcons.ArrowForward,
-                onClick = { onAdvance(Phase.Challenge) },
-            )
-
-            phase == Phase.Challenge -> Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-            ) {
-                // No Undo in Challenge: there is nothing to undo, because a wrong
-                // answer never changed anything.
-                SecondaryButton(
-                    label = "Restart",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = AlgoIcons.Restart,
-                    onClick = controller::restart,
-                )
-                SecondaryButton(
-                    // The label says what the tap costs before it is made. A
-                    // learner should never discover an ad by pressing a button
-                    // that looked free.
-                    label = if (ui.hintAccess is HintAccess.Rewarded) "Hint · ad" else "Hint",
-                    modifier = Modifier.weight(1f),
-                    leadingIcon = AlgoIcons.Bulb,
-                    iconTint = AlgoColors.gold,
-                    onClick = onHint,
-                )
-            }
 
             // No Hint in Try. Try already teaches on every miss — the guidance
             // ladder says more than any hint would, and it arrives without the
@@ -544,12 +431,6 @@ private fun stagesFor(phase: Phase): List<Stage> = Phase.entries.map { stage ->
     )
 }
 
-private fun challengeStatus(ui: LessonUiState<*>): String = buildList {
-    add("${ui.metrics.comparisons} checks")
-    if (ui.mistakes > 0) add("${ui.mistakes} missed")
-    if (ui.hintsUsed > 0) add("${ui.hintsUsed} hints")
-}.joinToString(" · ")
-
 private fun stepLabel(phase: Phase, ui: LessonUiState<*>): String = when {
     ui.finished -> phase.label + " complete"
     else -> "${phase.label} · comparison ${ui.step.coerceAtLeast(1)}"
@@ -558,10 +439,9 @@ private fun stepLabel(phase: Phase, ui: LessonUiState<*>): String = when {
 private fun headline(phase: Phase, ui: LessonUiState<*>): String = when {
     ui.outcome is Outcome.Found -> "Found it."
     ui.outcome is Outcome.NotFound -> "Not in this array."
-    // Try leads with what the algorithm just showed you, then asks. Challenge
-    // leads with the question and says nothing else — no "now check the middle".
+    // Try leads with what the algorithm just showed you, then asks — except when
+    // the array itself is the control, where the question has to be the headline.
     ui.decision != null -> when {
-        phase == Phase.Challenge -> ui.decision.prompt
         ui.decision.kind == DecisionKind.CELL -> ui.decision.prompt
         else -> ui.narration
     }
@@ -571,25 +451,23 @@ private fun headline(phase: Phase, ui: LessonUiState<*>): String = when {
 
 // ── The celebration copy ─────────────────────────────────────────────────────
 //
-// Generated from the run, so it congratulates something real. A learner who used
-// three hints should not be told they nailed it.
+// Generated from the run, so it congratulates something real. A learner who took
+// four wrong turns should not be told they nailed it.
 
 private fun celebrationBadge(ui: LessonUiState<*>): String = when {
     ui.outcome is Outcome.NotFound -> "PROVED IT"
-    ui.metrics.wrongDecisions == 0 && ui.metrics.hintsUsed == 0 -> "PERFECT"
+    ui.metrics.wrongDecisions == 0 -> "PERFECT"
     else -> "FOUND IT"
 }
 
 private fun celebrationHeadline(
-    phase: Phase,
     ui: LessonUiState<*>,
     algorithmName: String,
 ): String = when {
     ui.outcome is Outcome.NotFound -> "Not there — and you proved it."
     // Naming the lesson is worth doing once, at the moment it is finished. It has
     // to be *this* lesson's name, which is why it comes from the pack.
-    ui.metrics.wrongDecisions == 0 && ui.metrics.hintsUsed == 0 ->
-        if (phase == Phase.Try) "You ran $algorithmName." else "Clean run."
+    ui.metrics.wrongDecisions == 0 -> "You ran $algorithmName."
 
     ui.metrics.wrongDecisions <= 1 -> "You've got this."
     else -> "You got there."
@@ -597,7 +475,7 @@ private fun celebrationHeadline(
 
 /**
  * The closing line is built from what the run actually cost, and it has to work for
- * nine different lessons — so it counts *decisions*, which every lesson has, rather
+ * ten different lessons — so it counts *decisions*, which every lesson has, rather
  * than array positions, which not every lesson has.
  */
 private fun celebrationSupport(ui: LessonUiState<*>): String {
@@ -608,11 +486,8 @@ private fun celebrationSupport(ui: LessonUiState<*>): String {
         ui.outcome is Outcome.NotFound ->
             "Proving something is absent is an answer. That is the half most people miss."
 
-        ui.metrics.wrongDecisions == 0 && ui.metrics.hintsUsed == 0 ->
+        ui.metrics.wrongDecisions == 0 ->
             "$effort, and not one wrong turn."
-
-        ui.metrics.hintsUsed > 0 ->
-            "$effort, with a little help. Next time, cold."
 
         else -> "$effort. The wrong turns are where it stuck — go back and see why."
     }
@@ -622,8 +497,5 @@ private fun celebrationStats(ui: LessonUiState<*>): List<String> = buildList {
     // Only what the sentence above did not already say.
     if (ui.metrics.wrongDecisions > 0) {
         add("${ui.metrics.wrongDecisions} wrong turn${if (ui.metrics.wrongDecisions == 1) "" else "s"}")
-    }
-    if (ui.metrics.hintsUsed > 0) {
-        add("${ui.metrics.hintsUsed} hint${if (ui.metrics.hintsUsed == 1) "" else "s"}")
     }
 }

@@ -16,41 +16,36 @@ import androidx.compose.ui.platform.LocalContext
 import com.ttele.algoking.data.ProgressRepository
 import com.ttele.algoking.engine.catalog.AlgorithmCatalog
 import com.ttele.algoking.engine.catalog.LessonPack
-import com.ttele.algoking.engine.challenge.ChallengeRun
 import com.ttele.algoking.engine.core.AlgorithmId
 import com.ttele.algoking.engine.decision.Action
+import com.ttele.algoking.engine.event.Metrics
 import com.ttele.algoking.engine.progress.LearningProgress
 import com.ttele.algoking.engine.progress.Stage
-import com.ttele.algoking.engine.scoring.ScoreInput
-import com.ttele.algoking.engine.scoring.ScoreResult
-import com.ttele.algoking.engine.scoring.Scorer
-import com.ttele.algoking.feature.lesson.ChallengeIntroScreen
+import com.ttele.algoking.feature.complete.LessonCompleteScreen
 import com.ttele.algoking.feature.lesson.LessonScreen
-import com.ttele.algoking.feature.lesson.MissionIntroScreen
-import com.ttele.algoking.feature.mission.MissionChallengeScreen
-import com.ttele.algoking.engine.challenge.toChallengeRun
 import com.ttele.algoking.feature.lesson.Phase
 import com.ttele.algoking.feature.lesson.WatchScreen
-import com.ttele.algoking.feature.result.ResultScreen
 import com.ttele.algoking.ui.screens.HomeScreen
 import com.ttele.algoking.ui.theme.AlgoKingTheme
 import kotlinx.coroutines.launch
 
 /**
- * Navigation for the vertical slice.
+ * Navigation for the MVP.
  *
- * The learning spine is WATCH → TRY → CHALLENGE → RESULT, and it is the *same*
- * spine for every algorithm — the route holds an [AlgorithmId], and the screens
- * read everything else from that algorithm's `LessonPack`. There is no Master
- * destination: mastery is a status printed on [Route.Result].
+ * The learning spine is **WATCH → TRY → COMPLETE**, and it is the *same* spine for
+ * every algorithm — the route holds an [AlgorithmId], and the screens read
+ * everything else from that algorithm's `LessonPack`.
+ *
+ * CHALLENGE is deferred to V2 (`docs/v2-challenge.md`). There is deliberately no
+ * placeholder route for it: a destination that exists but does nothing is worse
+ * than one that does not exist, and the engine keeps the challenge machinery ready
+ * behind `ChallengeCatalog` for when the stage is designed properly.
  */
 private sealed interface Route {
     data object Home : Route
     data class Watch(val algorithm: AlgorithmId) : Route
     data class TryIt(val algorithm: AlgorithmId) : Route
-    data class ChallengeIntro(val algorithm: AlgorithmId) : Route
-    data class Challenge(val algorithm: AlgorithmId) : Route
-    data class Result(val algorithm: AlgorithmId) : Route
+    data class Complete(val algorithm: AlgorithmId) : Route
 }
 
 class MainActivity : ComponentActivity() {
@@ -66,7 +61,7 @@ private fun AlgoKingApp() {
     var route by remember { mutableStateOf<Route>(Route.Home) }
 
     // The one source of truth for how far each algorithm has been learned. It is
-    // read as a flow, so a stage finished three screens deep reaches Home's rings
+    // read as a flow, so a stage finished two screens deep reaches Home's rings
     // on the next frame — no restart, no manual refresh.
     val context = LocalContext.current
     val progressRepository = remember(context) { ProgressRepository(context) }
@@ -76,32 +71,22 @@ private fun AlgoKingApp() {
         scope.launch { progressRepository.complete(id, stage) }
     }
 
-    // Round drives difficulty; seed drives the data. Bumping the seed alone gives a
-    // *new* problem at the same difficulty ("practice again"); keeping both replays
-    // the identical one ("try again").
-    var round by remember { mutableIntStateOf(1) }
-    var seed by remember { mutableIntStateOf(1) }
+    // Bumped to start a stage over from scratch rather than resuming a finished run.
     var attempt by remember { mutableIntStateOf(0) }
 
-    var lastRun by remember { mutableStateOf<ChallengeRun?>(null) }
-    // How the search space fell, round by round — the efficiency story the
-    // result screen tells.
-    var missionTrail by remember { mutableStateOf<List<Int>>(emptyList()) }
-    var score by remember { mutableStateOf<ScoreResult?>(null) }
+    // What the finished lesson cost, for the completion screen.
+    var lastRun by remember { mutableStateOf<Metrics?>(null) }
 
     when (val current = route) {
         Route.Home -> HomeScreen(
             progress = progress,
             onOpenAlgorithm = { entry ->
-                round = 1
-                seed = 1
                 attempt = 0
                 // Resume where the learner actually left off. A finished algorithm
-                // reopens at Watch, because re-reading is what "practice again"
-                // means before a fresh challenge.
+                // reopens at Watch, because re-reading is what practising it again
+                // means once there is nothing left to unlock.
                 route = when (progress[entry.id].nextStage) {
                     Stage.TRY -> Route.TryIt(entry.id)
-                    Stage.CHALLENGE -> Route.ChallengeIntro(entry.id)
                     else -> Route.Watch(entry.id)
                 }
             },
@@ -120,148 +105,64 @@ private fun AlgoKingApp() {
 
         is Route.TryIt -> LessonFlow(current.algorithm) { pack ->
             LessonScreen(
+                // `attempt` re-keys the controller so "try again" starts the stage
+                // from scratch rather than resuming a finished run.
+                key = attempt,
                 phase = Phase.Try,
                 pack = pack,
                 dataset = pack.tryDataset,
                 onBack = { route = Route.Home },
-                onAdvance = { route = Route.ChallengeIntro(current.algorithm) },
+                // Reaching the terminal state is what counts. Wrong turns shape the
+                // guidance the learner got; they never decide whether it was learned.
                 onStageComplete = { markComplete(current.algorithm, Stage.TRY) },
-            )
-        }
-
-        // The briefing. A lesson with a mission gets the situation; one without
-        // gets the bare brief. Neither explains the algorithm.
-        is Route.ChallengeIntro -> LessonFlow(current.algorithm) { pack ->
-            val challenge = remember(pack.id, round, seed) {
-                pack.challenge(round, seed.toLong())
-            }
-            val mission = challenge.mission
-            if (mission != null) {
-                MissionIntroScreen(
-                    mission = mission,
-                    algorithmName = pack.displayName,
-                    onBack = { route = Route.TryIt(current.algorithm) },
-                    onStart = { route = Route.Challenge(current.algorithm) },
-                )
-            } else {
-                ChallengeIntroScreen(
-                    challenge = challenge,
-                    algorithmName = pack.displayName,
-                    brief = pack.challengeBrief,
-                    onBack = { route = Route.TryIt(current.algorithm) },
-                    onStart = { route = Route.Challenge(current.algorithm) },
-                )
-            }
-        }
-
-        is Route.Challenge -> LessonFlow(current.algorithm) { pack ->
-            val challenge = remember(pack.id, round, seed) { pack.challenge(round, seed.toLong()) }
-            val mission = challenge.mission
-            if (mission != null) {
-                // A mission runs its own three-gate loop. It still reports the
-                // same ChallengeRun, so scoring, the result screen and progress
-                // need no branch of their own.
-                MissionChallengeScreen(
-                    mission = mission,
-                    algorithmName = pack.displayName,
-                    attempt = attempt,
-                    onBack = { route = Route.ChallengeIntro(current.algorithm) },
-                    onStageComplete = { markComplete(current.algorithm, Stage.CHALLENGE) },
-                    onComplete = { run ->
-                        val summary = run.toChallengeRun(challenge)
-                        lastRun = summary
-                        missionTrail = run.trail
-                        score = Scorer.score(
-                            ScoreInput(
-                                family = pack.starFamily,
-                                metrics = summary.toMetrics(),
-                                optimalComparisons = challenge.optimalComparisons,
-                                completed = true,
-                            ),
-                        )
-                        route = Route.Result(current.algorithm)
-                    },
-                )
-                return@LessonFlow
-            }
-            LessonScreen(
-                // `attempt` re-keys the controller so "try again" starts the same
-                // problem from scratch rather than resuming a finished run.
-                key = attempt,
-                phase = Phase.Challenge,
-                pack = pack,
-                dataset = challenge.dataset,
-                challenge = challenge,
-                onBack = { route = Route.ChallengeIntro(current.algorithm) },
-                // Solving it is what counts. Mistakes and hints shape the stars on
-                // the result screen; they never decide whether it was learned.
-                onStageComplete = { markComplete(current.algorithm, Stage.CHALLENGE) },
-                onFinishChallenge = { controller ->
-                    val run = controller.runSummary() ?: return@LessonScreen
-                    lastRun = run
-                    score = Scorer.score(
-                        ScoreInput(
-                            family = pack.starFamily,
-                            metrics = run.toMetrics(),
-                            optimalComparisons = challenge.optimalComparisons,
-                            completed = true,
-                        ),
-                    )
-                    route = Route.Result(current.algorithm)
+                onFinishLesson = { controller ->
+                    lastRun = controller.finalMetrics()
+                    route = Route.Complete(current.algorithm)
                 },
             )
         }
 
-        is Route.Result -> {
-            val run = lastRun
-            val result = score
-            if (run == null || result == null) {
-                route = Route.Home
-            } else {
-                LessonFlow(current.algorithm) { pack ->
-                    ResultScreen(
-                        algorithmName = pack.displayName,
-                        algorithmId = pack.id,
-                        run = run,
-                        score = result,
-                        onBack = { route = Route.Home },
-                        onTryAgain = {
-                            // Same problem, fresh run.
-                            attempt += 1
-                            route = Route.Challenge(current.algorithm)
-                        },
-                        onPracticeAgain = {
-                            // A genuinely new problem, one difficulty step along.
-                            round += 1
-                            seed += 1
-                            attempt += 1
-                            route = Route.ChallengeIntro(current.algorithm)
-                        },
-                        onNextAlgorithm = {
-                            val next = when (current.algorithm) {
-                                AlgorithmId.BINARY_SEARCH -> AlgorithmId.BUBBLE_SORT
-                                AlgorithmId.BUBBLE_SORT -> AlgorithmId.SELECTION_SORT
-                                AlgorithmId.SELECTION_SORT -> AlgorithmId.INSERTION_SORT
-                                AlgorithmId.INSERTION_SORT -> AlgorithmId.MERGE_SORT
-                                AlgorithmId.MERGE_SORT -> AlgorithmId.QUICK_SORT
-                                // Sorting hands over to the structures, and the
-                                // Queue follows the Stack so the contrast lands.
-                                AlgorithmId.QUICK_SORT -> AlgorithmId.STACK
-                                AlgorithmId.STACK -> AlgorithmId.QUEUE
-                                AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
-                                AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP
-                                AlgorithmId.HASH_MAP -> AlgorithmId.BINARY_SEARCH
-                            }
-                            round = 1
-                            seed = 1
-                            attempt = 0
-                            route = Route.Watch(next)
-                        },
-                    )
-                }
-            }
+        is Route.Complete -> LessonFlow(current.algorithm) { pack ->
+            LessonCompleteScreen(
+                algorithmName = pack.displayName,
+                algorithmId = pack.id,
+                metrics = lastRun ?: Metrics.EMPTY,
+                onHome = { route = Route.Home },
+                onWatchAgain = {
+                    attempt += 1
+                    route = Route.Watch(current.algorithm)
+                },
+                onTryAgain = {
+                    attempt += 1
+                    route = Route.TryIt(current.algorithm)
+                },
+                onNextAlgorithm = {
+                    attempt = 0
+                    route = Route.Watch(nextAlgorithm(current.algorithm))
+                },
+            )
         }
     }
+}
+
+/**
+ * The order the library teaches in.
+ *
+ * Searching first, then the three elementary sorts, then the two divide-and-conquer
+ * sorts, then the structures — with Queue immediately after Stack so the contrast
+ * lands while the first one is still fresh.
+ */
+private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
+    AlgorithmId.BINARY_SEARCH -> AlgorithmId.BUBBLE_SORT
+    AlgorithmId.BUBBLE_SORT -> AlgorithmId.SELECTION_SORT
+    AlgorithmId.SELECTION_SORT -> AlgorithmId.INSERTION_SORT
+    AlgorithmId.INSERTION_SORT -> AlgorithmId.MERGE_SORT
+    AlgorithmId.MERGE_SORT -> AlgorithmId.QUICK_SORT
+    AlgorithmId.QUICK_SORT -> AlgorithmId.STACK
+    AlgorithmId.STACK -> AlgorithmId.QUEUE
+    AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
+    AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP
+    AlgorithmId.HASH_MAP -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

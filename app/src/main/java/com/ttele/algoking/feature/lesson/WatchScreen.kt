@@ -69,7 +69,7 @@ import com.ttele.algoking.ui.theme.Spacing
  * (`WatchScript`), paired with the one sentence that explains it.
  *
  * The chrome, cards, renderer, legend and buttons are the same components Try and
- * Challenge use — only the interaction differs.
+ * Try use — only the interaction differs.
  */
 @Composable
 fun <S : Any, A : Action> WatchScreen(

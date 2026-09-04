@@ -62,7 +62,7 @@ fun HomeScreen(
     // not yet mastered. Nothing is hardcoded, so an untouched install highlights
     // nothing rather than pretending at a favourite.
     val inProgress = remember(progress) {
-        algorithmLibrary.firstOrNull { progress[it.id].started && !progress[it.id].mastered }
+        algorithmLibrary.firstOrNull { progress[it.id].started && !progress[it.id].finished }
     }
     var selectedCategory by remember { mutableStateOf(algorithmCategories.first()) }
     val visible = remember(selectedCategory) {

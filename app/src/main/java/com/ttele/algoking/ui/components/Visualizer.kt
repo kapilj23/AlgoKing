@@ -134,17 +134,6 @@ fun ArrayCell(value: Int, modifier: Modifier = Modifier) {
     }
 }
 
-/** The static row of cells under an instruction. */
-@Composable
-fun ArrayCellRow(values: List<Int>, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-    ) {
-        values.forEach { ArrayCell(it, Modifier.weight(1f)) }
-    }
-}
-
 /**
  * The live canvas: the dashed swap arc and its index labels above a row of bars.
  *
@@ -386,49 +375,3 @@ private fun StageNode(index: Int, state: StageState) {
     }
 }
 
-/**
- * Challenge progress dots — DESIGN_SYSTEM.md §6.15.
- * The same completed-green / current-outline / upcoming-lavender language as the
- * stepper, at a smaller scale.
- */
-@Composable
-fun ChallengeDots(total: Int, completed: Int, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        repeat(total) { index ->
-            if (index > 0) {
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(Dimens.dotRail)
-                        .background(
-                            if (index <= completed) AlgoColors.success else AlgoColors.primarySoft,
-                        ),
-                )
-            }
-            when {
-                index < completed -> Box(
-                    Modifier
-                        .size(Dimens.dotComplete)
-                        .background(AlgoColors.success, Radius.pill),
-                )
-
-                index == completed -> Box(
-                    Modifier
-                        .size(Dimens.dotCurrent)
-                        .background(AlgoColors.surface, Radius.pill)
-                        .border(3.dp, AlgoColors.success, Radius.pill),
-                )
-
-                else -> Box(
-                    Modifier
-                        .size(Dimens.dotUpcoming)
-                        .background(AlgoColors.primarySoft, Radius.pill)
-                        .border(Dimens.hairline, AlgoColors.borderStrong, Radius.pill),
-                )
-            }
-        }
-    }
-}

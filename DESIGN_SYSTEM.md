@@ -7,6 +7,11 @@
 > The v1 dark system is superseded and archived at `docs/DESIGN_SYSTEM_v1_dark_superseded.md`.
 > The reference is a **light, bright, premium** system. Where v1 and the reference disagree, the reference wins.
 
+> **⚠ MVP AMENDMENT — 2026-09-04.** CHALLENGE is **deferred to V2**
+> (`docs/v2-challenge.md`), so the stage spine is **two nodes, not three**: `StageStepper`
+> renders Watch · Try. §6.14, §6.15 and §7 below are amended in place. `ChallengeDots` and the
+> Practice/Challenge screen composition are removed from the system; they return with V2.
+
 ---
 
 ## 0. The visual identity, read off the reference
@@ -352,21 +357,25 @@ in `textSecondary`, 20dp between entries. Always four entries, always in this or
 **Comparing · Next · Sorted · Checked.**
 
 ### 6.14 Stage stepper — `StageStepper`
-**Exactly three nodes — Watch · Try · Challenge — joined by a 2dp connector**, labels
-`labelMedium` beneath. There is no fourth node: mastery is a status on the Result screen
-(`PRODUCT_SPEC.md` §2), not a stage, so it must never appear in this component.
+**Exactly two nodes — Watch · Try — joined by a 2dp connector**, labels `labelMedium`
+beneath. The component renders one node per `Phase`, so it is the spine and never a picture of
+it: when CHALLENGE returns in V2 a third node appears with no change here. There is no
+MASTER node — completion is a status on the Complete screen (`PRODUCT_SPEC.md` §2), not a
+stage, so it must never appear in this component.
 - **Complete:** 30dp `success` circle, white check. The connector leaving it is a **green → violet
   gradient** into the current node.
 - **Current:** 30dp `primary` gradient circle, white numeral, label in `textPrimary` at 700.
 - **Upcoming:** 30dp `surface` circle, 1.5dp `borderStrong`, numeral in `textSecondary`,
   connector `border`, label `textMuted`.
 
-### 6.15 Challenge progress dots — `ChallengeDots`
+### 6.15 Challenge progress dots — `ChallengeDots` *(V2, removed)*
+*Removed with the CHALLENGE stage — `docs/v2-challenge.md`. Restore when the stage returns:*
 N nodes on a 2dp rail. Complete: 14dp filled `success` dot on a `success` rail.
 Current: 18dp `surface` dot with a 3dp `success` outline. Upcoming: 12dp `#DBD6F9` dot on a
 `primarySoft` rail.
 
-### 6.16 Challenge card — `ChallengeCard`
+### 6.16 Challenge card — `ChallengeCard` *(V2, not built)*
+*The Practice screen it anchors is deferred — `docs/v2-challenge.md`.*
 The Practice hero: full width, `surfaceVariant`, `Radius.card`, 20dp padding. Holds the
 `titleMedium` "Challenge n / N" in **`primary`**, the dots, and then a nested **white
 instruction card** (`surface`, `Radius.card`, 16dp padding) containing `bodyLarge` copy and the
@@ -545,20 +554,32 @@ section · 12dp between cards.
 3. Navigation is a bare icon button, never a filled one.
 4. The forward action is always the lowest element on the screen.
 
-### The stage spine is three nodes
+### The stage spine is two nodes
 
-`WATCH → TRY → CHALLENGE`, then the Result screen. All three stages use the **same**
-header, stepper, card, renderer, legend, decision buttons and transport row — only the
-content and the amount of guidance change. That sameness is the point: the learner should
-not feel they have moved to a different product between stages.
+`WATCH → TRY`, then the Complete screen. Both stages use the **same** header, stepper, card,
+renderer, legend, decision buttons and transport row — only the content and the amount of
+guidance change. That sameness is the point: the learner should not feel they have moved to a
+different product between stages.
 
-| | Watch | Try | Challenge |
+| | Watch | Try | *Challenge (V2)* |
 |---|---|---|---|
-| Who answers the decision | the walkthrough script | the learner, guided | the learner, alone |
-| Guidance card | — | why-wrong, hint, consequence | — |
-| HUD | — | — | `MetricRow` (comparisons · wrong · hints) |
-| Transport | *(Back) · **Next*** — no play control | Restart · Hint · Undo | Restart · Hint · Undo |
-| Forward action | "Start Try" | "Take the challenge" | "See results" |
+| Who answers the decision | the walkthrough script | the learner, guided | *the learner, alone* |
+| Guidance card | — | why-wrong, consequence | *—* |
+| HUD | — | — | *`MetricRow` (comparisons · wrong · hints)* |
+| Transport | *(Back) · **Next*** — no play control | Restart · Undo | *Restart · Hint · Undo* |
+| Forward action | "Start Try" | "Finish lesson" | *"See results"* |
+
+There is **no Hint control in Try**, and that is deliberate rather than an omission: Try teaches
+on every miss through the guidance ladder, which says more than a hint would and arrives without
+the learner having to admit defeat to ask for it. Hints belong to Challenge, and return with it.
+
+### The Complete screen
+
+The end of a lesson. It reports what the run *was* — decisions, comparisons, wrong turns, in a
+`MetricRow` — states the one idea the lesson existed to leave behind, and **shows no stars**:
+Try is never scored (`PRODUCT_SPEC.md` §2). Chrome is the same header and the same cards as
+every other screen; the forward action is `Next algorithm`, with `Watch again` and `Try again`
+as white `SecondaryButton`s beneath it.
 
 ### The learning screen must read COMPARE → DECISION → RESULT
 The reference already encodes this as a top-to-bottom sequence, and it must stay in this order:

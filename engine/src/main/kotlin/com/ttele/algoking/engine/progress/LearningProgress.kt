@@ -3,40 +3,40 @@ package com.ttele.algoking.engine.progress
 import com.ttele.algoking.engine.core.AlgorithmId
 
 /**
- * The three learning stages — PRODUCT_SPEC.md §2.
+ * The two learning stages — PRODUCT_SPEC.md §2.
  *
- * There is no fourth. Mastery is the *result* of finishing [CHALLENGE], not a place
- * the learner goes.
+ * The MVP spine is **WATCH → TRY**, and an algorithm with both finished is
+ * complete. CHALLENGE is deferred to V2 (`docs/v2-challenge.md`); when it lands
+ * it becomes a third entry here and [AlgorithmProgress.percent] starts counting
+ * in thirds again, because the percentage is derived rather than stored.
  */
-enum class Stage { WATCH, TRY, CHALLENGE }
+enum class Stage { WATCH, TRY }
 
 /**
  * How far one algorithm has been learned.
  *
- * The three booleans are the **only** stored state. [percent] is derived from them
- * on every read, which is what makes it impossible for a stored number to drift out
+ * The booleans are the **only** stored state. [percent] is derived from them on
+ * every read, which is what makes it impossible for a stored number to drift out
  * of step with the stages it is supposed to summarise.
  */
 data class AlgorithmProgress(
     val watchCompleted: Boolean = false,
     val tryCompleted: Boolean = false,
-    val challengeCompleted: Boolean = false,
 ) {
     val completedStages: Int
-        get() = listOf(watchCompleted, tryCompleted, challengeCompleted).count { it }
+        get() = listOf(watchCompleted, tryCompleted).count { it }
 
     /**
-     * 0 / 33 / 66 / 100.
+     * 0 / 50 / 100.
      *
      * Counted rather than ordered on purpose: whatever order the stages are
-     * completed in, two of three finished is always two thirds of the way, and the
-     * number can never disagree with the flags.
+     * completed in, one of two finished is always half way, and the number can
+     * never disagree with the flags.
      */
     val percent: Int
         get() = when (completedStages) {
             0 -> 0
-            1 -> 33
-            2 -> 66
+            1 -> 50
             else -> 100
         }
 
@@ -44,36 +44,33 @@ data class AlgorithmProgress(
 
     val started: Boolean get() = completedStages > 0
 
-    /** True only once all three are done. Practising again never changes it. */
-    val mastered: Boolean get() = completedStages == Stage.entries.size
+    /** True only once every stage is done. Practising again never changes it. */
+    val finished: Boolean get() = completedStages == Stage.entries.size
 
     /** Where the learner should be taken next. Null once there is nothing left. */
     val nextStage: Stage?
         get() = when {
             !watchCompleted -> Stage.WATCH
             !tryCompleted -> Stage.TRY
-            !challengeCompleted -> Stage.CHALLENGE
             else -> null
         }
 
     fun isComplete(stage: Stage): Boolean = when (stage) {
         Stage.WATCH -> watchCompleted
         Stage.TRY -> tryCompleted
-        Stage.CHALLENGE -> challengeCompleted
     }
 
     /**
      * Records a stage as finished.
      *
-     * **Only ever sets a flag, never clears one.** Retrying a stage, failing a
-     * challenge, or practising a mastered algorithm again therefore cannot take
-     * progress away — which is the whole reason completion is stored as three
-     * latches rather than as a position in a sequence.
+     * **Only ever sets a flag, never clears one.** Retrying a stage or running a
+     * finished algorithm again therefore cannot take progress away — which is the
+     * whole reason completion is stored as latches rather than as a position in a
+     * sequence.
      */
     fun complete(stage: Stage): AlgorithmProgress = when (stage) {
         Stage.WATCH -> copy(watchCompleted = true)
         Stage.TRY -> copy(tryCompleted = true)
-        Stage.CHALLENGE -> copy(challengeCompleted = true)
     }
 
     companion object {
@@ -109,9 +106,9 @@ value class LearningProgress(private val byAlgorithm: Map<AlgorithmId, Algorithm
 /**
  * How progress is written down — one flat key per completed stage.
  *
- * Kept here, beside the model and away from Android, so the persistence *rules* can
- * be tested without a device: a key that no longer maps to a known algorithm or
- * stage is ignored rather than crashing, and encode/decode round-trips exactly.
+ * Kept here, beside the model and away from Android, so the persistence *rules*
+ * can be tested without a device: a key that no longer maps to a known algorithm
+ * or stage is ignored rather than crashing, and encode/decode round-trips exactly.
  */
 object ProgressCodec {
 
@@ -137,7 +134,9 @@ object ProgressCodec {
     /**
      * An unknown name is a renamed or removed algorithm from an older install, not
      * a bug. Dropping the key silently is the only behaviour that lets someone
-     * update the app without losing the progress that *is* still valid.
+     * update the app without losing the progress that *is* still valid — and it is
+     * what lets an install that recorded `:CHALLENGE` before that stage was
+     * deferred to V2 keep its WATCH and TRY progress instead of failing to load.
      */
     private inline fun <reified E : Enum<E>> enumOrNull(name: String): E? =
         enumValues<E>().firstOrNull { it.name == name }

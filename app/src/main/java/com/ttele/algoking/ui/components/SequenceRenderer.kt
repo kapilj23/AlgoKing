@@ -707,7 +707,7 @@ private fun LegendEntry(color: Color, label: String) {
  * size and the layout gives way instead — a warehouse looks like a warehouse.
  *
  * There is no index rail and no `left`/`right` rail. Watch showed the arithmetic
- * and Try practised it; a Challenge that numbers the boxes has done the counting
+ * and Try practises it; numbering the boxes would do the counting
  * for the learner. What a box does carry is its own pointer tag, because a
  * shared rail cannot point at something three rows down.
  */

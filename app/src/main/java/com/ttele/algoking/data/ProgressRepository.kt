@@ -42,7 +42,7 @@ class ProgressRepository(private val store: DataStore<Preferences>) {
      * Records one stage as finished.
      *
      * Additive by construction — the stored set only ever grows — so a retry, a
-     * failed challenge or a repeat practice run cannot subtract progress.
+     * or a repeat practice run cannot subtract progress.
      */
     suspend fun complete(id: AlgorithmId, stage: Stage) {
         store.edit { prefs ->

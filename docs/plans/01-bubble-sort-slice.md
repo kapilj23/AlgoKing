@@ -3,6 +3,10 @@
 **Goal:** one algorithm working completely — Home → Hub → Watch → Try → Challenge → Result →
 Code — building the engine, renderer and design system only as far as this slice needs.
 
+> **⚠ Superseded in part — 2026-09-04.** CHALLENGE is deferred to V2 (`docs/v2-challenge.md`),
+> so §1 "Challenge — Format B, Pass Prediction", step 7, and the challenge acceptance criteria
+> below are V2 work. The rest of the slice shipped.
+
 **Explicit non-goal:** anything general. No second algorithm, no Daily Challenge, no ads, no
 analytics, no Journey chapter bands beyond one row, no light theme. Slice 2 (Binary Search) is
 what proves the architecture generalises; slice 1 only has to prove it *works*.

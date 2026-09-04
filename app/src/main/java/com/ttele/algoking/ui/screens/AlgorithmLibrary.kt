@@ -124,11 +124,11 @@ val algorithmLibrary = listOf(
  * Turns learning progress into the card's right-hand slot.
  *
  * The label names the *stage boundary* the learner is standing on, so the ring and
- * the words say the same thing: 33 % reads as "Watch done", not as a number with no
- * meaning attached to it.
+ * the words say the same thing: 50 % reads as "Watch done", not as a number with no
+ * meaning attached to it. The MVP has two stages, so the boundary is 50 %.
  */
 fun statusFor(progress: AlgorithmProgress): AlgorithmStatus = when {
-    progress.mastered -> AlgorithmStatus.Mastered()
+    progress.finished -> AlgorithmStatus.Completed()
     progress.tryCompleted -> AlgorithmStatus.InProgress(progress.percent, "Try done")
     progress.watchCompleted -> AlgorithmStatus.InProgress(progress.percent, "Watch done")
     progress.started -> AlgorithmStatus.InProgress(progress.percent)

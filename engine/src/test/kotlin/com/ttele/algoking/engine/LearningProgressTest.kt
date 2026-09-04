@@ -15,54 +15,48 @@ import org.junit.Test
 /**
  * Learning progress.
  *
- * The percentage is derived, never stored, so these tests are the specification:
- * if the table below and the code ever disagree, the code is wrong.
+ * The MVP spine is WATCH → TRY, so the percentage is derived over two stages.
+ * It is derived, never stored, so these tests are the specification: if the table
+ * below and the code ever disagree, the code is wrong.
  */
 class LearningProgressTest {
 
-    // ── The derivation table ──────────────────────────────────────────────────
+    // -- The derivation table -------------------------------------------------
 
     @Test
     fun `nothing completed is zero percent`() {
-        assertEquals(0, AlgorithmProgress(false, false, false).percent)
+        assertEquals(0, AlgorithmProgress(false, false).percent)
     }
 
     @Test
-    fun `watch alone is a third`() {
-        assertEquals(33, AlgorithmProgress(true, false, false).percent)
+    fun `watch alone is half`() {
+        assertEquals(50, AlgorithmProgress(true, false).percent)
     }
 
     @Test
-    fun `watch and try are two thirds`() {
-        assertEquals(66, AlgorithmProgress(true, true, false).percent)
+    fun `watch and try are complete`() {
+        assertEquals(100, AlgorithmProgress(true, true).percent)
     }
 
     @Test
-    fun `all three are complete`() {
-        assertEquals(100, AlgorithmProgress(true, true, true).percent)
-    }
-
-    @Test
-    fun `the percentage only ever takes one of four values`() {
+    fun `the percentage only ever takes one of three values`() {
         val seen = mutableSetOf<Int>()
         for (w in listOf(false, true)) {
             for (t in listOf(false, true)) {
-                for (c in listOf(false, true)) {
-                    seen += AlgorithmProgress(w, t, c).percent
-                }
+                seen += AlgorithmProgress(w, t).percent
             }
         }
-        // Never 50%, never 25%, never a number derived from taps or time.
-        assertEquals(setOf(0, 33, 66, 100), seen)
+        // Never 33%, never 25%, never a number derived from taps or time.
+        assertEquals(setOf(0, 50, 100), seen)
     }
 
     @Test
-    fun `mastered means all three, not merely opened`() {
-        assertFalse(AlgorithmProgress(true, true, false).mastered)
-        assertTrue(AlgorithmProgress(true, true, true).mastered)
+    fun `finished means both stages, not merely opened`() {
+        assertFalse(AlgorithmProgress(true, false).finished)
+        assertTrue(AlgorithmProgress(true, true).finished)
     }
 
-    // ── Progress can never go backwards ───────────────────────────────────────
+    // -- Progress can never go backwards --------------------------------------
 
     @Test
     fun `completing a stage twice changes nothing`() {
@@ -71,13 +65,12 @@ class LearningProgressTest {
     }
 
     @Test
-    fun `practising a mastered algorithm again keeps it at a hundred`() {
+    fun `practising a finished algorithm again keeps it at a hundred`() {
         var p = AlgorithmProgress.NONE
             .complete(Stage.WATCH)
             .complete(Stage.TRY)
-            .complete(Stage.CHALLENGE)
         // Three more practice runs. Progress is stage completion, not a score.
-        repeat(3) { p = p.complete(Stage.CHALLENGE) }
+        repeat(3) { p = p.complete(Stage.TRY) }
         assertEquals(100, p.percent)
     }
 
@@ -87,35 +80,32 @@ class LearningProgressTest {
         // makes "reset progress on failure" unrepresentable rather than merely
         // discouraged.
         val afterWatch = AlgorithmProgress.NONE.complete(Stage.WATCH)
-        assertEquals(33, afterWatch.percent)
-        assertEquals(33, afterWatch.complete(Stage.WATCH).percent)
+        assertEquals(50, afterWatch.percent)
+        assertEquals(50, afterWatch.complete(Stage.WATCH).percent)
     }
 
-    // ── Resume ────────────────────────────────────────────────────────────────
+    // -- Resume ---------------------------------------------------------------
 
     @Test
     fun `the next stage is the first one not finished`() {
         assertEquals(Stage.WATCH, AlgorithmProgress.NONE.nextStage)
-        assertEquals(Stage.TRY, AlgorithmProgress(true, false, false).nextStage)
-        assertEquals(Stage.CHALLENGE, AlgorithmProgress(true, true, false).nextStage)
-        assertNull(AlgorithmProgress(true, true, true).nextStage)
+        assertEquals(Stage.TRY, AlgorithmProgress(true, false).nextStage)
+        assertNull(AlgorithmProgress(true, true).nextStage)
     }
 
-    // ── Every algorithm is independent ────────────────────────────────────────
+    // -- Every algorithm is independent ---------------------------------------
 
     @Test
     fun `one algorithm's progress never touches another's`() {
         val progress = LearningProgress.EMPTY
             .complete(AlgorithmId.BINARY_SEARCH, Stage.WATCH)
             .complete(AlgorithmId.BINARY_SEARCH, Stage.TRY)
-            .complete(AlgorithmId.BINARY_SEARCH, Stage.CHALLENGE)
             .complete(AlgorithmId.BUBBLE_SORT, Stage.WATCH)
-            .complete(AlgorithmId.BUBBLE_SORT, Stage.TRY)
             .complete(AlgorithmId.STACK, Stage.WATCH)
 
         assertEquals(100, progress[AlgorithmId.BINARY_SEARCH].percent)
-        assertEquals(66, progress[AlgorithmId.BUBBLE_SORT].percent)
-        assertEquals(33, progress[AlgorithmId.STACK].percent)
+        assertEquals(50, progress[AlgorithmId.BUBBLE_SORT].percent)
+        assertEquals(50, progress[AlgorithmId.STACK].percent)
         assertEquals(0, progress[AlgorithmId.QUEUE].percent)
         assertEquals(0, progress[AlgorithmId.MERGE_SORT].percent)
     }
@@ -138,7 +128,7 @@ class LearningProgressTest {
         }
     }
 
-    // ── Persistence ───────────────────────────────────────────────────────────
+    // -- Persistence ----------------------------------------------------------
 
     @Test
     fun `progress survives a round trip through storage`() {
@@ -149,8 +139,8 @@ class LearningProgressTest {
 
         val restored = ProgressCodec.decode(ProgressCodec.encode(progress))
 
-        assertEquals(66, restored[AlgorithmId.QUICK_SORT].percent)
-        assertEquals(33, restored[AlgorithmId.QUEUE].percent)
+        assertEquals(100, restored[AlgorithmId.QUICK_SORT].percent)
+        assertEquals(50, restored[AlgorithmId.QUEUE].percent)
         assertEquals(0, restored[AlgorithmId.STACK].percent)
     }
 
@@ -175,13 +165,33 @@ class LearningProgressTest {
                 "nonsense",
             ),
         )
-        assertEquals(33, restored[AlgorithmId.BINARY_SEARCH].percent)
+        assertEquals(50, restored[AlgorithmId.BINARY_SEARCH].percent)
         assertEquals(0, restored[AlgorithmId.BUBBLE_SORT].percent)
+    }
+
+    /**
+     * An install from before CHALLENGE was deferred to V2 keeps what it earned.
+     *
+     * This is the upgrade path, and it is the reason `ProgressCodec` drops unknown
+     * stage names instead of failing: someone who had finished Binary Search
+     * outright should reopen the app at 100 %, not at 0 %.
+     */
+    @Test
+    fun `a stored CHALLENGE key from before the MVP cut is dropped, not fatal`() {
+        val restored = ProgressCodec.decode(
+            setOf(
+                "BINARY_SEARCH:WATCH",
+                "BINARY_SEARCH:TRY",
+                "BINARY_SEARCH:CHALLENGE",
+            ),
+        )
+        assertEquals(100, restored[AlgorithmId.BINARY_SEARCH].percent)
+        assertTrue(restored[AlgorithmId.BINARY_SEARCH].finished)
     }
 
     @Test
     fun `restoring twice is the same as restoring once`() {
         val keys = setOf("MERGE_SORT:WATCH", "MERGE_SORT:TRY", "MERGE_SORT:WATCH")
-        assertEquals(66, ProgressCodec.decode(keys)[AlgorithmId.MERGE_SORT].percent)
+        assertEquals(100, ProgressCodec.decode(keys)[AlgorithmId.MERGE_SORT].percent)
     }
 }

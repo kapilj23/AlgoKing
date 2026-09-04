@@ -80,7 +80,6 @@ fun LearnScreen(
     val stages = listOf(
         Stage("Watch", StageState.Complete),
         Stage("Try", StageState.Current),
-        Stage("Challenge", StageState.Upcoming),
     )
 
     AlgoScreen(modifier) {

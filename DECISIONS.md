@@ -1,4 +1,6 @@
-# AlgoKing — Decision Log
+| 2 | ~~Pass Prediction (Format B) ships for the three sorts~~ — **moved to V2 by ADR-031** with the rest of CHALLENGE | — |
+| 5 | ~~Dark theme only in v1 (ADR-011)~~ — **overruled by ADR-016**: v2 is a light theme | — |
+| 6 | **CHALLENGE ships in V2, not the MVP (ADR-031)** | the whole assessment half of the product — `docs/v2-challenge.md` |# AlgoKing — Decision Log
 
 Architecture Decision Records. Newest last. Each entry records the decision, why, what else was
 considered, and why the alternatives lost.
@@ -1068,6 +1070,95 @@ The renderer draws a shared bucket as a small chain with a leading tick, and nev
 
 ---
 
+## ADR-031 — CHALLENGE is deferred to V2, and the machinery is quarantined rather than deleted
+
+**Decision.** The MVP ships **WATCH → TRY**, ending on a Complete screen. The CHALLENGE stage
+is removed from the app entirely — no route, no screen, no placeholder — and every piece of
+challenge *architecture* is retained, compiled and tested behind
+`engine/challenge/ChallengePack.kt`. Progress becomes two latched booleans, 0 / 50 / 100.
+
+⚠ **This is a product-visible scope decision**, taken by the product owner on 2026-09-04 and
+recorded in full at `docs/v2-challenge.md`.
+
+**Why.** A challenge is not one feature; it is ten. Every algorithm needs its own generated
+scenarios, constraints, hint ladder, answer validation and edge cases, and each has to be
+authored and tuned before the stage teaches anything. That was making the MVP
+disproportionately complicated relative to what it added, while WATCH → TRY already delivers
+the product thesis — the learner operates the algorithm rather than watching it.
+
+Shipping a weak challenge is worse than shipping none: a challenge that can be passed by
+guessing teaches the learner that the assessment is meaningless.
+
+### Deferred, not deleted — and the difference is structural
+
+The tempting version of this change deletes `engine/challenge/`, `engine/scenario/` and
+`engine/scoring/` outright. That would have thrown away the seeded generator, the
+trace-validated constraints (ADR-006), the ten authored `ChallengeType`s, the three star
+families, the mission catalogue and `MissionRun` — roughly 50 passing tests — and V2 would have
+rebuilt all of it from the specification rather than from working code.
+
+Instead the challenge-only fields came **off** `LessonPack` and onto a new `ChallengePack`:
+
+| | Before | After |
+|---|---|---|
+| `LessonPack` | id, name, **challengeBrief**, algorithm, projector, narrator, datasets, **starFamily**, **challengeFactory** | id, name, algorithm, projector, narrator, datasets |
+| `ChallengePack` | — | id, challengeBrief, starFamily, challengeFactory |
+
+That single split is the whole quarantine, and it earns its keep in both directions:
+`LessonPack` now holds only what WATCH and TRY read, so no MVP screen can reach a challenge
+even by accident; and `ChallengeCatalog` keeps all ten packs authored, so V2 does not have to
+re-derive which star family each algorithm scores on.
+
+**The tripwire:** if the MVP ever needs something out of `ChallengePack`, that is a signal the
+thing belongs on `LessonPack` — move it, rather than importing `engine.challenge.*` from a
+lesson screen.
+
+### There are no stars in the MVP
+
+`PRODUCT_SPEC.md` §2 has always said **Try is never scored**. It exists so a learner can be
+wrong as often as they like at no cost, which is the entire premise of the guidance ladder
+(ADR-021). Putting a star rating on the Complete screen would have quietly undone that: the
+moment a run carries a grade, the ladder becomes something to avoid rather than something to
+use, and a learner starts guessing to protect a score.
+
+So `LessonCompleteScreen` reports what the run *was* — decisions, comparisons, wrong turns —
+and judges none of it. `Scorer`, `StarFamily` and `Verdict` stay in `:engine`, unreferenced by
+`:app`, for the stage whose job assessment actually is.
+
+### Hints went with it
+
+`LessonScreen` already documented "No Hint in Try" — the guidance ladder arrives without the
+learner having to ask, which is strictly better than a button they must admit defeat to press.
+Hints were therefore Challenge-only in the UI, and so was everything behind them: the
+`HintUnlockDialog` and the `ads/RewardedAdHost` seam are removed from `:app`, while `HintPolicy`
+(first rung free, the rest rewarded) stays in `:engine` where it was already table-tested.
+
+Deleting the ad seam is worth noting: it was the only thing in the project that referred to
+advertising at all, and the MVP is now entirely free of it.
+
+### Old installs keep what they earned
+
+`ProgressCodec` drops stage keys it does not recognise (ADR-028), so an install holding
+`BINARY_SEARCH:CHALLENGE` loads its WATCH and TRY keys and reads as 100 % rather than failing.
+That behaviour existed for renamed algorithms and turned out to be exactly the upgrade path
+this change needed; there is now a test pinning it.
+
+When CHALLENGE returns, adding it back to `Stage` restores thirds with no other change, because
+`percent` counts `Stage.entries` rather than storing a number.
+
+**Alternatives considered.**
+- *Keep Challenge behind a feature flag.* Rejected: a flag means both paths must keep compiling
+  against live screens, so the MVP carries the challenge UI's weight without shipping it — and
+  flags of this size become permanent.
+- *Leave a "Coming soon" Challenge card in the spine.* Rejected: a third node the learner can
+  never enter makes a finished lesson read as two-thirds done, which is the exact failure
+  ADR-017 removed the MASTER node for.
+- *Delete the challenge engine and rebuild it in V2.* Rejected above.
+- *Keep stars on the Complete screen as encouragement.* Rejected: see above — it contradicts
+  "Try is never scored", and encouragement that is not earned is noise.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any
@@ -1076,9 +1167,10 @@ one changes the sections named.
 | # | Assumption | Affects if overruled |
 |---|---|---|
 | 1 | ~~Stack + Queue merge into one capstone~~ — **overruled by ADR-027**: two lessons, one engine | — |
-| 2 | Pass Prediction (Format B) ships for the three sorts | second challenge format, ~1 week, `PRODUCT_SPEC.md` §6 |
+| 2 | ~~Pass Prediction (Format B) ships for the three sorts~~ — **moved to V2 by ADR-031**, with the rest of CHALLENGE | — |
 | 3 | Target geography is India-weighted, 3 GB device floor | performance budget, eCPM model, `ARCHITECTURE.md` §10.5 |
-| 4 | Dark theme only in v1 (ADR-011) | +1 week for light-theme contrast validation |
+| 4 | ~~Dark theme only in v1 (ADR-011)~~ — **overruled by ADR-016**: v2 is a light theme | — |
+| 5 | **CHALLENGE ships in V2, not the MVP (ADR-031)** | the whole assessment half of the product — `docs/v2-challenge.md` |
 
 ---
 

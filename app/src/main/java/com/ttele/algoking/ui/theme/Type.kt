@@ -51,7 +51,7 @@ object AlgoType {
     /** Screen title in the app header. */
     val titleLarge = style(20, FontWeight.ExtraBold, 26, -0.2f)
 
-    /** Algorithm card title, "Challenge 2 / 10", "Explanation". */
+    /** Algorithm card title, "Step 3 / 14", "Explanation". */
     val titleMedium = style(17, FontWeight.Bold, 22, -0.1f)
 
     /** Previous / Next / Restart / Hint / Undo. */

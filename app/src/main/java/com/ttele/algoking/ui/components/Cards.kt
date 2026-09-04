@@ -168,12 +168,12 @@ fun ProgressRing(
 sealed interface AlgorithmStatus {
     val label: String
 
-    data class Mastered(override val label: String = "Mastered") : AlgorithmStatus
+    data class Completed(override val label: String = "Completed") : AlgorithmStatus
 
     /**
-     * [percent] is a whole number — 0, 33, 66 — because the learning model has
-     * exactly three milestones. Carrying a float here would invite a ring that
-     * says 32 % and a label that says 33 %.
+     * [percent] is a whole number — 0, 50, 100 — because the learning model has
+     * exactly two milestones. Carrying a float here would invite a ring that
+     * says 49 % and a label that says 50 %.
      */
     data class InProgress(
         val percent: Int,
@@ -249,7 +249,7 @@ fun AlgorithmCard(
                 Text(status.label, style = AlgoType.labelSmall, color = AlgoColors.textMuted)
                 Gap(Spacing.xs)
                 when (status) {
-                    is AlgorithmStatus.Mastered -> ProgressRing(100, accent)
+                    is AlgorithmStatus.Completed -> ProgressRing(100, accent)
                     is AlgorithmStatus.InProgress -> ProgressRing(status.percent, accent)
                     is AlgorithmStatus.Locked -> Box(
                         modifier = Modifier
@@ -371,21 +371,6 @@ fun InfoButton(modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
         contentAlignment = Alignment.Center,
     ) {
         AlgoIcon(AlgoIcons.Info, AlgoColors.primary, 16.dp)
-    }
-}
-
-/** Centred body copy used inside instruction cards. */
-@Composable
-fun InstructionText(lines: List<String>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        lines.forEach {
-            Text(
-                text = it,
-                style = AlgoType.bodyLarge,
-                color = AlgoColors.textSecondary,
-                textAlign = TextAlign.Start,
-            )
-        }
     }
 }
 
