@@ -1,6 +1,7 @@
 package com.ttele.algoking.engine.algorithms.graphdfs
 
 import com.ttele.algoking.engine.core.Frame
+import com.ttele.algoking.engine.core.joinNames
 import com.ttele.algoking.engine.event.Metrics
 import com.ttele.algoking.engine.narration.NarrationId
 import com.ttele.algoking.engine.narration.NarrationKey
@@ -109,11 +110,12 @@ class DfsWatchNarrator : WatchNarrator<DfsState> {
             NarrationKey(NarrationId.DFS_WATCH_FIRST_UNVISITED)
         } else {
             NarrationKey(
-                NarrationId.DFS_WATCH_SKIPPED,
-                listOf(
-                    visitedNeighbours.joinToString(", ") { label(state, it) },
-                    label(state, chosen),
-                ),
+                if (visitedNeighbours.size == 1) {
+                    NarrationId.DFS_WATCH_SKIPPED
+                } else {
+                    NarrationId.DFS_WATCH_SKIPPED_MANY
+                },
+                listOf(joinNames(visitedNeighbours.map { label(state, it) }), label(state, chosen)),
             )
         }
     }

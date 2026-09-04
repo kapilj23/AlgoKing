@@ -77,3 +77,18 @@ data class GraphNode(
     val x: Float,
     val y: Float,
 )
+
+/**
+ * `A` · `A and B` · `A, B and C` — a list a sentence can contain.
+ *
+ * Narration reads as prose, so a bare `joinToString(", ")` dropped into
+ * "… is already visited" produces "A, D is already visited", which is wrong in
+ * two ways at once. The caller still picks the singular or plural sentence; this
+ * only makes the list itself grammatical.
+ */
+fun joinNames(names: List<String>): String = when (names.size) {
+    0 -> ""
+    1 -> names[0]
+    2 -> "${names[0]} and ${names[1]}"
+    else -> names.dropLast(1).joinToString(", ") + " and " + names.last()
+}

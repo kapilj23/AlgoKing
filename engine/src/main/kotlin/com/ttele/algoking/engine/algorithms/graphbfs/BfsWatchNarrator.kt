@@ -1,6 +1,7 @@
 package com.ttele.algoking.engine.algorithms.graphbfs
 
 import com.ttele.algoking.engine.core.Frame
+import com.ttele.algoking.engine.core.joinNames
 import com.ttele.algoking.engine.event.Metrics
 import com.ttele.algoking.engine.narration.NarrationId
 import com.ttele.algoking.engine.narration.NarrationKey
@@ -112,9 +113,13 @@ class BfsWatchNarrator : WatchNarrator<BfsState> {
                         // The "skip visited" judgement, said out loud the moment
                         // it happens rather than as a rule up front.
                         NarrationKey(
-                            NarrationId.BFS_WATCH_SKIPPED,
+                            if (skipped.size == 1) {
+                                NarrationId.BFS_WATCH_SKIPPED
+                            } else {
+                                NarrationId.BFS_WATCH_SKIPPED_MANY
+                            },
                             listOf(
-                                skipped.joinToString(", ") { label(state, it) },
+                                joinNames(skipped.map { label(state, it) }),
                                 label(state, node),
                             ),
                         )

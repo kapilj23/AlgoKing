@@ -353,6 +353,9 @@ object Narration {
             NarrationId.DFS_WATCH_SKIPPED ->
                 "${arg(0)} is already visited, so DFS skips it and takes ${arg(1)}."
 
+            NarrationId.DFS_WATCH_SKIPPED_MANY ->
+                "${arg(0)} are already visited, so DFS skips them and takes ${arg(1)}."
+
             NarrationId.DFS_WATCH_DEAD_END -> "${arg(0)} has no unvisited neighbours."
             NarrationId.DFS_WATCH_BACKTRACK ->
                 "Dead end. DFS backtracks from ${arg(0)} to ${arg(1)} and looks for another " +
@@ -450,6 +453,9 @@ object Narration {
             NarrationId.BFS_WATCH_QUEUE_EMPTYING -> "The queue is empty."
             NarrationId.BFS_WATCH_SKIPPED ->
                 "${arg(0)} is already visited, so BFS skips it and adds ${arg(1)}."
+
+            NarrationId.BFS_WATCH_SKIPPED_MANY ->
+                "${arg(0)} are already visited, so BFS skips them and adds ${arg(1)}."
 
             NarrationId.BFS_WATCH_COMPLETE ->
                 "The queue is empty, so BFS is complete. Traversal: ${arg(0)}."

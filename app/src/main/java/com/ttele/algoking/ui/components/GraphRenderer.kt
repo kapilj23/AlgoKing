@@ -164,6 +164,12 @@ private fun GraphNodeCircle(
     val current = node.state == CellState.COMPARING
     val visited = node.state == CellState.FINALIZED
 
+    // Seen but not processed yet — BFS's frontier, sitting in the queue. Amber,
+    // the same token the queue cells use, so a node and its queue cell are
+    // obviously the same thing. DFS never produces this state.
+    val queued = node.state == CellState.CANDIDATE
+    val filled = current || visited || queued
+
     // The current node lifts slightly. It is the one thing on screen the learner
     // is reasoning from, and in a 2-D picture position alone does not say so.
     val scale by animateFloatAsState(
@@ -175,6 +181,7 @@ private fun GraphNodeCircle(
         targetValue = when {
             current -> AlgoViz.comparing
             visited -> AlgoViz.sorted
+            queued -> AlgoViz.next
             else -> AlgoColors.surface
         },
         animationSpec = tween(200, easing = FastOutSlowInEasing),
@@ -186,13 +193,17 @@ private fun GraphNodeCircle(
             .size(Dimens.graphNode)
             .scale(scale)
             .then(
-                if (current || visited) {
+                if (filled) {
                     Modifier.background(
                         brush = Brush.verticalGradient(
-                            if (current) {
-                                listOf(AlgoViz.comparingTop, AlgoViz.comparingBottom)
-                            } else {
-                                listOf(AlgoViz.sortedTop, AlgoViz.sortedBottom)
+                            when {
+                                current -> listOf(
+                                    AlgoViz.comparingTop,
+                                    AlgoViz.comparingBottom,
+                                )
+
+                                queued -> listOf(AlgoViz.nextTop, AlgoViz.nextBottom)
+                                else -> listOf(AlgoViz.sortedTop, AlgoViz.sortedBottom)
                             },
                         ),
                         shape = CircleShape,
@@ -206,8 +217,10 @@ private fun GraphNodeCircle(
                     width = if (selectable) 2.5.dp else Dimens.hairline * 1.5f,
                     color = when {
                         selectable -> AlgoViz.pointer
-                        current || visited -> Color.Transparent
-                        else -> AlgoColors.borderStrong
+                        filled -> Color.Transparent
+                        // The same "still in play" outline an idle cell carries in
+                        // every other lesson, so the legend swatch matches the node.
+                        else -> AlgoColors.primary.copy(alpha = 0.35f)
                     },
                 ),
                 CircleShape,
@@ -228,7 +241,7 @@ private fun GraphNodeCircle(
         Text(
             text = node.label,
             style = AlgoType.numeralMedium,
-            color = if (current || visited) Color.White else AlgoColors.textPrimary,
+            color = if (filled) Color.White else AlgoColors.textPrimary,
             textAlign = TextAlign.Center,
         )
     }
