@@ -279,6 +279,98 @@ object Narration {
             NarrationId.PS_IDEA_3 -> "rangeSum(left, right) = prefix[right + 1] − prefix[left]."
             NarrationId.PS_IDEA_4 -> "Build once in O(n); answer every query in O(1)."
 
+
+            // ── Graph DFS ─────────────────────────────────────────────────
+            // Standard vocabulary throughout: node, edge, neighbour, visited,
+            // current node, backtrack, traversal.
+            NarrationId.DFS_OPTION_NODE -> arg(0)
+            NarrationId.DFS_ASK_NEXT -> "You are at ${arg(0)}. Where does DFS go next?"
+            NarrationId.DFS_ASK_DEAD_END ->
+                "${arg(0)} has no unvisited neighbours. Where does DFS go now?"
+
+            NarrationId.DFS_VISITED -> "Visited ${arg(0)}."
+            NarrationId.DFS_BACKTRACKED -> "Backtracked from ${arg(0)} to ${arg(1)}."
+
+            NarrationId.DFS_HINT_DEEPER ->
+                "Look at ${arg(0)}'s neighbours in order, and take the first one DFS " +
+                    "has not visited."
+
+            NarrationId.DFS_HINT_BACKTRACK ->
+                "There is nowhere deeper to go from ${arg(0)}. DFS returns the way it came."
+
+            NarrationId.DFS_RETRY_LOOK -> "Not quite. Check ${arg(0)}'s neighbours again."
+            NarrationId.DFS_RETRY_ASK ->
+                "Which of ${arg(0)}'s neighbours has DFS not visited yet — and which comes first?"
+
+            NarrationId.DFS_RETRY_EXPLAIN ->
+                "DFS goes as deep as it can, through the first unvisited neighbour. " +
+                    "From ${arg(0)} that is ${arg(1)}."
+
+            NarrationId.DFS_RETRY_DEAD_END_LOOK ->
+                "Not quite. Every neighbour of ${arg(0)} has already been visited."
+
+            NarrationId.DFS_RETRY_DEAD_END_ASK ->
+                "${arg(0)} is a dead end. Where did DFS come from?"
+
+            NarrationId.DFS_RETRY_DEAD_END_EXPLAIN ->
+                "${arg(0)} has no unvisited neighbours, so DFS backtracks to ${arg(1)} — " +
+                    "the node it came from — and looks for another branch there."
+
+            // Each wrong tap is the misconception it encodes, named.
+            NarrationId.DFS_WHY_ALREADY_VISITED ->
+                "${arg(0)} is already visited. DFS skips visited neighbours — that is what " +
+                    "stops it going round in circles."
+
+            NarrationId.DFS_WHY_WRONG_BRANCH ->
+                "${arg(0)} is a neighbour, but not the first unvisited one. DFS finishes the " +
+                    "${arg(1)} branch completely before it starts another."
+
+            NarrationId.DFS_WHY_TOO_EARLY ->
+                "Not yet — ${arg(2)} still has an unvisited neighbour. DFS only backtracks " +
+                    "from a dead end."
+
+            NarrationId.DFS_CORRECT_DEEPER ->
+                "${arg(1)} is ${arg(0)}'s first unvisited neighbour, so DFS goes deeper."
+
+            NarrationId.DFS_CORRECT_BACKTRACK ->
+                "${arg(0)} was a dead end, so DFS backtracks to ${arg(1)} and looks for " +
+                    "another branch."
+
+            // ── Graph DFS — WATCH ─────────────────────────────────────────
+            NarrationId.DFS_WATCH_SETUP -> "Depth-first search, starting at ${arg(0)}."
+            NarrationId.DFS_WATCH_SETUP_SUPPORT ->
+                "Go as deep as possible down one path. Hit a dead end, back up, take the " +
+                    "next one."
+
+            NarrationId.DFS_WATCH_VISIT_START -> "Visit ${arg(0)}."
+            NarrationId.DFS_WATCH_VISIT_START_SUPPORT ->
+                "Mark it visited, and remember how we got here."
+
+            NarrationId.DFS_WATCH_GO_DEEPER -> "${arg(0)} → ${arg(1)}. Go deeper."
+            NarrationId.DFS_WATCH_FIRST_UNVISITED ->
+                "DFS takes the first neighbour it has not visited."
+
+            NarrationId.DFS_WATCH_SKIPPED ->
+                "${arg(0)} is already visited, so DFS skips it and takes ${arg(1)}."
+
+            NarrationId.DFS_WATCH_DEAD_END -> "${arg(0)} has no unvisited neighbours."
+            NarrationId.DFS_WATCH_BACKTRACK ->
+                "Dead end. DFS backtracks from ${arg(0)} to ${arg(1)} and looks for another " +
+                    "branch there."
+
+            NarrationId.DFS_WATCH_COMPLETE -> "Every node reached. Traversal: ${arg(0)}."
+            NarrationId.DFS_WATCH_INSIGHT -> "Deep first, wide last."
+            NarrationId.DFS_WATCH_INSIGHT_SUPPORT ->
+                "DFS finished the whole B branch — D and E — before it ever looked at C. " +
+                    "Backtracking is what lets it come back for C at all."
+
+            NarrationId.DFS_WATCH_SUMMARY -> "Traversal: ${arg(0)}."
+            NarrationId.DFS_WATCH_SUMMARY_SUPPORT -> "Now run it yourself."
+            NarrationId.DFS_IDEA_1 -> "Visit a node, then go deeper into its first unvisited neighbour."
+            NarrationId.DFS_IDEA_2 -> "Skip neighbours already visited — that is what prevents cycles."
+            NarrationId.DFS_IDEA_3 -> "At a dead end, backtrack to the node you came from."
+            NarrationId.DFS_IDEA_4 -> "Recursion does the remembering; the call stack is the path."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

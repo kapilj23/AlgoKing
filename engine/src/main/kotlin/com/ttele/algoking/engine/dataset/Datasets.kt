@@ -3,6 +3,8 @@ package com.ttele.algoking.engine.dataset
 import com.ttele.algoking.engine.core.Algorithm
 import com.ttele.algoking.engine.core.AlgorithmRunner
 import com.ttele.algoking.engine.core.Dataset
+import com.ttele.algoking.engine.core.Graph
+import com.ttele.algoking.engine.core.GraphNode
 import com.ttele.algoking.engine.core.Trace
 import com.ttele.algoking.engine.decision.Action
 import com.ttele.algoking.engine.event.Outcome
@@ -450,5 +452,85 @@ object PrefixSumDatasets {
         label = "try",
         queryLeft = 2,
         queryRight = 4,
+    )
+}
+
+/**
+ * Graph DFS teaching data — authored, not generated (ADR-014).
+ *
+ * ```
+ *         A
+ *        / \
+ *       B   C
+ *      / \
+ *     D   E
+ * ```
+ *
+ * Adjacency, in the order DFS explores it:
+ *
+ * ```
+ * A: [B, C]      C: [A]
+ * B: [A, D, E]   D: [B]
+ * E: [B]
+ * ```
+ *
+ * Starting at A, that produces `A → B → D → E → C` — and the order is *generated*
+ * by the engine from this data, never written down anywhere as an answer.
+ *
+ * Four properties earn this graph its place:
+ *
+ *  - **it needs two backtracks**, D→B and B→A, and they are different: the first
+ *    is a leaf dead end, the second is a node whose branches are all used up. A
+ *    graph with one backtrack teaches backtracking as a special case.
+ *  - **C is visited last**, long after it was available from A. That is the whole
+ *    point of *depth* first, and a learner who expects breadth-first gets it wrong
+ *    here in a way they will remember.
+ *  - **B's neighbour list starts with A**, which is already visited — so the
+ *    "skip visited neighbours" rule has to fire before the interesting choice.
+ *  - **it is five nodes**, which fits on a phone without shrinking anything.
+ */
+object GraphDatasets {
+
+    /** The lesson graph. Positions are normalised 0..1, authored for the shape. */
+    val teachingGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.50f, y = 0.12f),
+            GraphNode(id = "B", label = "B", x = 0.28f, y = 0.50f),
+            GraphNode(id = "C", label = "C", x = 0.76f, y = 0.50f),
+            GraphNode(id = "D", label = "D", x = 0.12f, y = 0.88f),
+            GraphNode(id = "E", label = "E", x = 0.46f, y = 0.88f),
+        ),
+        adjacency = mapOf(
+            "A" to listOf("B", "C"),
+            "B" to listOf("A", "D", "E"),
+            "C" to listOf("A"),
+            "D" to listOf("B"),
+            "E" to listOf("B"),
+        ),
+    )
+
+    /**
+     * WATCH and TRY use the **same graph**, which is a deliberate departure from
+     * every other lesson.
+     *
+     * Elsewhere Try gets fresh data so it tests application rather than recall.
+     * A graph is different: the traversal is only five nodes, so a second graph
+     * would be memorisable just as easily — and what makes Try hard here is not
+     * new data, it is that the learner now has to *produce* the two backtracks
+     * they previously watched. Changing the graph as well would have added
+     * unfamiliarity without adding a single new judgement.
+     */
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        graph = teachingGraph,
+        startNode = "A",
+    )
+
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        graph = teachingGraph,
+        startNode = "A",
     )
 }

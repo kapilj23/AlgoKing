@@ -631,6 +631,7 @@ sealed interface Scene
 data class SequenceScene(...) : Scene   // ROW | PILE | CHAIN | GRID
 data class BucketScene(...) : Scene     // a table of buckets, plus the hash flow
 data class PrefixScene(...) : Scene     // two aligned arrays of different lengths
+data class GraphScene(...) : Scene      // nodes at positions, joined by edges
 ```
 
 The sequence renderer receives pure data, and its only branch is `layout`:

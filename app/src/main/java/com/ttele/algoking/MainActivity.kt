@@ -167,7 +167,8 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // stops teaching named routines and starts teaching techniques.
     AlgorithmId.HASH_MAP -> AlgorithmId.TWO_POINTERS
     AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
-    AlgorithmId.PREFIX_SUM -> AlgorithmId.BINARY_SEARCH
+    AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
+    AlgorithmId.GRAPH_DFS -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

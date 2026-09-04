@@ -47,6 +47,7 @@ import com.ttele.algoking.engine.scene.CellState
 import com.ttele.algoking.engine.scene.BucketScene
 import com.ttele.algoking.engine.scene.Scene
 import com.ttele.algoking.engine.scene.SceneLayout
+import com.ttele.algoking.engine.scene.GraphScene
 import com.ttele.algoking.engine.scene.PrefixScene
 import com.ttele.algoking.engine.scene.SequenceScene
 import com.ttele.algoking.ui.theme.AlgoColors
@@ -85,6 +86,7 @@ fun SceneRenderer(
         is SequenceScene -> SequenceRenderer(scene, modifier, selectableSlots, onSelectSlot)
         is BucketScene -> BucketTable(scene, modifier, selectableSlots, onSelectSlot)
         is PrefixScene -> PrefixTable(scene, modifier)
+        is GraphScene -> GraphStage(scene, modifier, selectableSlots, onSelectSlot)
     }
 }
 
@@ -622,6 +624,8 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
         is SequenceScene -> scene.meters
         is BucketScene -> scene.meters
         is PrefixScene -> scene.meters
+        // A graph carries its counts in the traversal strip instead.
+        is GraphScene -> emptyList()
     }
     if (meters.isEmpty()) return
     Row(
@@ -657,17 +661,19 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
 fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
     // A bucket table names its own states in the copy, so it needs no legend.
     // A prefix table has two rows, and both feed one legend.
-    val cells = when (scene) {
-        is SequenceScene -> scene.cells
-        is PrefixScene -> scene.source + scene.prefix
+    val present = when (scene) {
+        is SequenceScene -> scene.cells.map { it.state }
+        is PrefixScene -> (scene.source + scene.prefix).map { it.state }
+        // A graph has no cells, but its nodes carry the same states.
+        is GraphScene -> scene.nodes.map { it.state }
         is BucketScene -> return
-    }
+    }.toSet()
     val labels = when (scene) {
         is SequenceScene -> scene.legendLabels
         is PrefixScene -> scene.legendLabels
+        is GraphScene -> scene.legendLabels
         is BucketScene -> return
     }
-    val present = cells.map { it.state }.toSet()
     fun name(state: CellState, fallback: String) = labels[state] ?: fallback
     val entries = buildList {
         if (CellState.COMPARING in present) add(AlgoViz.comparing to name(CellState.COMPARING, "Checking"))

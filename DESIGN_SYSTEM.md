@@ -529,6 +529,28 @@ leaves `prefix[0]` alone at the left, which is the whole reason the prefix row i
 | equation strip | `surfaceVariant` card: operand over `labelSmall` caption, `numeralMedium` values, the result in `primary` |
 | the result | reads `?` until it is known — an answer already on screen is not a question |
 
+### 6.16g The graph — `GraphStage`
+
+The fourth scene shape, and the first that is two-dimensional. Node positions arrive normalised
+0..1 and scale to whatever width the card gives, so the scene never learns about dp.
+
+| Element | Treatment |
+|---|---|
+| node | 48dp circle — clears the 48dp touch minimum. `numeralMedium` label |
+| unvisited | `surface` fill, 1.5dp `borderStrong` outline, `textPrimary` label |
+| current | `comparing` gradient, white label, scaled to 1.08 — in a 2-D picture, position alone does not say "you are here" |
+| visited | `sorted` gradient, white label |
+| tappable | 2.5dp `pointer` outline, the same affordance a selectable cell carries |
+| edge, idle | 2dp `borderStrong` |
+| edge, on the path | 3dp `pointer` — the call stack made visible, and the route a backtrack unwinds |
+| edge, just taken | 4dp `comparing` |
+| edge, backtracking | 3dp **dashed** `secondary` — a retreat is not progress, and it is the half of DFS learners lose |
+| traversal strip | `primarySoft` card, `A  →  B  →  D` in `titleSmall`/`primary` |
+| path strip | `surfaceVariant` card, `A  ›  B  ›  D` in `textSecondary` |
+
+Both strips are read straight from engine state — the traversal *is* the visited list and the
+path *is* the stack — so the display and the algorithm cannot disagree.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

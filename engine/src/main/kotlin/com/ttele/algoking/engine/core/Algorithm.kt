@@ -22,6 +22,14 @@ data class Dataset(
      */
     val queryLeft: Int? = null,
     val queryRight: Int? = null,
+    /**
+     * A graph, for lessons whose data is nodes and edges rather than an array —
+     * DFS traverses one. Optional and defaulted, so no array lesson changed when
+     * it arrived, and a second graph later is data rather than code.
+     */
+    val graph: Graph? = null,
+    /** Where a graph traversal begins. */
+    val startNode: String? = null,
 )
 
 enum class AlgorithmId {
@@ -35,6 +43,9 @@ enum class AlgorithmId {
     // Advanced: precomputation. Build a table of running totals once, then answer
     // any range sum with one subtraction.
     PREFIX_SUM,
+
+    // Advanced: the first lesson whose data is a graph rather than an array.
+    GRAPH_DFS,
 
     BUBBLE_SORT,
     SELECTION_SORT,

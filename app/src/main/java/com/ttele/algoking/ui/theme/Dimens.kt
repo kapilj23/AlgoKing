@@ -66,6 +66,11 @@ object Dimens {
 
     // Generic sequence renderer (ARCHITECTURE.md §7.1)
     val sceneCellHeight = 44.dp
+
+    // The graph stage. Tall enough for three rows of nodes without scrolling,
+    // and the node is a 48dp circle so it clears the 48dp minimum touch target.
+    val graphStageHeight = 260.dp
+    val graphNode = 48.dp
     val sceneCellGap = 4.dp
     val sceneGroupGap = 3.dp
     val sceneRailHeight = 20.dp

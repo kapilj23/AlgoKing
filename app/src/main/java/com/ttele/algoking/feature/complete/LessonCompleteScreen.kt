@@ -327,4 +327,8 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
     AlgorithmId.PREFIX_SUM ->
         "Building the table cost O(n) once. After that every range is one subtraction — " +
             "O(1) — however long the range is."
+
+    AlgorithmId.GRAPH_DFS ->
+        "DFS finished one branch completely before it looked at the next — and backtracking " +
+            "is what let it come back. O(V + E): every node once, every edge once."
 }

@@ -12,6 +12,10 @@ import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.dataset.BinarySearchDatasets
 import com.ttele.algoking.engine.dataset.TwoPointersDatasets
 import com.ttele.algoking.engine.dataset.PrefixSumDatasets
+import com.ttele.algoking.engine.dataset.GraphDatasets
+import com.ttele.algoking.engine.algorithms.graphdfs.DepthFirstSearchAlgorithm
+import com.ttele.algoking.engine.algorithms.graphdfs.DfsProjector
+import com.ttele.algoking.engine.algorithms.graphdfs.DfsWatchNarrator
 import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumAlgorithm
 import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumProjector
 import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumWatchNarrator
@@ -120,6 +124,21 @@ object AlgorithmCatalog {
         tryDataset = PrefixSumDatasets.tryIt,
     )
 
+    /**
+     * The third Advanced lesson, and the first whose data is a graph. What it
+     * teaches is not the traversal but the three judgements behind it: which
+     * neighbour, when to backtrack, and why some neighbours are skipped.
+     */
+    fun graphDfs() = LessonPack(
+        id = AlgorithmId.GRAPH_DFS,
+        displayName = "Graph DFS",
+        algorithm = DepthFirstSearchAlgorithm(),
+        projector = DfsProjector(),
+        watchNarrator = DfsWatchNarrator(),
+        watchDataset = GraphDatasets.watch,
+        tryDataset = GraphDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -222,6 +241,7 @@ object AlgorithmCatalog {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
         AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.PREFIX_SUM -> prefixSum()
+        AlgorithmId.GRAPH_DFS -> graphDfs()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

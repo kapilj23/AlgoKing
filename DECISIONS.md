@@ -1310,6 +1310,77 @@ The `Dataset` fields are optional and defaulted, so no existing lesson moved.
 
 ---
 
+## ADR-034 — Graph DFS takes a fourth `Scene` shape, and backtracking is a tap, not a button
+
+**Decision.** DFS ships as a `LessonPack` with WATCH and TRY. `Scene` gains `GraphScene`, the
+first two-dimensional shape; `Dataset` gains an optional `graph` and `startNode`. The learner's
+only gesture is **tap the node DFS moves to next**. Full detail: `docs/graph-dfs.md`.
+
+**Why a fourth shape.** A graph is nodes at positions with edges between them. No amount of
+slots expresses that: a sequence has an order a graph does not have, a bucket table has keys a
+graph does not have, and two aligned rows are still rows. This is the same judgement ADR-030
+and ADR-033 made, for the third time, and the shape is what a new *kind* of data looks like in
+this architecture.
+
+Inside, it reuses everything: node state is `CellState`, so current is `COMPARING`, visited is
+`FINALIZED` and unvisited is `IDLE`, and the legend, the colours and the words all come out of
+the design system with no new tokens.
+
+### One gesture, three judgements
+
+DFS asks three things — which neighbour, when to backtrack, and why some neighbours are
+skipped. The obvious build gives them separate controls: a row of neighbour buttons and a
+BACKTRACK button. That was rejected.
+
+**Backtracking is not a mode, it is a move.** Returning to the node you came from *is* the
+backtrack, so tapping it is the honest interaction — and modelling it as its own button would
+have taught the learner to reach for a control rather than to notice a dead end. One tap on the
+graph covers all three judgements:
+
+| the tap | what it is |
+|---|---|
+| the first unvisited neighbour | go deeper — correct |
+| a visited neighbour | the "skip it" case |
+| a later unvisited neighbour | the "first one first" case |
+| the parent, mid-branch | backtracking too early |
+| the parent, at a dead end | the backtrack — correct |
+
+The brief asked for TRY not to become a multiple-choice quiz. A row of buttons is one; tapping
+the graph is not.
+
+### The traversal is generated, never authored
+
+`A → B → D → E → C` appears nowhere as data. `visited` and `stack` are real state and the
+order falls out of them; every test drives the engine and reads it back. The brief was explicit
+about this and it is the difference between a lesson and an animation.
+
+### Three backtracks, not two
+
+The teaching graph needs D→B, E→B **and** B→A, and the third is a different kind: not a leaf
+dead end but a node whose branches are all used up. A first pass of the tests asserted two and
+was wrong — the graph was right and the expectation was not. A graph with only leaf dead ends
+would teach backtracking as a special case.
+
+### WATCH and TRY share one graph
+
+Every other lesson gives Try fresh data so it tests application rather than recall. Five nodes
+are memorisable either way, and what makes Try hard here is producing the three backtracks
+rather than meeting new data. A second graph would have added unfamiliarity without adding a
+judgement.
+
+**Alternatives considered.**
+- *A separate BACKTRACK button.* Rejected above.
+- *Force the graph into `SequenceScene` as a row of nodes with `links`.* Rejected: the linked
+  list is a chain because a list *is* a line. A graph is not, and drawing it as one would teach
+  the wrong shape.
+- *Auto-layout the nodes.* Rejected for now: five authored positions look better than anything
+  a force-directed pass would produce, and the layout lives on the dataset where a future graph
+  will author its own.
+- *Unwind the stack to empty after the last visit.* Rejected: two more taps with nothing left to
+  decide. The lesson ends where the traversal ends.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any
