@@ -323,4 +323,8 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
     AlgorithmId.TWO_POINTERS ->
         "Every move ruled out a whole row of pairs, not just one — and that only works " +
             "because the array is sorted."
+
+    AlgorithmId.PREFIX_SUM ->
+        "Building the table cost O(n) once. After that every range is one subtraction — " +
+            "O(1) — however long the range is."
 }

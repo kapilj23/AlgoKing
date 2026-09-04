@@ -24,7 +24,7 @@ existed to leave behind. No stars — Try is never scored.
 
 ---
 
-## The eleven lessons
+## The twelve lessons
 
 | | Lessons | The learner decides |
 |---|---|---|
@@ -33,6 +33,7 @@ existed to leave behind. No stars — Try is never scored.
 | Divide & conquer | Merge · Quick | where it splits, which front value · which side of the pivot |
 | Structures | Stack · Queue · Linked List · Hash Map | which end · which link changes · which bucket |
 | **Advanced** | **Two Pointers** | which pointer can still improve the sum |
+| **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 
 Stack and Queue are the *same engine class* with one property flipped, and still read as two
 different structures — the picture carries the difference.
@@ -63,18 +64,18 @@ Everything else falls out of it:
   caller *could* apply. The rule is structural, not a convention each new algorithm must
   remember.
 - **The renderer cannot name an algorithm.** It receives a `Scene` and branches only on the
-  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, or a bucket table). Eleven lessons, one
+  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, or two aligned arrays). Twelve lessons, one
   renderer entry point, zero `when (algorithm)` in `:app`.
 - **Adding a lesson adds a `LessonPack`** — an algorithm, a projector, a narrator and two
   authored datasets. Never a screen, never a renderer.
-- **13 events cover all eleven lessons.** None was added after the first — Two Pointers,
+- **13 events cover all twelve lessons.** None was added after the first — Two Pointers,
   written long after the event model was fixed, needed none (ADR-032).
 
 ## Modules
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 323 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 364 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -86,7 +87,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 323 unit tests, no device needed
+./gradlew :engine:test        # 364 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -107,16 +108,17 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-032 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-033 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
-inherits — and [`two-pointers.md`](docs/two-pointers.md), the first Advanced lesson.
+inherits — and the Advanced lessons
+[`two-pointers.md`](docs/two-pointers.md) and [`prefix-sum.md`](docs/prefix-sum.md).
 
 ## Status
 
-**Built:** the engine and all eleven lessons · Watch · Try · Complete · Home · four renderers ·
-the full light design-system token layer · progress persistence · 323 passing tests.
+**Built:** the engine and all twelve lessons · Watch · Try · Complete · Home · four renderers ·
+the full light design-system token layer · progress persistence · 364 passing tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

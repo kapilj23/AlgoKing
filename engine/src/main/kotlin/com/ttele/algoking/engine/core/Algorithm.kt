@@ -13,6 +13,15 @@ data class Dataset(
     val values: List<Int>,
     val target: Int? = null,
     val label: String = "",
+    /**
+     * An authored range query, for lessons that ask about a span rather than a
+     * value — Prefix Sum asks for `sum(left..right)`.
+     *
+     * Optional and defaulted, so no existing lesson changed when it arrived, and
+     * it is the seam a second range or a generated one plugs into later.
+     */
+    val queryLeft: Int? = null,
+    val queryRight: Int? = null,
 )
 
 enum class AlgorithmId {
@@ -22,6 +31,10 @@ enum class AlgorithmId {
     // sorted array toward each other, discarding a whole column of pairs with
     // every step.
     TWO_POINTERS,
+
+    // Advanced: precomputation. Build a table of running totals once, then answer
+    // any range sum with one subtraction.
+    PREFIX_SUM,
 
     BUBBLE_SORT,
     SELECTION_SORT,

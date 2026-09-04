@@ -11,6 +11,10 @@ import com.ttele.algoking.engine.core.AlgorithmId
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.dataset.BinarySearchDatasets
 import com.ttele.algoking.engine.dataset.TwoPointersDatasets
+import com.ttele.algoking.engine.dataset.PrefixSumDatasets
+import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumAlgorithm
+import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumProjector
+import com.ttele.algoking.engine.algorithms.prefixsum.PrefixSumWatchNarrator
 import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersAlgorithm
 import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersProjector
 import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersWatchNarrator
@@ -100,6 +104,20 @@ object AlgorithmCatalog {
         watchNarrator = TwoPointersWatchNarrator(),
         watchDataset = TwoPointersDatasets.watch,
         tryDataset = TwoPointersDatasets.tryIt,
+    )
+
+    /**
+     * The second Advanced lesson, and the first about *precomputation* rather
+     * than a way of walking data: pay O(n) once, then answer any range in O(1).
+     */
+    fun prefixSum() = LessonPack(
+        id = AlgorithmId.PREFIX_SUM,
+        displayName = "Prefix Sum",
+        algorithm = PrefixSumAlgorithm(),
+        projector = PrefixSumProjector(),
+        watchNarrator = PrefixSumWatchNarrator(),
+        watchDataset = PrefixSumDatasets.watch,
+        tryDataset = PrefixSumDatasets.tryIt,
     )
 
     fun bubbleSort() = LessonPack(
@@ -203,6 +221,7 @@ object AlgorithmCatalog {
     fun byId(id: AlgorithmId): LessonPack<*, *> = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
         AlgorithmId.TWO_POINTERS -> twoPointers()
+        AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

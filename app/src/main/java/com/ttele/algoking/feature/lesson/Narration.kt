@@ -151,6 +151,134 @@ object Narration {
             NarrationId.TP_IDEA_3 -> "Sum too small? Move LEFT right, to a larger value."
             NarrationId.TP_IDEA_4 -> "It works because the array is sorted — and only then."
 
+
+            // ── Prefix Sum ────────────────────────────────────────────────
+            // One representation throughout: prefix is n+1 long, prefix[0] = 0,
+            // prefix[i+1] = prefix[i] + array[i], and a range is
+            // prefix[right+1] - prefix[left]. The copy never shows the other form.
+            NarrationId.PS_OPTION_VALUE -> arg(0)
+            NarrationId.PS_OPTION_INDICES -> "p[${arg(0)}] − p[${arg(1)}]"
+            NarrationId.PS_ASK_NEXT_PREFIX -> "What is prefix[${arg(0)}]?"
+            NarrationId.PS_BUILT -> "prefix[${arg(0)}] = ${arg(1)} + ${arg(2)} = ${arg(3)}"
+
+            NarrationId.PS_HINT_BUILD ->
+                "prefix[${arg(0)}] = prefix[${arg(1)}] + array[${arg(2)}]."
+
+            NarrationId.PS_RETRY_BUILD_LOOK ->
+                "Not quite. prefix[${arg(0)}] builds on the value before it."
+
+            NarrationId.PS_RETRY_BUILD_ASK ->
+                "You have a running total of ${arg(0)} and the next value is ${arg(1)}. " +
+                    "What do they make?"
+
+            NarrationId.PS_RETRY_BUILD_EXPLAIN ->
+                "prefix[${arg(0)}] uses the previous prefix sum plus the current value: " +
+                    "${arg(1)} + ${arg(2)} = ${arg(3)}."
+
+            // Named for the misconception, not for the number.
+            NarrationId.PS_WHY_FORGOT_RUNNING_TOTAL ->
+                "That is only the current value. A prefix sum carries everything before " +
+                    "it too — add it to ${arg(0)}."
+
+            NarrationId.PS_WHY_FORGOT_TO_ADD ->
+                "That is the previous prefix sum unchanged. You still have to add ${arg(1)}."
+
+            NarrationId.PS_WHY_WRONG_OPERANDS ->
+                "That adds two array values together. A prefix sum adds one array value to " +
+                    "the previous *prefix*: ${arg(0)} + ${arg(1)} = ${arg(2)}."
+
+            NarrationId.PS_CORRECT_BUILD ->
+                "${arg(0)} + ${arg(1)} = ${arg(2)}. prefix[${arg(3)}] now holds everything " +
+                    "up to that point."
+
+            NarrationId.PS_ASK_WHICH_INDICES ->
+                "Which two prefix values give the sum from ${arg(0)} to ${arg(1)}?"
+
+            NarrationId.PS_ASK_EVALUATE ->
+                "prefix[${arg(0)}] − prefix[${arg(1)}] = ${arg(2)} − ${arg(3)}. What is it?"
+
+            NarrationId.PS_CHOSE_INDICES -> "prefix[${arg(0)}] − prefix[${arg(1)}]"
+            NarrationId.PS_ANSWERED -> "Sum of ${arg(0)}..${arg(1)} is ${arg(2)}."
+
+            NarrationId.PS_HINT_FORMULA ->
+                "rangeSum(left, right) = prefix[right + 1] − prefix[left]."
+
+            NarrationId.PS_HINT_SUBTRACT -> "Work out ${arg(0)} − ${arg(1)}."
+
+            NarrationId.PS_RETRY_INDICES_LOOK ->
+                "Not quite. Check which prefix value sits just past the end of the range."
+
+            NarrationId.PS_RETRY_INDICES_ASK ->
+                "prefix[${arg(0)}] stops *before* index ${arg(0)}. Which index includes it?"
+
+            NarrationId.PS_RETRY_INDICES_EXPLAIN ->
+                "The range is ${arg(0)} to ${arg(1)}, so take prefix[${arg(2)}] — everything " +
+                    "up to and including ${arg(1)} — and subtract prefix[${arg(3)}], " +
+                    "everything before the range."
+
+            NarrationId.PS_WHY_STOPS_SHORT ->
+                "prefix[${arg(0)}] stops one short: it leaves out array[${arg(3)}], the last " +
+                    "value in the range."
+
+            NarrationId.PS_WHY_KEEPS_TOO_MUCH ->
+                "Subtracting prefix[${arg(1)}] leaves array[${arg(1)}] in, and it is before " +
+                    "the range starts."
+
+            NarrationId.PS_WHY_DROPS_TOO_MUCH ->
+                "Subtracting prefix[${arg(1)}] removes part of the range itself."
+
+            NarrationId.PS_CORRECT_INDICES ->
+                "prefix[${arg(0)}] − prefix[${arg(1)}]. Everything up to the end of the " +
+                    "range, minus everything before it."
+
+            NarrationId.PS_RETRY_EVAL_LOOK -> "Check the subtraction: ${arg(0)} − ${arg(1)}."
+            NarrationId.PS_RETRY_EVAL_ASK -> "Subtract, do not add — you are removing a prefix."
+            NarrationId.PS_RETRY_EVAL_EXPLAIN -> "${arg(0)} − ${arg(1)} = ${arg(2)}."
+
+            NarrationId.PS_CORRECT_ANSWER ->
+                "${arg(0)} − ${arg(1)} = ${arg(2)}. That is the sum of ${arg(3)}..${arg(4)}, " +
+                    "in one subtraction."
+
+            // ── Prefix Sum — WATCH ────────────────────────────────────────
+            NarrationId.PS_WATCH_SETUP -> "Add up any range, without adding it up."
+            NarrationId.PS_WATCH_SETUP_SUPPORT ->
+                "First we build a table of running totals. Then every range costs one " +
+                    "subtraction."
+
+            NarrationId.PS_WATCH_SEED -> "The prefix array starts with 0."
+            NarrationId.PS_WATCH_SEED_SUPPORT ->
+                "It is one cell longer than the array, and that leading 0 means \"nothing " +
+                    "yet\" — which is what makes the range formula work with no exceptions."
+
+            NarrationId.PS_WATCH_BUILD -> "${arg(0)} + ${arg(1)} = ${arg(2)}"
+            NarrationId.PS_WATCH_BUILD_SUPPORT ->
+                "prefix[${arg(0)}] = prefix[${arg(1)}] + array[${arg(2)}]."
+
+            NarrationId.PS_WATCH_BUILD_DONE ->
+                "The table is built. Every cell holds the sum of everything before it."
+
+            NarrationId.PS_WATCH_QUERY -> "Now: the sum from index ${arg(0)} to ${arg(1)}."
+            NarrationId.PS_WATCH_QUERY_INDICES ->
+                "Take prefix[${arg(0)}] — everything up to and including ${arg(2)} — and " +
+                    "subtract prefix[${arg(1)}], everything before ${arg(3)}."
+
+            NarrationId.PS_WATCH_ANSWER -> "${arg(0)} − ${arg(1)} = ${arg(2)}"
+            NarrationId.PS_WATCH_ANSWER_WHY ->
+                "The prefix before the range is removed, leaving exactly " +
+                    "array[${arg(0)}..${arg(1)}]."
+
+            NarrationId.PS_WATCH_INSIGHT -> "One subtraction, however long the range."
+            NarrationId.PS_WATCH_INSIGHT_SUPPORT ->
+                "Building the table costs O(n) once. After that every range query is O(1) — " +
+                    "the same single step whether the range covers 2 values or all ${arg(0)}."
+
+            NarrationId.PS_WATCH_SUMMARY -> "That is Prefix Sum."
+            NarrationId.PS_WATCH_SUMMARY_SUPPORT -> "Now build one yourself."
+            NarrationId.PS_IDEA_1 -> "prefix[0] = 0, and prefix is one longer than the array."
+            NarrationId.PS_IDEA_2 -> "prefix[i + 1] = prefix[i] + array[i]."
+            NarrationId.PS_IDEA_3 -> "rangeSum(left, right) = prefix[right + 1] − prefix[left]."
+            NarrationId.PS_IDEA_4 -> "Build once in O(n); answer every query in O(1)."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

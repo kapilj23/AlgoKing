@@ -628,8 +628,9 @@ sequence and has its own (ADR-030).
 
 ```kotlin
 sealed interface Scene
-data class SequenceScene(...) : Scene   // ROW | PILE | CHAIN
+data class SequenceScene(...) : Scene   // ROW | PILE | CHAIN | GRID
 data class BucketScene(...) : Scene     // a table of buckets, plus the hash flow
+data class PrefixScene(...) : Scene     // two aligned arrays of different lengths
 ```
 
 The sequence renderer receives pure data, and its only branch is `layout`:

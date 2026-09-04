@@ -73,6 +73,7 @@ advancement is performed by the app, never by the user.
 | Selection Sort | advances the scan cursor | **Is this the new minimum?** + where it lands |
 | Insertion Sort | lifts the key, walks the compare cursor | **Shift right, or insert here?** |
 | Two Pointers | adds the two values and states the sum | **Move LEFT, move RIGHT, or pair found?** |
+| Prefix Sum | gives the leading `prefix[0] = 0` | **each running total**, then **which two prefix values answer the range** |
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
 | Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |

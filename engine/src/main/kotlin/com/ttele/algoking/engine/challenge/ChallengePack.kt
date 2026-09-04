@@ -143,6 +143,7 @@ object ChallengeCatalog {
     fun byId(id: AlgorithmId): ChallengePack? = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
         AlgorithmId.TWO_POINTERS -> null
+        AlgorithmId.PREFIX_SUM -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

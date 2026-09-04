@@ -391,3 +391,64 @@ object TwoPointersDatasets {
         label = "try",
     )
 }
+
+/**
+ * Prefix Sum teaching data — authored, not generated (ADR-014).
+ *
+ * Both datasets carry their range query on the [Dataset] itself, so a second
+ * range, a harder one, or a generated one later is data rather than code.
+ */
+object PrefixSumDatasets {
+
+    /**
+     * `[2, 4, 3, 7, 1]`, asking for `sum(1..3)`.
+     *
+     * ```
+     * array  =    [2, 4, 3,  7,  1]
+     * prefix = [0, 2, 6, 9, 16, 17]
+     *
+     * sum(1..3) = prefix[4] - prefix[1] = 16 - 2 = 14   (4 + 3 + 7)
+     * ```
+     *
+     * Four properties earn this dataset its place:
+     *
+     *  - **the range starts at 1, not 0.** A range starting at 0 subtracts
+     *    `prefix[0] = 0`, so the subtraction looks like it does nothing and the
+     *    whole idea is invisible.
+     *  - **it ends before the last element**, so `prefix[right + 1]` is a real
+     *    interior cell rather than the final total — the off-by-one has somewhere
+     *    to go wrong.
+     *  - **the values are small and distinct**, so a learner can check the answer
+     *    by adding 4 + 3 + 7 in their head and *see* that the subtraction agrees.
+     *  - **7 is the largest value and sits inside the range**, so the running
+     *    total takes a visible jump exactly where the query is looking.
+     */
+    val watch = Dataset(
+        values = listOf(2, 4, 3, 7, 1),
+        label = "watch",
+        queryLeft = 1,
+        queryRight = 3,
+    )
+
+    /**
+     * A different array and a different range, so TRY is application rather than
+     * recall:
+     *
+     * ```
+     * array  =    [5, 1, 8,  2,  6]
+     * prefix = [0, 5, 6, 14, 16, 22]
+     *
+     * sum(2..4) = prefix[5] - prefix[2] = 22 - 6 = 16   (8 + 2 + 6)
+     * ```
+     *
+     * This range deliberately **ends at the last element**, so `prefix[right + 1]`
+     * is the final total. Watch showed an interior boundary; meeting the other end
+     * once is what stops "right + 1" being remembered as "somewhere in the middle".
+     */
+    val tryIt = Dataset(
+        values = listOf(5, 1, 8, 2, 6),
+        label = "try",
+        queryLeft = 2,
+        queryRight = 4,
+    )
+}

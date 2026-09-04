@@ -1239,6 +1239,77 @@ were designed. "Not written yet" is a real state and the signature now says so.
 
 ---
 
+## ADR-033 — Prefix Sum takes a third `Scene` shape, and fixes one representation
+
+**Decision.** Prefix Sum ships as a `LessonPack` with WATCH and TRY. `Scene` gains a third
+shape, `PrefixScene`, and `Dataset` gains optional `queryLeft`/`queryRight`. The prefix array
+uses the **standard leading-zero form** everywhere. Full detail: `docs/prefix-sum.md`.
+
+**Why a third shape.** ADR-030 said a hash map is not a sequence. Prefix Sum is not one either,
+and for a different reason: it has **two arrays of different lengths**, and the lesson lives in
+the *offset* between them — `prefix[i + 1]` is the running total that `array[i]` produced.
+
+Flattening both into one row of `n + (n + 1)` cells would assert they are one sequence, which is
+the single thing the learner must not believe. Showing one at a time would hide the relationship
+that *is* the technique. So the scene carries two cell lists, and the renderer lays them over the
+same `n + 1` slots with the source row inset by one — which puts each array value directly above
+the prefix cell it feeds, and leaves `prefix[0] = 0` alone at the left explaining why the row is
+longer.
+
+Inside, it is ordinary scene data: the same `Cell` and `CellState` as everywhere else, so an
+uncomputed entry is a `GHOST` — the hole Insertion Sort already established. `SceneCell` and
+`SlotRow` became `internal` so the new shape reuses them; duplicating cell styling is how a
+design system forks.
+
+### One representation, chosen for the formula it produces
+
+```
+prefix is n + 1 long, prefix[0] = 0
+prefix[i + 1]         = prefix[i] + array[i]
+rangeSum(left, right) = prefix[right + 1] - prefix[left]
+```
+
+The n-length form without the leading zero appears nowhere — not in the engine, the copy, the
+UI or the tests. It is not a style preference: without the leading zero the range query needs a
+branch for `left == 0`, and a formula with an exception in it is one the learner memorises
+instead of understanding. The teaching range deliberately starts at 1 so the subtraction is
+visibly doing something; a range starting at 0 subtracts zero and the whole idea looks like a
+no-op.
+
+### Choosing the indices is its own beat
+
+The query is two decisions, not one: *which two prefix values?* then *what do they make?*
+Reaching for `prefix[right]` instead of `prefix[right + 1]` is the mistake this technique is
+famous for, and it has to be askable on its own — so the off-by-one is always among the options.
+A beat that cannot be failed is not testing anything.
+
+### The options are values, and the wrong ones are misconceptions
+
+Each beat offers three numbers. For `prefix[2] = 2 + 4 = 6` they are 6, **4** (the running total
+dropped) and **7** (two array values added to each other). Because each distractor encodes a
+specific error, `whyWrong` can name what the learner actually did rather than restating the
+rule at them.
+
+A numeric keypad was rejected: it is a new interaction model for one lesson, and "select" is
+what the brief asked for.
+
+### What it cost
+
+Zero new `VizEvent` types, zero changes to existing algorithms, zero new interaction models.
+The `Dataset` fields are optional and defaulted, so no existing lesson moved.
+
+**Alternatives considered.**
+- *One `SequenceScene` with `groups` separating the two arrays.* Rejected: groups divide **one**
+  sequence, and these are two, with different lengths and different index meanings. The
+  separator would be a lie about what the cells are.
+- *Show only the prefix array, and the source array in the copy.* Rejected: the relationship is
+  the lesson, and prose cannot carry an alignment.
+- *A numeric keypad for the answers.* Rejected above.
+- *Ask the learner for `prefix[0] = 0`.* Rejected: it is the definition of the representation,
+  not a judgement. Asking it would be the gesture-teaching trap PRODUCT_SPEC.md §3 warns about.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

@@ -47,6 +47,7 @@ import com.ttele.algoking.engine.scene.CellState
 import com.ttele.algoking.engine.scene.BucketScene
 import com.ttele.algoking.engine.scene.Scene
 import com.ttele.algoking.engine.scene.SceneLayout
+import com.ttele.algoking.engine.scene.PrefixScene
 import com.ttele.algoking.engine.scene.SequenceScene
 import com.ttele.algoking.ui.theme.AlgoColors
 import com.ttele.algoking.ui.theme.AlgoGradients
@@ -83,6 +84,7 @@ fun SceneRenderer(
     when (scene) {
         is SequenceScene -> SequenceRenderer(scene, modifier, selectableSlots, onSelectSlot)
         is BucketScene -> BucketTable(scene, modifier, selectableSlots, onSelectSlot)
+        is PrefixScene -> PrefixTable(scene, modifier)
     }
 }
 
@@ -485,7 +487,7 @@ private fun SwapArc(cellCount: Int, from: Int, to: Int, modifier: Modifier = Mod
  * preserves the rhythm when a rail holds a single glyph.
  */
 @Composable
-private fun SlotRow(cellCount: Int, content: @Composable (Int) -> Unit) {
+internal fun SlotRow(cellCount: Int, content: @Composable (Int) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -508,7 +510,7 @@ private fun SlotRow(cellCount: Int, content: @Composable (Int) -> Unit) {
  * is identical to the legend printed under every array in the app.
  */
 @Composable
-private fun SceneCell(
+internal fun SceneCell(
     cell: Cell,
     inRange: Boolean,
     modifier: Modifier = Modifier,
@@ -619,6 +621,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
     val meters = when (scene) {
         is SequenceScene -> scene.meters
         is BucketScene -> scene.meters
+        is PrefixScene -> scene.meters
     }
     if (meters.isEmpty()) return
     Row(
@@ -653,9 +656,19 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
 @Composable
 fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
     // A bucket table names its own states in the copy, so it needs no legend.
-    if (scene !is SequenceScene) return
-    val present = scene.cells.map { it.state }.toSet()
-    fun name(state: CellState, fallback: String) = scene.legendLabels[state] ?: fallback
+    // A prefix table has two rows, and both feed one legend.
+    val cells = when (scene) {
+        is SequenceScene -> scene.cells
+        is PrefixScene -> scene.source + scene.prefix
+        is BucketScene -> return
+    }
+    val labels = when (scene) {
+        is SequenceScene -> scene.legendLabels
+        is PrefixScene -> scene.legendLabels
+        is BucketScene -> return
+    }
+    val present = cells.map { it.state }.toSet()
+    fun name(state: CellState, fallback: String) = labels[state] ?: fallback
     val entries = buildList {
         if (CellState.COMPARING in present) add(AlgoViz.comparing to name(CellState.COMPARING, "Checking"))
         if (CellState.CANDIDATE in present) add(AlgoViz.next to name(CellState.CANDIDATE, "Smallest so far"))

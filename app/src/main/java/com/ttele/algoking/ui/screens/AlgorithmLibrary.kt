@@ -59,6 +59,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.PREFIX_SUM,
+        title = "Prefix Sum",
+        description = "Precompute running totals, then answer any range instantly.",
+        category = "Advanced",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,
         title = "Bubble Sort",
         description = "Compare neighbours and swap the ones out of order.",

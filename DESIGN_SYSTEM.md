@@ -501,6 +501,34 @@ one slot to the other with an arrowhead at the destination — the same language
 reference's swap indicator. It appears only as the consequence of a decision, never as
 decoration.
 
+### 6.16f Two aligned arrays — `PrefixTable`
+
+The third scene shape, and the second that is not a sequence (ADR-030, ADR-033). Prefix Sum has
+**two arrays of different lengths**, and the lesson is the offset between them.
+
+Both rows are laid out over the same `n + 1` slots, and the source row leaves slot 0 empty:
+
+```
+ARRAY          [ 2 ] [ 4 ] [ 3 ] [ 7 ] [ 1 ]
+                 0     1     2     3     4
+
+PREFIX   [ 0 ] [ 2 ] [ 6 ] [ 9 ] [16 ] [17 ]
+           0     1     2     3     4     5
+```
+
+That puts `array[i]` directly above `prefix[i + 1]` — the cell it is the increment for — and
+leaves `prefix[0]` alone at the left, which is the whole reason the prefix row is one longer.
+
+| Element | Treatment |
+|---|---|
+| cell | the same `SceneCell` every other lesson draws — the weight goes **into** the cell, never around it, or it collapses to a narrow capsule with the numeral spilling out |
+| row caption | `labelSmall` in `textMuted`, uppercase — two arrays must never read as one |
+| index rail | `labelSmall` under each row, in its own slots |
+| uncomputed entry | `GHOST` — a hole with no numeral. A `0` there would claim a value exists |
+| the range | a `pointer`-coloured rail under the source cells it covers, captioned `sum 1..3` |
+| equation strip | `surfaceVariant` card: operand over `labelSmall` caption, `numeralMedium` values, the result in `primary` |
+| the result | reads `?` until it is known — an answer already on screen is not a question |
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

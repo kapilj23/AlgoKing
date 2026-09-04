@@ -166,7 +166,8 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // The structures hand over to the Advanced shelf, which is where the library
     // stops teaching named routines and starts teaching techniques.
     AlgorithmId.HASH_MAP -> AlgorithmId.TWO_POINTERS
-    AlgorithmId.TWO_POINTERS -> AlgorithmId.BINARY_SEARCH
+    AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
+    AlgorithmId.PREFIX_SUM -> AlgorithmId.BINARY_SEARCH
 }
 
 /**
