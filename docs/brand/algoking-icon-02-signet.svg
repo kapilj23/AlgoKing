@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>AlgoKing app icon - Signet (minimal)</title>
+  <defs>
+    <clipPath id="m-tile"><rect width="1024" height="1024" rx="228" ry="228"/></clipPath>
+    <linearGradient id="m-ground" x1="0.1" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#141F42"/><stop offset="0.5" stop-color="#0A1128"/><stop offset="1" stop-color="#04070D"/>
+    </linearGradient>
+    <radialGradient id="m-lift" cx="0.5" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#22376F" stop-opacity="0.70"/><stop offset="0.5" stop-color="#101B3C" stop-opacity="0.30"/><stop offset="1" stop-color="#04070D" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m-bounce" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0BB44" stop-opacity="0.26"/><stop offset="1" stop-color="#F0BB44" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m-scrim" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#03060C" stop-opacity="0.62"/><stop offset="0.62" stop-color="#03060C" stop-opacity="0.34"/><stop offset="1" stop-color="#03060C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="m-sheen" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0" stop-color="#CFE2FF" stop-opacity="0.10"/><stop offset="0.4" stop-color="#CFE2FF" stop-opacity="0.015"/><stop offset="1" stop-color="#000308" stop-opacity="0.22"/>
+    </linearGradient>
+    <linearGradient id="m-rim" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.24"/><stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="1" stop-color="#F2C868" stop-opacity="0.16"/>
+    </linearGradient>
+    <linearGradient id="m-gold" x1="0.12" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FFF4CE"/><stop offset="0.18" stop-color="#F9D882"/><stop offset="0.42" stop-color="#E7AE33"/>
+      <stop offset="0.68" stop-color="#BE801B"/><stop offset="0.86" stop-color="#E0A62C"/><stop offset="1" stop-color="#FFEBB4"/>
+    </linearGradient>
+    <linearGradient id="m-goldBand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFEDB6"/><stop offset="0.45" stop-color="#E7AE33"/><stop offset="1" stop-color="#A9701A"/>
+    </linearGradient>
+    <linearGradient id="m-silver" x1="0.12" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.22" stop-color="#F1F5FF"/><stop offset="0.5" stop-color="#C6D2E8"/>
+      <stop offset="0.74" stop-color="#909FBE"/><stop offset="0.9" stop-color="#D5DEEF"/><stop offset="1" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <linearGradient id="m-blue" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#8CCBFF"/><stop offset="0.45" stop-color="#3D8BFF"/><stop offset="1" stop-color="#1444B8"/>
+    </linearGradient>
+    <linearGradient id="m-floor" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9DC4FF" stop-opacity="0"/><stop offset="0.5" stop-color="#9DC4FF" stop-opacity="0.32"/><stop offset="1" stop-color="#9DC4FF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="m-sheenLetter" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.46"/><stop offset="0.34" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="0.63" stop-color="#000814" stop-opacity="0.16"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0.20"/>
+    </linearGradient>
+    <filter id="m-soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="17"/></filter>
+    <filter id="m-glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="10"/></filter>
+    <filter id="m-drop" x="-30%" y="-30%" width="170%" height="170%">
+      <feDropShadow dx="0" dy="11" stdDeviation="15" flood-color="#000610" flood-opacity="0.58"/>
+    </filter>
+    <filter id="m-dropSoft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#000610" flood-opacity="0.45"/>
+    </filter>
+    <clipPath id="m-clipA" clipPathUnits="userSpaceOnUse"><path clip-rule="evenodd" d="M384,355 L416,355 L545,660 L255,660 Z M400,457 L434,528 L366,528 Z M341,580 L459,580 L497,660 L303,660 Z"/></clipPath>
+    <clipPath id="m-clipK" clipPathUnits="userSpaceOnUse"><path d="M585,355 L657,355 L657,660 L585,660 Z M740,355 L835,355 L752,500 L657,500 Z M657,500 L752,500 L857,660 L762,660 Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#m-tile)">
+    <rect width="1024" height="1024" fill="url(#m-ground)"/>
+    <rect width="1024" height="1024" fill="url(#m-lift)"/>
+    <ellipse cx="512" cy="872" rx="345" ry="122" fill="url(#m-bounce)"/>
+    <circle cx="512" cy="512" r="396" fill="none" stroke="#F2C868" stroke-opacity="0.10" stroke-width="2"/>
+    <ellipse cx="512" cy="530" rx="410" ry="340" fill="url(#m-scrim)"/>
+    <g filter="url(#m-drop)" transform="translate(0 120)">
+      <path d="M316,315 L316,214 L428,282 L512,160 L596,282 L708,214 L708,315 Z" fill="#E7AE33" opacity="0.24" filter="url(#m-soft)"/>
+      <path d="M316,315 L316,214 L428,282 L512,160 L596,282 L708,214 L708,315 Z" fill="url(#m-gold)"/>
+      <path d="M512,160 L512,282 L428,282 Z" fill="#FFF4CE" opacity="0.26"/>
+      <path d="M512,160 L512,282 L596,282 Z" fill="#7A4E0E" opacity="0.20"/>
+      <path d="M316,214 L316,315 L375,288 Z" fill="#FFF4CE" opacity="0.18"/>
+      <path d="M708,214 L708,315 L649,288 Z" fill="#7A4E0E" opacity="0.16"/>
+      <rect x="307" y="315" width="410" height="47" rx="16" fill="url(#m-goldBand)"/>
+      <rect x="316" y="320" width="392" height="9" rx="4.5" fill="#FFF7DC" opacity="0.28"/>
+      <rect x="316" y="349" width="392" height="9" rx="4.5" fill="#6B430B" opacity="0.26"/>
+      <circle cx="316" cy="214" r="15" fill="url(#m-gold)"/>
+      <circle cx="708" cy="214" r="15" fill="url(#m-gold)"/>
+      <circle cx="512" cy="152" r="23" fill="url(#m-gold)"/>
+      <circle cx="512" cy="152" r="17" fill="url(#m-blue)"/>
+      <circle cx="506" cy="146" r="5" fill="#EAF6FF" opacity="0.85"/>
+    </g>
+
+    <g filter="url(#m-drop)" transform="translate(512 634) scale(0.92) translate(-556 -507.5)">
+      <path fill-rule="evenodd" fill="url(#m-silver)" d="M384,355 L416,355 L545,660 L255,660 Z M400,457 L434,528 L366,528 Z M341,580 L459,580 L497,660 L303,660 Z"/>
+      <g clip-path="url(#m-clipA)"><rect x="245" y="345" width="310" height="325" fill="url(#m-sheenLetter)"/></g>
+      <path fill-rule="evenodd" fill="none" stroke="#FFFFFF" stroke-opacity="0.32" stroke-width="2" d="M384,355 L416,355 L545,660 L255,660 Z M400,457 L434,528 L366,528 Z M341,580 L459,580 L497,660 L303,660 Z"/>
+      <path fill="url(#m-gold)" d="M585,355 L657,355 L657,660 L585,660 Z M740,355 L835,355 L752,500 L657,500 Z M657,500 L752,500 L857,660 L762,660 Z"/>
+      <g clip-path="url(#m-clipK)"><rect x="575" y="345" width="292" height="325" fill="url(#m-sheenLetter)"/></g>
+      <path fill="none" stroke="#FFF4CE" stroke-opacity="0.34" stroke-width="2" d="M585,355 L657,355 L657,660 L585,660 Z M740,355 L835,355 L752,500 L657,500 Z M657,500 L752,500 L857,660 L762,660 Z"/>
+    </g>
+    <rect width="1024" height="1024" fill="url(#m-sheen)"/>
+    <rect x="1.5" y="1.5" width="1021" height="1021" rx="226.5" fill="none" stroke="url(#m-rim)" stroke-width="3"/>
+  </g>
+</svg>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AlgoKing themed-icon (monochrome) layer — Android 13+.
+
+    The system tints this flat, so the gold-against-silver contrast that
+    separates the crown from the letters in the real icon is gone. Two changes
+    follow from that, and only from that:
+
+      * the crown rides 26 units higher than in the colour artwork, because the
+        10-unit gap that reads fine in two metals merges into one blob in one;
+      * the four-step climb is dropped — at a 40px themed icon the bars degrade
+        into a dotted line rather than a chart.
+
+    Everything else is the same path data as
+    docs/brand/algoking-icon-01-sovereign.svg, in the same 1024-unit space.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <!-- Fit the mark inside the adaptive icon's 72dp safe zone. -->
+    <group
+        android:pivotX="512"
+        android:pivotY="512"
+        android:scaleX="0.86"
+        android:scaleY="0.86">
+
+        <group android:translateY="45">
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M316,315 L316,214 L428,282 L512,160 L596,282 L708,214 L708,315 Z" />
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M323,315 h378 a16,16 0 0 1 16,16 v15 a16,16 0 0 1 -16,16 h-378 a16,16 0 0 1 -16,-16 v-15 a16,16 0 0 1 16,-16 z" />
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M301,214 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 z" />
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M693,214 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 z" />
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M489,152 a23,23 0 1,0 46,0 a23,23 0 1,0 -46,0 z" />
+        </group>
+
+        <group
+            android:translateX="-44"
+            android:translateY="63.5"
+            android:pivotX="556"
+            android:pivotY="507.5"
+            android:scaleX="0.83"
+            android:scaleY="0.83">
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:fillType="evenOdd"
+                android:pathData="M384,355 L416,355 L545,660 L255,660 Z M400,457 L434,528 L366,528 Z M341,580 L459,580 L497,660 L303,660 Z" />
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M585,355 L657,355 L657,660 L585,660 Z M740,355 L835,355 L752,500 L657,500 Z M657,500 L752,500 L857,660 L762,660 Z" />
+        </group>
+    </group>
+</vector>

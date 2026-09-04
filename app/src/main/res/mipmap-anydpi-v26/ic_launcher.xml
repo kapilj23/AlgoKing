@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background is a vector: the tile is nothing but gradients, so it costs
+         a few hundred bytes and cannot band. Foreground is a bitmap because the
+         mark carries drop shadows and clipped metallic sheens that VectorDrawable
+         has no way to express. -->
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

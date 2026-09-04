@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    *{ box-sizing: border-box; }
+    body { margin: 0; background: #0A0C12; color: #E8EAF2;
+           font-family: Archivo, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #8B72FF; } a:hover { color: #7A5FF0; }
+    .cap { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500;
+           letter-spacing: 0.13em; text-transform: uppercase; color: #7C8398; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .c { width: 30px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .cv { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500;
+          font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #0A0C12; display: flex; flex-direction: column;">
+
+  <div style="height: 44px; flex: none;"></div>
+
+  <div style="height: 40px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 20px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A8AEC2" stroke-width="2" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18"></path>
+    </svg>
+    <div style="flex-grow: 1; height: 3px; border-radius: 2px; background: #242938; overflow: hidden;">
+      <div style="width: 40%; height: 100%; background: #8B72FF;"></div>
+    </div>
+    <span class="cap" style="color: #8B72FF; border: 1px solid rgba(139,114,255,0.34); background: rgba(139,114,255,0.14);
+                             border-radius: 999px; padding: 3px 10px;">Try</span>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 20px;">
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="cap">Target</span>
+      <span class="mono" style="font-size: 22px; font-weight: 700; color: #E8EAF2;">73</span>
+    </div>
+
+    <!-- the learner kept the LEFT half. 73 was on the right. It is gone. -->
+    <div style="display: flex; gap: 5px; width: 100%; justify-content: center; align-items: center;">
+      <div class="c" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">3</span></div>
+      <div class="c" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">8</span></div>
+      <div class="c" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">14</span></div>
+      <div class="c" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">21</span></div>
+      <div class="c" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">29</span></div>
+      <!-- eliminated: collapsed to 0.88 and desaturated to ink at 22% -->
+      <div class="c" style="transform: scale(0.88);"><span class="cv" style="color: rgba(232,234,242,0.22);">37</span></div>
+      <div class="c" style="transform: scale(0.88);"><span class="cv" style="color: rgba(232,234,242,0.22);">45</span></div>
+      <div class="c" style="transform: scale(0.88);"><span class="cv" style="color: rgba(232,234,242,0.22);">52</span></div>
+      <div class="c" style="transform: scale(0.88);"><span class="cv" style="color: rgba(232,234,242,0.22);">61</span></div>
+      <!-- the target, still visible, on the wrong side of the decision -->
+      <div class="c" style="transform: scale(0.88); border: 1.5px dashed rgba(248,113,113,0.7); border-radius: 8px;">
+        <span class="cv" style="color: #F87171;">73</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 5px; width: 100%; justify-content: center; margin-top: -10px;">
+      <div style="width: 30px;"></div><div style="width: 30px;"></div><div style="width: 30px;"></div><div style="width: 30px;"></div>
+      <div style="width: 30px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+        <svg width="11" height="6" viewBox="0 0 12 7" fill="#FB7185"><path d="M6 0l6 7H0z"></path></svg>
+        <span class="cap" style="color: #FB7185; font-size: 10px;">hi</span>
+      </div>
+      <div style="width: 30px;"></div><div style="width: 30px;"></div><div style="width: 30px;"></div>
+      <div style="width: 30px;"></div>
+      <div style="width: 30px; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+        <svg width="11" height="6" viewBox="0 0 12 7" fill="rgba(248,113,113,0.7)"><path d="M6 0l6 7H0z"></path></svg>
+        <span class="cap" style="color: #F87171; font-size: 10px;">73</span>
+      </div>
+    </div>
+
+    <span class="cap" style="color: #4A5163;">Search space &middot; 5 of 10</span>
+  </div>
+
+  <!-- the consequence card rises from the bottom. Red appears here and almost nowhere else. -->
+  <div style="flex: none; margin: 0 20px 20px; border-radius: 16px; background: rgba(248,113,113,0.09);
+              border: 1px solid rgba(248,113,113,0.34); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 20px; line-height: 26px; font-weight: 700; letter-spacing: -0.015em; color: #E8EAF2;">
+        73 was in the half you threw away.
+      </span>
+      <span style="font-size: 17px; line-height: 24px; color: #A8AEC2;">
+        The algorithm can keep going, but it will never find it now.
+      </span>
+    </div>
+
+    <div style="display: flex; gap: 12px;">
+      <div style="flex-grow: 1; height: 52px; border-radius: 14px; background: #8B72FF;
+                  display: flex; align-items: center; justify-content: center; gap: 9px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0C12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path>
+        </svg>
+        <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #0A0C12;">Rewind</span>
+      </div>
+      <div style="flex-grow: 1; height: 52px; border-radius: 14px; background: transparent; border: 1px solid #333A4D;
+                  display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 15px; font-weight: 500; color: #A8AEC2;">Keep going</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    *{ box-sizing: border-box; }
+    body { margin: 0; background: #0A0C12; color: #E8EAF2;
+           font-family: Archivo, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #8B72FF; } a:hover { color: #7A5FF0; }
+    .cap { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500;
+           letter-spacing: 0.13em; text-transform: uppercase; color: #7C8398; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .sw { border-radius: 12px; background: #12141C; border: 1px solid #242938; padding: 14px;
+          display: flex; flex-direction: column; gap: 9px; }
+    .dot { width: 100%; height: 34px; border-radius: 8px; }
+    .swn { font-size: 14px; font-weight: 600; color: #E8EAF2; }
+    .swu { font-size: 12.5px; line-height: 17px; color: #7C8398; }
+    .hex { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #4A5163; }
+    .sect { display: flex; flex-direction: column; gap: 16px; }
+    .hrule { height: 1px; background: #242938; }
+    .cell { width: 66px; height: 66px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .cv { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 22px; font-weight: 500;
+          font-variant-numeric: tabular-nums; }
+    .strow { display: flex; flex-direction: column; align-items: center; gap: 9px; }
+    .dur { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid #242938; }
+  </style>
+</helmet>
+
+<div style="width: 940px; background: #0A0C12; padding: 44px 44px 52px; display: flex; flex-direction: column; gap: 40px;">
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span class="cap" style="color: #8B72FF;">AlgoKing &middot; Design System v1.0</span>
+    <span style="font-size: 40px; font-weight: 700; letter-spacing: -0.035em; line-height: 44px; color: #E8EAF2;">
+      An instrument you operate
+    </span>
+    <span style="font-size: 17px; line-height: 25px; color: #A8AEC2; max-width: 58ch;">
+      Two palettes that must never mix: the brand palette drives the interface, a strictly semantic
+      palette drives the algorithm. If the primary button and the &ldquo;found it&rdquo; state share a hue,
+      the array starts reading as UI and the visual language collapses.
+    </span>
+  </div>
+
+  <div class="hrule"></div>
+
+  <!-- BRAND -->
+  <div class="sect">
+    <span class="cap">Brand &amp; interface &mdash; drives chrome only</span>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;">
+      <div class="sw"><div class="dot" style="background: #8B72FF;"></div>
+        <div><div class="swn">Signal Violet</div><div class="swu">Primary buttons, active nav, progress</div><div class="hex">#8B72FF</div></div></div>
+      <div class="sw"><div class="dot" style="background: #0A0C12; border: 1px solid #333A4D;"></div>
+        <div><div class="swn">Ground</div><div class="swu">App background and visualiser canvas</div><div class="hex">#0A0C12</div></div></div>
+      <div class="sw"><div class="dot" style="background: #12141C; border: 1px solid #333A4D;"></div>
+        <div><div class="swn">Surface</div><div class="swu">Cards and sheets</div><div class="hex">#12141C</div></div></div>
+      <div class="sw"><div class="dot" style="background: #191C26; border: 1px solid #333A4D;"></div>
+        <div><div class="swn">Raised</div><div class="swu">Chips, decision buttons</div><div class="hex">#191C26</div></div></div>
+      <div class="sw"><div class="dot" style="background: #242938;"></div>
+        <div><div class="swn">Line</div><div class="swu">1dp hairline &mdash; cards are borders, not shadows</div><div class="hex">#242938</div></div></div>
+      <div class="sw"><div class="dot" style="background: #E8EAF2;"></div>
+        <div><div class="swn">Ink</div><div class="swu">#A8AEC2 muted &middot; #7C8398 faint</div><div class="hex">#E8EAF2</div></div></div>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <div class="sect">
+    <span class="cap" style="color: #F5A524;">Data semantics &mdash; identical meaning in all nine algorithms</span>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;">
+      <div class="sw"><div class="dot" style="background: #F5A524;"></div>
+        <div><div class="swn">Examining</div><div class="swu">Under examination <em>right now</em></div><div class="hex">#F5A524</div></div></div>
+      <div class="sw"><div class="dot" style="background: #38BDF8;"></div>
+        <div><div class="swn">Pointer A</div><div class="swu">lo &middot; i &middot; windowStart</div><div class="hex">#38BDF8</div></div></div>
+      <div class="sw"><div class="dot" style="background: #FB7185;"></div>
+        <div><div class="swn">Pointer B</div><div class="swu">hi &middot; j &middot; windowEnd</div><div class="hex">#FB7185</div></div></div>
+      <div class="sw"><div class="dot" style="background: #34D399;"></div>
+        <div><div class="swn">Final</div><div class="swu">Sorted, correct, found</div><div class="hex">#34D399</div></div></div>
+      <div class="sw"><div class="dot" style="background: rgba(232,234,242,0.22);"></div>
+        <div><div class="swn">Eliminated</div><div class="swu">Out of consideration</div><div class="hex">ink @ 22%</div></div></div>
+      <div class="sw"><div class="dot" style="background: #F87171;"></div>
+        <div><div class="swn">Consequence</div><div class="swu">A wrong decision. Nothing else, ever.</div><div class="hex">#F87171</div></div></div>
+    </div>
+    <span style="font-size: 15px; line-height: 22px; color: #A8AEC2; max-width: 72ch;">
+      The target is <strong style="color: #E8EAF2;">not</strong> a colour &mdash; it is a badge above the array plus a dashed outline.
+      Spending a data colour on it would break the contract, and that contract is what lets a learner carry
+      understanding from Binary Search into Two Pointers without learning the visual language twice.
+    </span>
+  </div>
+
+  <div class="hrule"></div>
+
+  <!-- CELL STATES -->
+  <div class="sect">
+    <span class="cap">Cell states</span>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <div class="strow">
+        <div class="cell" style="background: #191C26; border: 1px solid #242938;"><span class="cv" style="color: #E8EAF2;">42</span></div>
+        <span class="cap" style="font-size: 10px;">Idle</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="background: rgba(245,165,36,0.16); border: 1.5px solid #F5A524;"><span class="cv" style="color: #F5A524;">42</span></div>
+        <span class="cap" style="font-size: 10px;">Examining</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="background: rgba(245,165,36,0.24); border: 2px solid #F5A524;"><span class="cv" style="color: #E8EAF2;">42</span></div>
+        <span class="cap" style="font-size: 10px;">Comparing</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="background: #191C26; border: 1.5px dashed #38BDF8;"><span class="cv" style="color: #E8EAF2;">42</span></div>
+        <span class="cap" style="font-size: 10px;">Candidate</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="background: rgba(52,211,153,0.16); border: 1.5px solid #34D399;"><span class="cv" style="color: #34D399;">42</span></div>
+        <span class="cap" style="font-size: 10px;">Finalized</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="transform: scale(0.88);"><span class="cv" style="color: rgba(232,234,242,0.22);">42</span></div>
+        <span class="cap" style="font-size: 10px;">Eliminated</span>
+      </div>
+      <div class="strow">
+        <div class="cell" style="border: 1px dashed #242938;"></div>
+        <span class="cap" style="font-size: 10px;">Ghost</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hrule"></div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px;">
+
+    <!-- TYPE -->
+    <div class="sect">
+      <span class="cap">Type &mdash; Archivo &amp; JetBrains Mono</span>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">displayL 32</span>
+          <span style="font-size: 32px; font-weight: 700; letter-spacing: -0.025em; color: #E8EAF2;">Bubble Sort</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">displayM 24</span>
+          <span style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #E8EAF2;">Your DSA Journey</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">cellValue 22</span>
+          <span class="mono" style="font-size: 22px; font-weight: 500; color: #E8EAF2;">3 7 8 2 5</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">narration 17</span>
+          <span style="font-size: 17px; font-weight: 500; color: #E8EAF2;">8 is bigger than 2. They swap.</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">body 15</span>
+          <span style="font-size: 15px; color: #A8AEC2;">Compare neighbouring numbers.</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">metric 15</span>
+          <span class="mono" style="font-size: 15px; font-weight: 500; color: #E8EAF2;">10 &middot; 6 &middot; 100%</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <span class="hex" style="width: 76px; flex: none;">caption 11</span>
+          <span class="cap">Comparisons</span>
+        </div>
+      </div>
+      <span style="font-size: 14px; line-height: 21px; color: #7C8398; max-width: 48ch;">
+        Every digit is tabular. Proportional figures make array cells change width when the value changes,
+        which reads as a rendering bug during animation.
+      </span>
+    </div>
+
+    <!-- MOTION + BUTTONS -->
+    <div style="display: flex; flex-direction: column; gap: 34px;">
+
+      <div class="sect">
+        <span class="cap">Motion &mdash; information, never decoration</span>
+        <div style="display: flex; flex-direction: column;">
+          <div class="dur"><span class="mono" style="font-size: 14px; color: #8B72FF; width: 58px;">150ms</span><span style="font-size: 14px; color: #A8AEC2;">state colour change</span></div>
+          <div class="dur"><span class="mono" style="font-size: 14px; color: #8B72FF; width: 58px;">200ms</span><span style="font-size: 14px; color: #A8AEC2;">pointer move</span></div>
+          <div class="dur"><span class="mono" style="font-size: 14px; color: #8B72FF; width: 58px;">400ms</span><span style="font-size: 14px; color: #A8AEC2;">swap &mdash; opposing &plusmn;14dp arcs</span></div>
+          <div class="dur"><span class="mono" style="font-size: 14px; color: #8B72FF; width: 58px;">500ms</span><span style="font-size: 14px; color: #A8AEC2;">eliminate &mdash; collapse, not fade</span></div>
+          <div class="dur" style="border-bottom: 0; margin-top: 6px; align-items: flex-start;">
+            <span class="mono" style="font-size: 14px; color: #F5A524; width: 58px;">400ms</span>
+            <span style="font-size: 14px; line-height: 21px; color: #E8EAF2;">
+              <strong>the anticipation beat</strong><br>
+              <span style="color: #A8AEC2;">the hold before the reveal, where the viewer answers it silently</span>
+            </span>
+          </div>
+        </div>
+        <span style="font-size: 14px; line-height: 21px; color: #7C8398; max-width: 46ch;">
+          Speed presets scale the holds only. Motion durations are constant &mdash; the algorithm must always look
+          like itself.
+        </span>
+      </div>
+
+      <div class="sect">
+        <span class="cap">Buttons &mdash; one primary per screen</span>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px;">
+          <div style="height: 56px; border-radius: 14px; background: #8B72FF; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #0A0C12;">Primary</span>
+          </div>
+          <div style="height: 48px; border-radius: 14px; border: 1px solid #333A4D; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 15px; font-weight: 500; color: #A8AEC2;">Secondary</span>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div style="flex-grow: 1; height: 64px; border-radius: 14px; background: #191C26; border: 1px solid #242938;
+                        display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #E8EAF2;">Swap</span>
+            </div>
+            <div style="flex-grow: 1; height: 64px; border-radius: 14px; background: #191C26; border: 1px solid #242938;
+                        display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #E8EAF2;">Keep</span>
+            </div>
+          </div>
+        </div>
+        <span style="font-size: 14px; line-height: 21px; color: #7C8398; max-width: 46ch;">
+          Decision chips carry no correctness signal &mdash; not colour, order, size, elevation, ripple,
+          or accessibility role. The action model has no <span class="mono" style="font-size: 12px;">isCorrect</span> field, so
+          the UI could not style one differently even by accident.
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

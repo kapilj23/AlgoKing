@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+  <style>
+    *{ box-sizing: border-box; }
+    body { margin: 0; background: #0A0C12; color: #E8EAF2;
+           font-family: Archivo, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #8B72FF; } a:hover { color: #7A5FF0; }
+    .cap { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 500;
+           letter-spacing: 0.13em; text-transform: uppercase; color: #7C8398; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .tile { height: 40px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .tname { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.04em; }
+    .day { width: 100%; aspect-ratio: 1; border-radius: 5px; }
+    .sect { display: flex; flex-direction: column; gap: 12px; }
+    .best { display: flex; align-items: baseline; justify-content: space-between; padding: 9px 0;
+            border-bottom: 1px solid #242938; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 1120px; background: #0A0C12; display: flex; flex-direction: column;">
+
+  <div style="height: 44px; flex: none;"></div>
+
+  <div style="flex: none; padding: 12px 20px 0; display: flex; align-items: center; justify-content: space-between;">
+    <span style="font-size: 24px; font-weight: 700; letter-spacing: -0.025em; color: #E8EAF2;">Progress</span>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#A8AEC2" stroke-width="1.8" stroke-linecap="round">
+      <path d="M4 8h9M19 8h1M4 16h5M15 16h5"></path>
+      <circle cx="16" cy="8" r="2.4"></circle>
+      <circle cx="12" cy="16" r="2.4"></circle>
+    </svg>
+  </div>
+
+  <div style="flex-grow: 1; padding: 22px 20px 0; display: flex; flex-direction: column; gap: 26px; min-height: 0;">
+
+    <!-- headline number -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <svg width="76" height="76" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="#242938" stroke-width="3"></circle>
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="#8B72FF" stroke-width="3" stroke-linecap="round"
+                stroke-dasharray="52 97" transform="rotate(-90 18 18)"></circle>
+      </svg>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; align-items: baseline; gap: 7px;">
+          <span class="mono" style="font-size: 32px; font-weight: 700; color: #E8EAF2;">8</span>
+          <span class="mono" style="font-size: 17px; color: #7C8398;">/ 15 mastered</span>
+        </div>
+        <span style="font-size: 15px; color: #A8AEC2;">4 more to finish Sorting</span>
+      </div>
+    </div>
+
+    <!-- mastery map: the artefact worth screenshotting -->
+    <div class="sect">
+      <span class="cap">Mastery map</span>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;">
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">BIN</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">RACE</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">LIN</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">BUB</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">SEL</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">INS</span></div>
+        <div class="tile" style="background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5);"><span class="tname" style="color: #34D399;">STK</span></div>
+        <!-- rusty: the mastered mark, hazed. Never removed. -->
+        <div class="tile" style="background: rgba(52,211,153,0.07); border: 1px dashed rgba(52,211,153,0.4);"><span class="tname" style="color: rgba(52,211,153,0.55);">SUM</span></div>
+        <div class="tile" style="background: #191C26; border: 1px solid rgba(139,114,255,0.4);"><span class="tname" style="color: #8B72FF;">2PT</span></div>
+        <div class="tile" style="background: #12141C; border: 1px solid #333A4D;"><span class="tname" style="color: #A8AEC2;">WIN</span></div>
+        <div class="tile" style="background: #0D0F16; border: 1px solid #242938;"><span class="tname" style="color: #4A5163;">BFS</span></div>
+        <div class="tile" style="background: #0D0F16; border: 1px solid #242938;"><span class="tname" style="color: #4A5163;">DFS</span></div>
+        <div class="tile" style="background: #0D0F16; border: 1px solid #242938;"><span class="tname" style="color: #4A5163;">MRG</span></div>
+        <div class="tile" style="background: #0D0F16; border: 1px solid #242938;"><span class="tname" style="color: #4A5163;">QCK</span></div>
+        <div class="tile" style="background: #0D0F16; border: 1px solid #242938;"><span class="tname" style="color: #4A5163;">REC</span></div>
+      </div>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #34D399;"></div>
+          <span class="cap" style="font-size: 10px;">Mastered</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: rgba(52,211,153,0.35);"></div>
+          <span class="cap" style="font-size: 10px;">Rusty</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #8B72FF;"></div>
+          <span class="cap" style="font-size: 10px;">Driven</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="width: 9px; height: 9px; border-radius: 3px; background: #333A4D;"></div>
+          <span class="cap" style="font-size: 10px;">Locked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- streak -->
+    <div class="sect">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <span class="cap">August</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#F5A524">
+            <path d="M13.5 2c.3 3-1.2 4.4-2.6 5.8C9.2 9.5 7.8 11 7.8 14a6.2 6.2 0 0 0 12.4 0c0-3.8-2.4-5.6-3.9-8.4-.6 1.4-1.5 2-2.3 2.3.5-2.1.3-4.3-.5-5.9z"></path>
+          </svg>
+          <span class="mono" style="font-size: 13px; font-weight: 500; color: #E8EAF2;">7 day streak</span>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 5px;">
+        <div class="day" style="background: #34D399;"></div><div class="day" style="background: #34D399;"></div>
+        <div class="day" style="background: #191C26;"></div><div class="day" style="background: #34D399;"></div>
+        <div class="day" style="background: #34D399;"></div><div class="day" style="background: #34D399;"></div>
+        <div class="day" style="background: #191C26;"></div><div class="day" style="background: #191C26;"></div>
+        <div class="day" style="background: #34D399;"></div><div class="day" style="background: #34D399;"></div>
+        <div class="day" style="background: #34D399;"></div>
+        <!-- a spent freeze reads differently from a completed day -->
+        <div class="day" style="background: transparent; border: 1.5px dashed #38BDF8;"></div>
+        <div class="day" style="background: #34D399;"></div><div class="day" style="background: #34D399;"></div>
+      </div>
+    </div>
+
+    <!-- personal bests: what a learner returns to beat once content runs out -->
+    <div class="sect">
+      <span class="cap">Personal bests</span>
+      <div style="display: flex; flex-direction: column;">
+        <div class="best">
+          <span style="font-size: 15px; color: #E8EAF2;">Binary Search</span>
+          <span class="mono" style="font-size: 14px; color: #A8AEC2;">3 compares &middot; 0:11</span>
+        </div>
+        <div class="best">
+          <span style="font-size: 15px; color: #E8EAF2;">Bubble Sort</span>
+          <span class="mono" style="font-size: 14px; color: #A8AEC2;">100% &middot; 1:04</span>
+        </div>
+        <div class="best" style="border-bottom: 0;">
+          <span style="font-size: 15px; color: #E8EAF2;">Daily Challenge</span>
+          <span class="mono" style="font-size: 14px; color: #A8AEC2;">3/3 &middot; 4.2s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- achievements: locked criteria always visible -->
+    <div class="sect">
+      <span class="cap">Achievements</span>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px; border-radius: 12px; background: #12141C;
+                    border: 1px solid #242938; padding: 12px 14px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle><path d="M8.5 12.2l2.4 2.4 4.6-4.9"></path>
+          </svg>
+          <span style="flex-grow: 1; font-size: 15px; color: #E8EAF2;">Found it in 3 comparisons</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; border-radius: 12px; background: #0D0F16;
+                    border: 1px solid #242938; padding: 12px 14px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4A5163" stroke-width="2" stroke-linecap="round">
+            <rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8.5 11V8a3.5 3.5 0 1 1 7 0v3"></path>
+          </svg>
+          <span style="flex-grow: 1; font-size: 15px; color: #7C8398;">A full sort with zero wrong decisions</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; border-radius: 12px; background: #0D0F16;
+                    border: 1px solid #242938; padding: 12px 14px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#4A5163" stroke-width="2" stroke-linecap="round">
+            <rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8.5 11V8a3.5 3.5 0 1 1 7 0v3"></path>
+          </svg>
+          <span style="flex-grow: 1; font-size: 15px; color: #7C8398;">Thirty days</span>
+          <span class="mono" style="font-size: 13px; color: #4A5163;">7 / 30</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 16px;"></div>
+  </div>
+
+  <div style="height: 50px; flex: none; border-top: 1px solid #242938; background: #0D0F16;
+              display: flex; align-items: center; justify-content: center;">
+    <span class="cap" style="color: #4A5163;">Ad &middot; 320&times;50 reserved</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

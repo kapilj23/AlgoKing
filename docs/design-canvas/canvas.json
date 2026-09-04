@@ -1,0 +1,48 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",        "title": "Watch · Bubble Sort", "x": 0,    "y": 0,    "w": 390, "h": 844 },
+    { "file": "Try.dc.html",         "title": "Try · the handoff",   "x": 470,  "y": 0,    "w": 390, "h": 844 },
+    { "file": "Consequence.dc.html", "title": "Try · consequence",   "x": 940,  "y": 0,    "w": 390, "h": 844 },
+    { "file": "Challenge.dc.html",   "title": "Challenge · Format B","x": 1410, "y": 0,    "w": 390, "h": 844 },
+    { "file": "Result.dc.html",      "title": "Result & Mastery",    "x": 1880, "y": 0,    "w": 390, "h": 844 },
+    { "file": "Code.dc.html",        "title": "Code Reveal",         "x": 2350, "y": 0,    "w": 390, "h": 844 },
+
+    { "file": "Home.dc.html",        "title": "Home",                "x": 0,    "y": 1000, "w": 390, "h": 844 },
+    { "file": "Hub.dc.html",         "title": "Algorithm Hub",       "x": 470,  "y": 1000, "w": 390, "h": 1010 },
+    { "file": "Journey.dc.html",     "title": "Journey",             "x": 940,  "y": 1000, "w": 390, "h": 1080 },
+    { "file": "Progress.dc.html",    "title": "Progress",            "x": 1410, "y": 1000, "w": 390, "h": 1120 },
+
+    { "file": "Tokens.dc.html",      "title": "Design tokens",       "x": 0,    "y": 2240, "w": 940, "h": 1800 }
+  ],
+  "annotations": [
+    {
+      "id": "lesson-flow",
+      "x": 0,
+      "y": -170,
+      "w": 520,
+      "text": "THE LESSON FLOW\n\nOne layout, four phases. The array sits in the same place in Watch, Try and Challenge — only the strips below it change. The narration strip and the decision zone are fixed height even when empty, so nothing shifts at the handoff and the learner's spatial memory survives."
+    },
+    {
+      "id": "consequence",
+      "x": 940,
+      "y": -170,
+      "w": 400,
+      "text": "THE DIFFERENTIATOR\n\nThe wrong choice executes. This is Binary Search, not Bubble Sort — a wrong swap is tedium, a lost target is a lesson.\n\nRed appears about four times in an entire lesson. That scarcity is what gives it weight."
+    },
+    {
+      "id": "navigation",
+      "x": 0,
+      "y": 1890,
+      "w": 430,
+      "text": "NAVIGATION\n\nHome resolves exactly one primary card from five states, always above the fold. The Hub is a spine with one lit step, not a menu of four equal options.\n\nBanner slots reserve their height at layout time so a late-loading ad can never shift the card above."
+    },
+    {
+      "id": "tokens",
+      "x": 1000,
+      "y": 2240,
+      "w": 420,
+      "text": "TWO PALETTES, NEVER MIXED\n\nBrand violet drives chrome. Six semantic colours drive the data, and they mean the same thing in all nine algorithms — amber is always 'being examined right now'.\n\nThat contract is what lets understanding transfer from Binary Search to Two Pointers without teaching the visual language twice."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
