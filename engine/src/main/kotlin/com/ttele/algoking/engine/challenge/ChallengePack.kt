@@ -131,8 +131,18 @@ object ChallengeCatalog {
         challengeFactory = { round, seed -> ChallengeGenerator.hashForRound(round, seed) },
     )
 
-    fun byId(id: AlgorithmId): ChallengePack = when (id) {
+    /**
+     * Null for a lesson whose challenge has not been authored.
+     *
+     * Two Pointers shipped WATCH and TRY without one: its challenge needs its own
+     * generated datasets and constraints, and inventing them here to satisfy an
+     * exhaustive `when` would put an untested challenge in the catalogue that V2
+     * would then trust. Nullable is the honest signature — "not written yet" is a
+     * real state, and V2 has to answer it rather than inherit a guess.
+     */
+    fun byId(id: AlgorithmId): ChallengePack? = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
+        AlgorithmId.TWO_POINTERS -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

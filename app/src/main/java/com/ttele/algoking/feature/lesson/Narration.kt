@@ -18,6 +18,139 @@ object Narration {
         fun arg(i: Int): String = a.getOrNull(i)?.toString() ?: ""
 
         return when (key.id) {
+
+            // ── Two Pointers ──────────────────────────────────────────────
+            // Textbook vocabulary throughout: LEFT, RIGHT, sum, target, pair.
+            // The learner will meet these words in every write-up of the
+            // technique, so the app uses them rather than a friendlier synonym.
+            // One word each, the way Binary Search and SWAP/KEEP are
+            // (DESIGN_SYSTEM.md §6.9). Three buttons share one row, which leaves
+            // about 93dp per label: "Move RIGHT" wrapped to three lines and
+            // overflowed the 56dp button, and even "← RIGHT" broke at the space
+            // while "LEFT →" did not — so the row read as ragged.
+            //
+            // The direction lives where it teaches instead of where it wraps: the
+            // pointer labels under the array, the prompt, and the feedback line
+            // ("24 was over 17, so RIGHT moves left to a smaller value").
+            NarrationId.TP_OPTION_MOVE_LEFT -> "LEFT"
+            NarrationId.TP_OPTION_MOVE_RIGHT -> "RIGHT"
+            NarrationId.TP_OPTION_FOUND -> "FOUND"
+            NarrationId.TP_ASK_WHICH_POINTER ->
+                "The sum is ${arg(0)} and the target is ${arg(1)}. What now?"
+
+            NarrationId.TP_SUM_IS -> "${arg(0)} + ${arg(1)} = ${arg(2)}"
+            NarrationId.TP_SUM_LESS -> "${arg(0)} is smaller than ${arg(1)}."
+            NarrationId.TP_SUM_GREATER -> "${arg(0)} is greater than ${arg(1)}."
+            NarrationId.TP_SUM_EQUAL -> "${arg(0)} equals ${arg(1)}."
+            NarrationId.TP_MOVED_LEFT -> "LEFT now points at ${arg(0)}."
+            NarrationId.TP_MOVED_RIGHT -> "RIGHT now points at ${arg(1)}."
+            NarrationId.TP_WINDOW_CLOSED -> "The pointers have met. No pair adds up."
+            NarrationId.TP_FOUND -> "${arg(0)} + ${arg(1)} = ${arg(2)}. Pair found."
+
+            NarrationId.TP_HINT_COMPARE ->
+                "LEFT is ${arg(0)}, RIGHT is ${arg(1)}. They add to ${arg(2)}, " +
+                    "and you need ${arg(3)}."
+
+            NarrationId.TP_RETRY_LOOK_AGAIN ->
+                "Look at the sum again: ${arg(0)} against a target of ${arg(1)}."
+
+            // Rung 2 asks the question rather than answering it. "Do we need a
+            // larger sum or a smaller one?" is the thought that turns the rule
+            // into understanding, and it is one step short of the answer.
+            NarrationId.TP_RETRY_ASK_LARGER ->
+                "The sum is too small. Which pointer can give you a larger value?"
+
+            NarrationId.TP_RETRY_ASK_SMALLER ->
+                "The sum is too big. Which pointer can give you a smaller value?"
+
+            NarrationId.TP_RETRY_ASK_EQUAL ->
+                "The sum already matches the target. Is there anything left to move?"
+
+            NarrationId.TP_RETRY_EXPLAIN_LEFT ->
+                "${arg(0)} is smaller than ${arg(1)}, so you need a bigger sum. " +
+                    "The array is sorted, so only LEFT can move to a larger value. " +
+                    "Move LEFT right."
+
+            NarrationId.TP_RETRY_EXPLAIN_RIGHT ->
+                "${arg(0)} is greater than ${arg(1)}, so you need a smaller sum. " +
+                    "The array is sorted, so only RIGHT can move to a smaller value. " +
+                    "Move RIGHT left."
+
+            NarrationId.TP_RETRY_EXPLAIN_FOUND ->
+                "${arg(0)} is exactly ${arg(1)}. This is the pair — take it."
+
+            NarrationId.TP_WHY_LEFT_WRONG ->
+                "Moving LEFT right makes the sum larger, and ${arg(0)} is already " +
+                    "above ${arg(1)}."
+
+            NarrationId.TP_WHY_RIGHT_WRONG ->
+                "Moving RIGHT left makes the sum smaller, and ${arg(0)} is already " +
+                    "below ${arg(1)}."
+
+            NarrationId.TP_WHY_NOT_FOUND_YET ->
+                "${arg(0)} is not ${arg(1)} yet, so this is not the pair."
+
+            NarrationId.TP_WHY_MOVE_PAST_PAIR ->
+                "Moving either pointer now would step straight past the answer."
+
+            NarrationId.TP_CORRECT_LEFT ->
+                "${arg(2)} was short of ${arg(3)}, so LEFT moves right to a larger value."
+
+            NarrationId.TP_CORRECT_RIGHT ->
+                "${arg(2)} was over ${arg(3)}, so RIGHT moves left to a smaller value."
+
+            NarrationId.TP_CORRECT_FOUND -> "${arg(0)} + ${arg(1)} = ${arg(3)}. That is the pair."
+
+            // ── Two Pointers — WATCH ──────────────────────────────────────
+            NarrationId.TP_WATCH_SETUP -> "Find two values that add up to ${arg(0)}."
+            NarrationId.TP_WATCH_SETUP_SUPPORT ->
+                "The array is sorted. That is the only thing this technique needs."
+
+            NarrationId.TP_WATCH_ENDS -> "Start at both ends."
+            NarrationId.TP_WATCH_ENDS_SUPPORT ->
+                "LEFT at index ${arg(0)}, RIGHT at index ${arg(1)}."
+
+            NarrationId.TP_WATCH_SUM -> "${arg(0)} + ${arg(1)} = ${arg(2)}"
+            NarrationId.TP_WATCH_SUM_LESS -> "${arg(0)} is smaller than the target, ${arg(1)}."
+            NarrationId.TP_WATCH_SUM_GREATER -> "${arg(0)} is greater than the target, ${arg(1)}."
+            NarrationId.TP_WATCH_SUM_EQUAL -> "${arg(0)} is exactly the target."
+
+            NarrationId.TP_WATCH_MOVE_LEFT -> "Move LEFT one position right."
+            // The *reason*, and it is the whole technique: the value that just
+            // left took every pair it belonged to with it.
+            NarrationId.TP_WATCH_MOVE_LEFT_WHY ->
+                "${arg(0)} is the smallest value left, so no pair using it can reach " +
+                    "the target. All of them go at once."
+
+            NarrationId.TP_WATCH_MOVE_RIGHT -> "Move RIGHT one position left."
+            NarrationId.TP_WATCH_MOVE_RIGHT_WHY ->
+                "${arg(0)} is the largest value left, so every pair using it overshoots. " +
+                    "All of them go at once."
+
+            NarrationId.TP_WATCH_NO_PAIR -> "No two values add up to ${arg(0)}."
+            NarrationId.TP_WATCH_WINDOW_CLOSED ->
+                "The pointers met. Every pair has been ruled out."
+
+            NarrationId.TP_WATCH_FOUND -> "Pair found."
+            NarrationId.TP_WATCH_FOUND_SUPPORT -> "${arg(0)} + ${arg(1)} = ${arg(2)}."
+
+            NarrationId.TP_WATCH_INSIGHT -> "Each move rules out a whole row of pairs."
+            NarrationId.TP_WATCH_INSIGHT_SUPPORT ->
+                "${arg(0)} values make dozens of pairs. This found the answer in " +
+                    "${arg(1)} comparisons."
+
+            NarrationId.TP_WATCH_SUMMARY_FOUND ->
+                "Found a pair summing to ${arg(0)} in ${arg(1)} comparisons."
+
+            NarrationId.TP_WATCH_SUMMARY_NO_PAIR ->
+                "Proved no pair sums to ${arg(0)}, in ${arg(1)} comparisons."
+
+            NarrationId.TP_WATCH_SUMMARY_SUPPORT -> "Now run it yourself."
+            NarrationId.TP_IDEA_1 -> "Start LEFT at the first value and RIGHT at the last."
+            NarrationId.TP_IDEA_2 -> "Sum too big? Move RIGHT left, to a smaller value."
+            NarrationId.TP_IDEA_3 -> "Sum too small? Move LEFT right, to a larger value."
+            NarrationId.TP_IDEA_4 -> "It works because the array is sorted — and only then."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

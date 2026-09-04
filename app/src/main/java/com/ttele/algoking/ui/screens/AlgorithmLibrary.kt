@@ -35,6 +35,10 @@ val algorithmCategories = listOf(
     "Searching",
     "Sorting",
     "Structures",
+    // Techniques rather than named routines, and the first place the library
+    // gets harder. It is a category like any other so the chip row, the card
+    // badge and the filter all work with no new mechanism — PRODUCT_SPEC.md §12.
+    "Advanced",
 )
 
 val algorithmLibrary = listOf(
@@ -45,6 +49,14 @@ val algorithmLibrary = listOf(
         category = "Searching",
         accent = AlgoAccent.Green,
         glyph = AlgoIcons.TileSearch,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.TWO_POINTERS,
+        title = "Two Pointers",
+        description = "Walk in from both ends of a sorted array.",
+        category = "Advanced",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,

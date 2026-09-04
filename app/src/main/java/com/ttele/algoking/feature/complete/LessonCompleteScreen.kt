@@ -319,4 +319,8 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
     AlgorithmId.HASH_MAP ->
         "The key calculates where its value lives, so lookup does not have to walk the " +
             "data. A collision is normal, not an error."
+
+    AlgorithmId.TWO_POINTERS ->
+        "Every move ruled out a whole row of pairs, not just one — and that only works " +
+            "because the array is sorted."
 }

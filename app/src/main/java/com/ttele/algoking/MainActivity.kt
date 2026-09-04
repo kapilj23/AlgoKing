@@ -150,7 +150,8 @@ private fun AlgoKingApp() {
  *
  * Searching first, then the three elementary sorts, then the two divide-and-conquer
  * sorts, then the structures — with Queue immediately after Stack so the contrast
- * lands while the first one is still fresh.
+ * lands while the first one is still fresh — and the Advanced shelf last, because a
+ * technique reads as a technique only once the named routines are familiar.
  */
 private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     AlgorithmId.BINARY_SEARCH -> AlgorithmId.BUBBLE_SORT
@@ -162,7 +163,10 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     AlgorithmId.STACK -> AlgorithmId.QUEUE
     AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
     AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP
-    AlgorithmId.HASH_MAP -> AlgorithmId.BINARY_SEARCH
+    // The structures hand over to the Advanced shelf, which is where the library
+    // stops teaching named routines and starts teaching techniques.
+    AlgorithmId.HASH_MAP -> AlgorithmId.TWO_POINTERS
+    AlgorithmId.TWO_POINTERS -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

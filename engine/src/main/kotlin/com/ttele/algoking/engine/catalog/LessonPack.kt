@@ -10,6 +10,10 @@ import com.ttele.algoking.engine.core.Algorithm
 import com.ttele.algoking.engine.core.AlgorithmId
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.dataset.BinarySearchDatasets
+import com.ttele.algoking.engine.dataset.TwoPointersDatasets
+import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersAlgorithm
+import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersProjector
+import com.ttele.algoking.engine.algorithms.twopointers.TwoPointersWatchNarrator
 import com.ttele.algoking.engine.algorithms.hashing.HashMapAlgorithm
 import com.ttele.algoking.engine.algorithms.hashing.HashMapProjector
 import com.ttele.algoking.engine.algorithms.hashing.HashMapWatchNarrator
@@ -81,6 +85,21 @@ object AlgorithmCatalog {
         watchNarrator = BinarySearchWatchNarrator(),
         watchDataset = BinarySearchDatasets.watch,
         tryDataset = BinarySearchDatasets.tryIt,
+    )
+
+    /**
+     * The first Advanced lesson. It is a *technique* rather than a named routine,
+     * and the thing being taught is the reason a pointer moves — never which
+     * button to press.
+     */
+    fun twoPointers() = LessonPack(
+        id = AlgorithmId.TWO_POINTERS,
+        displayName = "Two Pointers",
+        algorithm = TwoPointersAlgorithm(),
+        projector = TwoPointersProjector(),
+        watchNarrator = TwoPointersWatchNarrator(),
+        watchDataset = TwoPointersDatasets.watch,
+        tryDataset = TwoPointersDatasets.tryIt,
     )
 
     fun bubbleSort() = LessonPack(
@@ -183,6 +202,7 @@ object AlgorithmCatalog {
 
     fun byId(id: AlgorithmId): LessonPack<*, *> = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
+        AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

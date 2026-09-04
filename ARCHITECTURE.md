@@ -564,7 +564,7 @@ stage finished inside a lesson reaches Home's rings on the next frame. `complete
 sets a flag, so no retry, failure or repeat practice run can subtract progress — see ADR-028.
 Adding a lesson gets progress for free: there is no per-algorithm progress code anywhere.
 
-### What the ten built lessons prove
+### What the eleven built lessons prove
 
 | | Binary Search | Bubble Sort | Selection Sort | Insertion Sort |
 |---|---|---|---|---|
@@ -589,16 +589,16 @@ Adding a lesson gets progress for free: there is no per-algorithm progress code 
 | Star family | Accuracy | Accuracy | Accuracy | Accuracy | Accuracy |
 | Terminal outcome | `Sorted` | `Sorted` | `Completed` | `Completed` | `Completed` |
 
-| | Hash Map |
-|---|---|
-| The learner decides | which bucket `key % 5` lands in, then what a full bucket does, then which entry matches |
-| The app decides | storing and removing, once every judgement is made |
-| Decision kinds | `CELL` (over **buckets**) + `OPTIONS` |
-| Probe kinds | `Mechanical` + `Decide` |
-| Signature scene | **`BucketScene`** — not a sequence at all |
-| Signature idea | a collision is normal, and the same key updates rather than duplicating |
-| Star family | Accuracy |
-| Terminal outcome | `Completed` |
+| | Hash Map | Two Pointers |
+|---|---|---|
+| The learner decides | which bucket `key % 5` lands in, then what a full bucket does, then which entry matches | which pointer can still improve the sum — or whether this is the pair |
+| The app decides | storing and removing, once every judgement is made | the arithmetic: `values[left] + values[right]` |
+| Decision kinds | `CELL` (over **buckets**) + `OPTIONS` | `OPTIONS` |
+| Probe kinds | `Mechanical` + `Decide` | `Mechanical` + `Decide` |
+| Signature scene | **`BucketScene`** — not a sequence at all | an ordinary `ROW`, with **both ends `COMPARING`** |
+| Signature idea | a collision is normal, and the same key updates rather than duplicating | one move discards a whole row of pairs, and only because the array is sorted |
+| Star family | Accuracy | *(V2)* |
+| Terminal outcome | `Completed` | `Found` / `NotFound` |
 
 They exercise different halves of the same machinery, which is the point: none was forced into
 another's interaction model, and **no event, probe kind or validator was added after the first**.

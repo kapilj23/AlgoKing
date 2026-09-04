@@ -1164,6 +1164,81 @@ When CHALLENGE returns, adding it back to `Stage` restores thirds with no other 
 
 ---
 
+## ADR-032 — Two Pointers is the first Advanced lesson, and it added no primitives
+
+**Decision.** Two Pointers ships as a `LessonPack` with WATCH and TRY, in a new
+**Advanced** category. The learner's decision is *which pointer moves* — LEFT, RIGHT, or
+"pair found" — and the app owns only the arithmetic. Full detail: `docs/two-pointers.md`.
+
+**Why it was worth being first.** Every lesson so far is a named routine with steps to
+follow. Two Pointers is a *technique*: one rule, and the rule is only sound because the
+array is sorted. That makes it the first lesson where the learner can execute perfectly
+and still not have learned anything — which is exactly the failure the copy is written
+against.
+
+### The app states the sum; the learner moves the pointer
+
+`probe` returns `Mechanical(Compare)` to read `values[left] + values[right]`, then
+`Decide` for the move. This is Binary Search's shape exactly (`Inspect`, then the half),
+and it exists for the same reason: adding two numbers is not a judgement, and asking the
+learner to press a button to perform arithmetic teaches a gesture (PRODUCT_SPEC.md §3).
+
+It also gives WATCH its seam for free. Each round is two steps — *"1 + 10 = 11, that is
+greater than 10"*, then *"move RIGHT one position left"* — with the pointers still
+unmoved on the first. Collapsing them would show a learner a pointer that has already
+moved beside the reason it should move, which is the wrong order to think in. Because
+the engine emits two transitions, the narrator does not have to invent the split.
+
+### All three options are offered every round
+
+Binary Search adds its `FOUND` option only when `values[mid] == target`, so the option
+appearing *is* the answer. Repeating that here would have destroyed the beat: *is this
+the pair?* is the question, and an option that only shows up when it is correct answers
+it before it is asked. Two Pointers therefore offers LEFT, RIGHT and "Pair found" on
+every decision, and "Pair found" is wrong on most of them.
+
+This is a small divergence from the older lesson and it is deliberate. The Binary Search
+behaviour is not being changed — it is load-bearing for that lesson's own tests — but new
+lessons should not inherit it.
+
+### Advanced is a category, not a new mechanism
+
+`AlgorithmEntry.category` already drives the Home chip row and the card badge, so
+"Advanced" is one more string in `algorithmCategories`. No `level` field, no `isPro`
+flag, no second taxonomy. The tradeoff is that a category says *what an algorithm is*
+and this one says *how hard it is*, so Two Pointers is not also filed under Searching —
+accepted, because a parallel difficulty axis is a second system to maintain for one
+lesson, and the brief asked for the existing approach.
+
+### What it cost
+
+**Zero new `VizEvent` types, zero renderer branches, zero changes to existing
+algorithms.** `LO`/`HI` carry the LEFT/RIGHT labels, `RUNNING_SUM` carries the sum,
+`Eliminate` collapses what the move discarded. Three engine files, one test file, and
+five lines of wiring elsewhere — which is what ADR-024 promised adding a lesson would
+cost, now tested against a lesson written after the promise.
+
+The one nullable introduced is `ChallengeCatalog.byId`, which returns null for
+TWO_POINTERS. Authoring a challenge nobody asked for, to satisfy an exhaustive `when`,
+would have put an untested challenge in the catalogue that V2 would inherit as though it
+were designed. "Not written yet" is a real state and the signature now says so.
+
+**Alternatives considered.**
+- *Make the sum a learner decision too.* Rejected: it is arithmetic with one legal
+  answer, and PRODUCT_SPEC.md §3 rejects exactly this ("tapping the only legal target
+  teaches a gesture").
+- *Move the pointer automatically after showing the comparison.* Rejected by the brief,
+  and rightly: the move **is** the decision. Automating it leaves the learner watching.
+- *Model it as Binary Search with two cursors.* Rejected: Binary Search eliminates by
+  halving around a computed midpoint; Two Pointers eliminates by stepping one end
+  inward. Sharing an implementation would have needed a mode flag in the one place
+  ARCHITECTURE.md §4.1 exists to keep clean.
+- *A same-direction (fast/slow) variant first.* Deferred: opposite ends make the
+  *reason* visible — largest and smallest value in play — which is the half that
+  transfers. Fast/slow is a dataset and a narrator away.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

@@ -335,3 +335,59 @@ internal object CuratedFallbacks {
         )
     }
 }
+
+/**
+ * Two Pointers teaching data — authored, not generated (ADR-014).
+ *
+ * Both datasets are **sorted and distinct**, because sortedness is the entire
+ * precondition of the technique and a teaching array that violates it would make
+ * the rule look arbitrary.
+ */
+object TwoPointersDatasets {
+
+    /**
+     * `[1, 2, 4, 6, 8, 10]`, target `10`. Three rounds, and each teaches a
+     * different thing:
+     *
+     * ```
+     * left=0 right=5   1 + 10 = 11  >  10   move RIGHT
+     * left=0 right=4   1 +  8 =  9  <  10   move LEFT
+     * left=1 right=4   2 +  8 = 10  =  10   pair found
+     * ```
+     *
+     * Three properties earn this dataset its place:
+     *
+     *  - **it shows both moves.** RIGHT first, then LEFT. A learner who only ever
+     *    saw one pointer move has watched half the technique.
+     *  - **the first sum is over, not under.** Starting high makes the reason
+     *    visible: `10` is the largest value there is, so every pair containing it
+     *    overshoots — the whole row goes, not just this pair.
+     *  - **the answer is not at either end.** `2 + 8` sits inside the array, so
+     *    the pair cannot be spotted before the walk begins.
+     */
+    val watch = Dataset(
+        values = listOf(1, 2, 4, 6, 8, 10),
+        target = 10,
+        label = "watch",
+    )
+
+    /**
+     * A different array and a different target, so TRY is application rather than
+     * recall — but the same *shape* of run, so the model transfers:
+     *
+     * ```
+     * left=0 right=5   3 + 21 = 24  >  17   move RIGHT
+     * left=0 right=4   3 + 14 = 17  =  17   pair found
+     * ```
+     *
+     * Deliberately shorter. TRY is where the learner is deciding rather than
+     * reading, and two rounds is enough to prove they have the rule — a longer
+     * walk would be the same judgement repeated, which is patience rather than
+     * understanding (ADR-026).
+     */
+    val tryIt = Dataset(
+        values = listOf(3, 5, 9, 11, 14, 21),
+        target = 17,
+        label = "try",
+    )
+}

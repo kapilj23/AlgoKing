@@ -17,6 +17,12 @@ data class Dataset(
 
 enum class AlgorithmId {
     BINARY_SEARCH,
+
+    // Advanced: a technique rather than a named routine. Two cursors walking a
+    // sorted array toward each other, discarding a whole column of pairs with
+    // every step.
+    TWO_POINTERS,
+
     BUBBLE_SORT,
     SELECTION_SORT,
     INSERTION_SORT,
