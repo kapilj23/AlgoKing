@@ -63,6 +63,10 @@ enum class AlgorithmId {
     // order instead of relying on an array being sorted.
     BINARY_SEARCH_TREE,
 
+    // Advanced: the same tree, keeping itself short. The answer to the caveat
+    // the BST lesson has to end on.
+    AVL_TREE,
+
     BUBBLE_SORT,
     SELECTION_SORT,
     INSERTION_SORT,

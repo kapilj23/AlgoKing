@@ -77,6 +77,7 @@ advancement is performed by the app, never by the user.
 | Graph DFS | gives the start node | **which node DFS moves to next** — deeper into the first unvisited neighbour, or back to where it came from |
 | Graph BFS | gives the start node | **which node BFS touches next** — the next unseen neighbour onto the queue, or the front of the queue off it |
 | Binary Search Tree | compares the target with the current node and states the result | **which way the search goes** — LEFT, RIGHT, or "found" |
+| AVL Tree | places the value by the BST rule and computes every balance factor | **which node is out of balance**, then **which node moves up into its place** |
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
 | Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |
@@ -143,6 +144,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Insertion Sort | "The left side is always already sorted." |
 | Two Pointers | "Each move rules out a whole row of pairs." |
 | Binary Search Tree | "One path from the root, not a scan of every node." |
+| AVL Tree | "A rotation changes depth, never order." |
 | Sliding Window | "The window never re-reads what it already counted." |
 | Stack or Queue | "Last in, first out. First in, first out." |
 

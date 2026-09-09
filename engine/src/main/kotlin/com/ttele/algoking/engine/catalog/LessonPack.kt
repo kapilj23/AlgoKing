@@ -3,6 +3,10 @@ package com.ttele.algoking.engine.catalog
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.ttele.algoking.engine.algorithms.avl.AvlProjector
+import com.ttele.algoking.engine.algorithms.avl.AvlTreeAlgorithm
+import com.ttele.algoking.engine.algorithms.avl.AvlWatchNarrator
+import com.ttele.algoking.engine.dataset.AvlDatasets
 import com.ttele.algoking.engine.algorithms.bst.BinarySearchTreeAlgorithm
 import com.ttele.algoking.engine.algorithms.bst.BstProjector
 import com.ttele.algoking.engine.algorithms.bst.BstWatchNarrator
@@ -178,6 +182,21 @@ object AlgorithmCatalog {
         tryDataset = BstDatasets.tryIt,
     )
 
+    /**
+     * The sixth Advanced lesson, and the answer to the caveat the Binary Search
+     * Tree lesson has to end on: a BST is only fast while it stays bushy, and an
+     * AVL tree is one that refuses to become anything else.
+     */
+    fun avlTree() = LessonPack(
+        id = AlgorithmId.AVL_TREE,
+        displayName = "AVL Tree",
+        algorithm = AvlTreeAlgorithm(),
+        projector = AvlProjector(),
+        watchNarrator = AvlWatchNarrator(),
+        watchDataset = AvlDatasets.watch,
+        tryDataset = AvlDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -283,6 +302,7 @@ object AlgorithmCatalog {
         AlgorithmId.GRAPH_DFS -> graphDfs()
         AlgorithmId.GRAPH_BFS -> graphBfs()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
+        AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

@@ -647,3 +647,60 @@ object BstDatasets {
         tree = teachingTree,
     )
 }
+
+/**
+ * AVL tree teaching data — three insertions, each a different lesson.
+ *
+ * `values` is the sequence to insert and `tree` is what the learner starts with.
+ *
+ * ```
+ * WATCH                          TRY (the mirror)
+ *       30                             20
+ *      /  \                           /  \
+ *    20    40                       10    30
+ *   /                                       \
+ * 10                                         40
+ * ```
+ *
+ * Both stages run the same three shapes in the same order, and the second and
+ * third are **mirror images** between them:
+ *
+ * | | WATCH | TRY |
+ * |---|---|---|
+ * | insert 1 | 35 — nothing to fix | 15 — nothing to fix |
+ * | insert 2 | 5 — left-left, one **right** rotation | 50 — right-right, one **left** rotation |
+ * | insert 3 | 37 — left-right, a **double** | 13 — right-left, a **double** |
+ *
+ * That is why Try is not recall even though the shapes are familiar: every answer
+ * is the opposite hand of the one WATCH gave, which is exactly where this
+ * technique is got wrong. Between them the two stages cover all four cases
+ * without either being long enough to become a slideshow.
+ *
+ * Both runs end on a perfectly balanced tree of seven nodes — the same shape the
+ * Binary Search Tree lesson is taught on, which is not a coincidence worth
+ * hiding: it is what the rotations were for.
+ */
+object AvlDatasets {
+
+    /**
+     * Left-heavy to begin with: `30(20(10), 40)`, legal AVL, every factor within
+     * ±1. Authored by insertion, because insertion order is what gives a tree its
+     * shape.
+     */
+    val watchTree: BinaryTree = BinaryTree.of(30, 20, 40, 10)
+
+    /** The mirror: `20(10, 30(-, 40))`. */
+    val tryTree: BinaryTree = BinaryTree.of(20, 10, 30, 40)
+
+    val watch = Dataset(
+        values = listOf(35, 5, 37),
+        label = "watch",
+        tree = watchTree,
+    )
+
+    val tryIt = Dataset(
+        values = listOf(15, 50, 13),
+        label = "try",
+        tree = tryTree,
+    )
+}

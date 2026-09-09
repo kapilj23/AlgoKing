@@ -631,6 +631,157 @@ object Narration {
                 "Binary Search halves a sorted array by arithmetic. A BST keeps that " +
                     "halving in its shape."
 
+            // ── AVL Tree ──────────────────────────────────────────────────
+            // The learner taps nodes, so the "options" are the values themselves.
+            NarrationId.AVL_OPTION_NODE -> arg(0)
+            NarrationId.AVL_ASK_PIVOT -> "Which node is out of balance?"
+            NarrationId.AVL_ASK_RISER -> "Which node moves up to take ${arg(0)}'s place?"
+            NarrationId.AVL_INSERTED_BALANCED ->
+                "${arg(0)} goes below ${arg(1)}. Every node is still within ±1."
+
+            NarrationId.AVL_INSERTED_BROKE_IT ->
+                "${arg(0)} goes below ${arg(1)}, and that pushes a node past ±1."
+
+            NarrationId.AVL_PIVOT_CHOSEN -> "${arg(0)} is out of balance at ${arg(1)}."
+            NarrationId.AVL_RISER_SINGLE -> "${arg(0)} comes up into ${arg(1)}'s place."
+            NarrationId.AVL_RISER_DOUBLE ->
+                "${arg(0)} comes up into ${arg(1)}'s place — two rotations to get it there."
+
+            NarrationId.AVL_ROTATED_LEFT -> "Left rotation at ${arg(0)}."
+            NarrationId.AVL_ROTATED_RIGHT -> "Right rotation at ${arg(0)}."
+            NarrationId.AVL_ROTATED_FIRST_HALF -> "First rotation, at ${arg(0)}."
+            NarrationId.AVL_HINT_PIVOT ->
+                "Read the balance factors. AVL allows −1, 0 and +1 — nothing else."
+
+            NarrationId.AVL_HINT_RISER_STRAIGHT ->
+                "The imbalance under ${arg(0)} runs the same way twice, so one rotation " +
+                    "is enough."
+
+            NarrationId.AVL_HINT_RISER_BENT ->
+                "The imbalance under ${arg(0)} changes direction. A child cannot fix a " +
+                    "zig-zag on its own."
+
+            NarrationId.AVL_RETRY_PIVOT_LOOK -> "Look at the balance factors again."
+            NarrationId.AVL_RETRY_PIVOT_ASK ->
+                "Which node has a factor outside −1 to +1 — and if more than one does, " +
+                    "which is the lowest?"
+
+            NarrationId.AVL_RETRY_PIVOT_EXPLAIN ->
+                "${arg(0)} is at ${arg(2)}, which is outside the ±1 AVL allows. That is " +
+                    "the node to rotate."
+
+            NarrationId.AVL_RETRY_RISER_LOOK ->
+                "Follow the two steps down from ${arg(0)} toward the new value."
+
+            NarrationId.AVL_RETRY_RISER_ASK_STRAIGHT ->
+                "Both steps go the same way. Which node is directly below ${arg(0)} on " +
+                    "that side?"
+
+            NarrationId.AVL_RETRY_RISER_ASK_BENT ->
+                "The two steps go opposite ways. Which node sits at the bottom of that bend?"
+
+            NarrationId.AVL_RETRY_RISER_EXPLAIN_STRAIGHT ->
+                "The path below ${arg(0)} runs straight, so its child ${arg(1)} comes up " +
+                    "and ${arg(0)} goes down to the other side. One rotation."
+
+            NarrationId.AVL_RETRY_RISER_EXPLAIN_BENT ->
+                "The path below ${arg(0)} bends, so the grandchild ${arg(1)} is the one " +
+                    "that comes up — ${arg(2)} and ${arg(0)} end up either side of it."
+
+            // Each wrong tap is answered with the rule, never with a verdict.
+            NarrationId.AVL_WHY_STILL_BALANCED ->
+                "${arg(0)} is at ${arg(1)}, which AVL allows. Only ±2 needs a rotation."
+
+            NarrationId.AVL_WHY_NOT_LOWEST ->
+                "${arg(0)} is out of balance too, but ${arg(2)} is lower. Fix the lowest " +
+                    "one and the ones above it come back on their own."
+
+            NarrationId.AVL_WHY_PIVOT_ITSELF ->
+                "${arg(0)} is the node that has to move down. Something below it takes " +
+                    "its place."
+
+            NarrationId.AVL_WHY_OUTSIDE ->
+                "${arg(0)} is not below ${arg(1)}. A rotation only rearranges the nodes " +
+                    "under the one that is out of balance."
+
+            // The single most common AVL mistake: treating a bent path like a
+            // straight one and bringing the child up.
+            NarrationId.AVL_WHY_CHILD_NOT_ENOUGH ->
+                "Bring ${arg(0)} up and the path still bends the same way — ${arg(1)} " +
+                    "would be out of balance all over again. The grandchild is the one " +
+                    "that straightens it."
+
+            NarrationId.AVL_WHY_NOT_ON_THE_PATH ->
+                "${arg(0)} is below ${arg(1)}, but it is not on the path the new value " +
+                    "took. It is not what made the tree lopsided."
+
+            NarrationId.AVL_CORRECT_PIVOT ->
+                "${arg(0)} is at ${arg(1)} — the first node the new value pushed past ±1."
+
+            NarrationId.AVL_CORRECT_RISER_STRAIGHT ->
+                "${arg(0)} comes up, ${arg(1)} goes down the other side, and the subtree " +
+                    "is level again. One rotation."
+
+            NarrationId.AVL_CORRECT_RISER_BENT ->
+                "The path bends, so ${arg(0)} — the grandchild — is the one that comes up. " +
+                    "It takes two rotations to get it there."
+
+            // ── AVL Tree — WATCH ──────────────────────────────────────────
+            NarrationId.AVL_WATCH_SETUP -> "Insert ${arg(0)} into this AVL tree."
+            NarrationId.AVL_WATCH_SETUP_SUPPORT ->
+                "Each node shows its balance factor: the height of its left side minus " +
+                    "its right. AVL allows −1, 0 and +1."
+
+            NarrationId.AVL_WATCH_INSERT -> "Insert ${arg(0)}."
+            NarrationId.AVL_WATCH_STILL_BALANCED ->
+                "Every balance factor is still within ±1, so there is nothing to fix. " +
+                    "Not every insert needs a rotation."
+
+            NarrationId.AVL_WATCH_BROKE_IT ->
+                "${arg(0)} is now at ${arg(1)}. The tree has to be repaired."
+
+            NarrationId.AVL_WATCH_PIVOT -> "${arg(0)} is out of balance at ${arg(1)}."
+            NarrationId.AVL_WATCH_SHAPE_STRAIGHT ->
+                "The two steps below ${arg(0)} go the same way — the imbalance runs straight."
+
+            NarrationId.AVL_WATCH_SHAPE_BENT ->
+                "The two steps below ${arg(0)} go opposite ways — the imbalance bends."
+
+            NarrationId.AVL_WATCH_RISER -> "${arg(0)} moves up into ${arg(1)}'s place."
+            NarrationId.AVL_WATCH_RISER_SINGLE ->
+                "The path runs straight, so the child comes up. One rotation."
+
+            NarrationId.AVL_WATCH_RISER_DOUBLE ->
+                "The path bends, so the grandchild comes up. That takes two rotations."
+
+            NarrationId.AVL_WATCH_ROTATE_LEFT -> "Left rotation at ${arg(0)}."
+            NarrationId.AVL_WATCH_ROTATE_RIGHT -> "Right rotation at ${arg(0)}."
+            NarrationId.AVL_WATCH_ROTATE_FIRST -> "First rotation, at ${arg(0)}."
+            NarrationId.AVL_WATCH_ROTATE_FIRST_WHY ->
+                "This one does not fix anything yet. It straightens the bend so the " +
+                    "second rotation can be an ordinary single."
+
+            NarrationId.AVL_WATCH_ROTATE_DONE ->
+                "Every factor is back within ±1, and the tree is ${arg(0)} levels tall."
+
+            NarrationId.AVL_WATCH_INSIGHT -> "A rotation changes depth, never order."
+            NarrationId.AVL_WATCH_INSIGHT_SUPPORT ->
+                "Read left to right and the values are still ${arg(0)} — exactly as before " +
+                    "every rotation. That is why the result is still a search tree, and " +
+                    "why the tree can be reshaped whenever it needs to be."
+
+            NarrationId.AVL_WATCH_SUMMARY ->
+                "${arg(0)} rotations, and ${arg(2)} nodes in ${arg(1)} levels."
+
+            NarrationId.AVL_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.AVL_IDEA_1 -> "Balance factor is left height minus right height."
+            NarrationId.AVL_IDEA_2 -> "Rotate the lowest node that reaches ±2. Never more than one."
+            NarrationId.AVL_IDEA_3 -> "Path runs straight? The child comes up — one rotation."
+            NarrationId.AVL_IDEA_4 -> "Path bends? The grandchild comes up — two rotations."
+            NarrationId.AVL_IDEA_5 ->
+                "A BST can degrade to O(n). An AVL tree never lets it: search stays " +
+                    "O(log n), guaranteed."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

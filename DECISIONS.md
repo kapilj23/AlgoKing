@@ -1544,6 +1544,98 @@ target over the same tree is the obvious next dataset, and it is data rather tha
 
 ---
 
+## ADR-037 — AVL asks which node comes up, not which case it is
+
+**Decision.** AVL ships as a `LessonPack` with WATCH and TRY, in the **Advanced** category.
+Its two decisions are both **taps on the tree** — *which node is out of balance?* then
+*which node takes its place?* — and it reuses the `GraphScene` and `GraphStage` the BST and
+the two graph lessons already use. `GraphNodeView` gains `caption` and `captionAlert`. Full
+detail: `docs/avl-tree.md`.
+
+**Why it was worth building.** The Binary Search Tree lesson has to end on a caveat: a BST
+is O(log n) only while it stays bushy, and O(n) when it skews. Leaving a learner there is
+leaving them with a technique and a reason to distrust it. AVL is the answer, and it is the
+first lesson in the app about a structure that **maintains its own invariant**.
+
+### The learner names a node, not a case
+
+The obvious build gives four buttons — RIGHT, LEFT, LEFT-RIGHT, RIGHT-LEFT — and asks the
+learner to classify LL/LR/RL/RR. That was rejected twice over.
+
+Practically, four `DecisionButton`s do not fit one row at 16sp/800; "LEFT-RIGHT" alone is
+wider than the button it would sit in. But the real reason is the one ADR-034 gives for
+rejecting a BACKTRACK button: a row of case names teaches the learner to classify a shape
+into a label and reach for the matching control. What they actually have to see is **which
+node comes up** — and that single question collapses two:
+
+| the path below the unbalanced node | which node comes up | how many rotations |
+|---|---|---|
+| runs straight (LL / RR) | the **child** | one |
+| bends (LR / RL) | the **grandchild** | two |
+
+*Child or grandchild* **is** *single or double*. A learner who can point at the right node
+has understood the thing the four case names are labels for, and the app names the case for
+them the moment they are right — which is the correct order: the name is a handle for an
+idea they already have, not a substitute for it.
+
+### Reading the balance factors is the app's; finding the broken one is not
+
+Every node carries its balance factor as a caption, always — including the balanced ones.
+Showing it only where it is broken would turn "find the unbalanced node" into "find the
+node with a number next to it". Computing `height(left) - height(right)` is arithmetic the
+app owns (PRODUCT_SPEC.md §3); scanning for the one that broke, and knowing to take the
+*lowest* of them, is not.
+
+`GraphNodeView.caption`/`.captionAlert` are defaulted, so DFS, BFS and the BST needed no
+change — the same additive move `queue`, `badge` and `EdgeState.ELIMINATED` made before.
+
+### The teaching data is authored around three different lessons
+
+Three insertions, and the first one **needs no rotation at all**. That is the same call
+ADR-025 made putting Bubble Sort's *keep* second: a learner who only ever sees insertions
+that rotate will conclude that insertion means rotation. The second is a straight imbalance
+and the third is a bent one, so WATCH covers single and double without covering all four
+named cases.
+
+TRY is then **the mirror image** — the same three shapes with every direction reversed, so
+it is application rather than recall even though the shapes are familiar, and the two
+stages together cover all four cases. Getting the mirror wrong is precisely where this
+technique fails in practice.
+
+### A double rotation is shown as two rotations
+
+The engine performs the plan one step at a time, so WATCH gets two beats for a double and
+the first one says out loud that it has not fixed anything yet — it straightened the bend
+so the second could be an ordinary single. Collapsing them into one step would have made
+"a double is two singles" a claim rather than something the learner watched.
+
+### The insight was already in the layout
+
+**A rotation changes depth, never order.** Because `BinaryTree.layout()` places nodes by
+their in-order position (ADR-036), a rotation moves nodes between *rows* and never between
+*columns* — so the picture demonstrates the invariant that makes rotations legal instead of
+asserting it. That was not designed for AVL; it fell out of the choice made for the BST,
+and a test now pins it.
+
+### Complexity is stated as a guarantee, not an average
+
+The lesson says O(log n) **guaranteed**, and a test inserts 1…200 ascending — a plain BST's
+worst case, a 200-level chain — and asserts AVL stays under 10 levels. This is the payoff
+for the honest caveat the BST lesson was made to end on.
+
+**Alternatives considered.**
+- *Four case buttons.* Rejected above.
+- *Ask the learner to compute the balance factors.* Rejected: it is subtraction with one
+  legal answer, and PRODUCT_SPEC.md §3 rejects exactly this.
+- *Let the app find the unbalanced node and ask only for the rotation.* Rejected: rotating
+  at the wrong node — usually the root — is one of the two real mistakes, so it has to be
+  askable.
+- *Perform a double rotation in one step.* Rejected above.
+- *Teach deletion as well.* Rejected as scope: deletion needs up to O(log n) rotations
+  rather than one, which is a different lesson, not a longer one.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

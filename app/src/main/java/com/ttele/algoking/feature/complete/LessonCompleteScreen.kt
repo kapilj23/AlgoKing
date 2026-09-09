@@ -340,4 +340,9 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +
             "costs O(n)."
+
+    AlgorithmId.AVL_TREE ->
+        "A rotation changes how deep the nodes are, never what order they are in — so the " +
+            "tree can reshape itself whenever it needs to and still be a search tree. That " +
+            "is what buys a guaranteed O(log n)."
 }

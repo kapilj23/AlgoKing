@@ -175,7 +175,10 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // Binary Search's decision rule again, this time held by the structure
     // instead of recomputed from positions.
     AlgorithmId.GRAPH_BFS -> AlgorithmId.BINARY_SEARCH_TREE
-    AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.BINARY_SEARCH
+    // The BST hands over to the tree that keeps itself short — which is the
+    // answer to the caveat that lesson has to end on.
+    AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.AVL_TREE
+    AlgorithmId.AVL_TREE -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

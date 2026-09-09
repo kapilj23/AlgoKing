@@ -566,6 +566,17 @@ this same stage (ADR-036), and the two differences are the lesson:
 | the second strip | **absent.** DFS and BFS show the structure driving them; a BST search is driven by the tree itself, and a line repeating the path under another name would be text pretending to be a data structure |
 | node positions | derived from the tree — in-order across, depth down — never authored. Two nodes on one row are always at least two columns apart, so nothing overlaps and nothing has to shrink |
 
+**A number the node knows about itself.** A node may carry a `caption` — the AVL lesson puts
+each node's balance factor there — drawn as a `labelSmall` pill on `surface`, tucked at the
+node's top-right corner so it reads as an annotation rather than as part of the value. It is
+`textMuted` normally and `secondary` amber when `captionAlert` marks it as the thing that is
+wrong. Every node carries one or none: showing the number only where it is broken would turn
+"find the unbalanced node" into "find the node with a number next to it".
+
+**A rotation is drawn as a change to links.** The two edges a rotation will re-hang go
+`ACTIVE`, and the nodes keep their columns and change rows — which is the invariant that
+makes the rotation legal, shown rather than said (ADR-037).
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

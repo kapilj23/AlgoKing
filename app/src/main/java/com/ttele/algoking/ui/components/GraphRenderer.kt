@@ -143,6 +143,28 @@ fun GraphStage(
                         y = y - Dimens.graphNode / 2,
                     ),
                 )
+                // 3 — What the node knows about itself, above it: AVL's balance
+                //     factor. Drawn after the circles so a caption is never
+                //     covered by a neighbouring node, and outside the circle so
+                //     it cannot be mistaken for the node's value.
+                node.caption?.let { caption ->
+                    Text(
+                        text = caption,
+                        style = AlgoType.labelSmall,
+                        color = if (node.captionAlert) {
+                            AlgoColors.secondary
+                        } else {
+                            AlgoColors.textMuted
+                        },
+                        modifier = Modifier
+                            .offset(
+                                x = x + Dimens.graphNode / 2 - Spacing.sm,
+                                y = y - Dimens.graphNode / 2 - Spacing.sm,
+                            )
+                            .background(AlgoColors.surface, Radius.pill)
+                            .padding(horizontal = Spacing.xxs),
+                    )
+                }
             }
         }
 

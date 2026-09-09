@@ -91,6 +91,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.AVL_TREE,
+        title = "AVL Tree",
+        description = "A search tree that rotates itself back into shape.",
+        category = "Advanced",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,
         title = "Bubble Sort",
         description = "Compare neighbours and swap the ones out of order.",

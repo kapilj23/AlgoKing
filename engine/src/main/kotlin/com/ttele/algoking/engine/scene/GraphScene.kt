@@ -67,6 +67,16 @@ data class GraphNodeView(
     val state: CellState,
     val x: Float,
     val y: Float,
+    /**
+     * A small number the node carries about itself, drawn above it — the AVL
+     * lesson puts each node's balance factor here.
+     *
+     * Null for a lesson whose nodes are just nodes, so DFS, BFS and the BST draw
+     * exactly as they did before this arrived.
+     */
+    val caption: String? = null,
+    /** True when the caption is the thing that is wrong: AVL's ±2. */
+    val captionAlert: Boolean = false,
 )
 
 data class GraphEdgeView(

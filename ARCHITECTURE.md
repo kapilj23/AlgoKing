@@ -615,6 +615,11 @@ drawn by the same renderer. What it did add is a node *state* those two never ne
 rules parts of a structure out, and a traversal visits everything — so `EdgeState.ELIMINATED`
 and a `badge` joined the scene as defaulted fields, and no existing lesson changed (ADR-036).
 
+The AVL tree then added nothing but a **number**: `GraphNodeView.caption` and `.captionAlert`,
+so a node can show what it knows about itself — a balance factor — and mark it when it has
+broken a rule. Defaulted again, so the four lessons already projecting into `GraphScene` were
+untouched (ADR-037). Four lessons now share that scene and its one renderer.
+
 The three elementary sorts in particular had to end up looking different from each other, and
 they do — trading neighbours, carrying a minimum to the front, and walking a gap backwards are
 three distinct pictures built from the same thirteen events. Stack and Queue go further: they
@@ -638,8 +643,8 @@ data class SequenceScene(...) : Scene   // ROW | PILE | CHAIN | GRID
 data class BucketScene(...) : Scene     // a table of buckets, plus the hash flow
 data class PrefixScene(...) : Scene     // two aligned arrays of different lengths
 data class GraphScene(...) : Scene      // nodes at positions, joined by edges
-                                        // (DFS, BFS — and the BST, because a tree
-                                        //  is one of these; ADR-036)
+                                        // (DFS, BFS — and the BST and AVL trees,
+                                        //  because a tree is one of these; ADR-036)
 ```
 
 The sequence renderer receives pure data, and its only branch is `layout`:

@@ -106,6 +106,85 @@ data class BinaryTree(val root: BstNode? = null) {
     /** Values in ascending order. A BST read in order **is** a sorted array. */
     fun inorder(): List<Int> = buildList { collectInorder(root, this) }
 
+    // -- Balance ---------------------------------------------------------------
+    //
+    // A plain BST does not care how lopsided it gets; an AVL tree does, and these
+    // are what it measures itself with. They live here rather than in the AVL
+    // lesson because they are properties of a tree, not of an algorithm.
+
+    /** Height of the subtree rooted at [value]. 0 when the value is not present. */
+    fun heightAt(value: Int): Int = heightOf(node(value))
+
+    /**
+     * `height(left) - height(right)` for the subtree rooted at [value].
+     *
+     * **The one place balance is measured.** Positive means left-heavy, negative
+     * right-heavy, and AVL's whole rule is that this stays within ±1: the moment
+     * a node reaches ±2 it has to be rotated back.
+     */
+    fun balanceFactor(value: Int): Int = node(value)
+        ?.let { heightOf(it.left) - heightOf(it.right) }
+        ?: 0
+
+    /** Every node's balance factor, so a picture can show all of them at once. */
+    fun balanceFactors(): Map<Int, Int> = inorder().associateWith { balanceFactor(it) }
+
+    /** True when every node is within ±1 — the AVL invariant. */
+    val isBalanced: Boolean get() = inorder().all { balanceFactor(it) in -1..1 }
+
+    /** The parent of [value], or null for the root and for absent values. */
+    fun parentOf(value: Int): Int? {
+        var current = root ?: return null
+        var parent: Int? = null
+        while (current.value != value) {
+            parent = current.value
+            current = (if (value < current.value) current.left else current.right) ?: return null
+        }
+        return parent
+    }
+
+    /**
+     * Rotate the subtree rooted at [value] to the left: its **right child comes
+     * up** and takes its place. Unchanged when there is no right child to raise.
+     *
+     * ```
+     *    a                b
+     *     \              / \
+     *      b     ->     a   c
+     *       \            \
+     *        c            (b's old left)
+     * ```
+     *
+     * A rotation re-hangs three links and touches nothing else, which is why
+     * rebalancing costs O(1) — and, crucially, it **preserves in-order**: the
+     * values still read left to right in exactly the same sequence, so the result
+     * is still a search tree. That is the property the lesson is built on.
+     */
+    fun rotateLeft(at: Int): BinaryTree {
+        val node = node(at) ?: return this
+        val riser = node.right ?: return this
+        val rotated = riser.copy(left = node.copy(right = riser.left))
+        return BinaryTree(replaceSubtree(root, at, rotated))
+    }
+
+    /** The mirror of [rotateLeft]: the **left child comes up**. */
+    fun rotateRight(at: Int): BinaryTree {
+        val node = node(at) ?: return this
+        val riser = node.left ?: return this
+        val rotated = riser.copy(right = node.copy(left = riser.right))
+        return BinaryTree(replaceSubtree(root, at, rotated))
+    }
+
+    /**
+     * Insert [value] and rebalance — the reference AVL insertion.
+     *
+     * Nothing in the lesson calls this: the lesson inserts with [insert] and then
+     * has the *learner* find the imbalance and name the rotation, which is the
+     * entire point of it. This exists so the tests can check what the learner
+     * produced against an independent implementation of what AVL should produce.
+     */
+    fun avlInsert(value: Int): BinaryTree = BinaryTree(avlInsertInto(root, value))
+
     /**
      * Every value in the subtree rooted at [value], including it. Empty when the
      * value is not in the tree.
@@ -172,6 +251,51 @@ data class BinaryTree(val root: BstNode? = null) {
         // Already there. The lesson's values are unique, and a duplicate insert
         // is a no-op rather than a second node or an exception.
         else -> node
+    }
+
+    /**
+     * Swap the subtree rooted at [at] for [with].
+     *
+     * Descends by BST order, which is safe precisely because a rotation does not
+     * change it: the path to the old subtree root is still the path to the new one.
+     */
+    private fun replaceSubtree(node: BstNode?, at: Int, with: BstNode): BstNode? = when {
+        node == null -> null
+        node.value == at -> with
+        at < node.value -> node.copy(left = replaceSubtree(node.left, at, with))
+        else -> node.copy(right = replaceSubtree(node.right, at, with))
+    }
+
+    /** Textbook AVL insertion: place by BST order, then rebalance on the way up. */
+    private fun avlInsertInto(node: BstNode?, value: Int): BstNode {
+        if (node == null) return BstNode(value)
+        val grown = when {
+            value < node.value -> node.copy(left = avlInsertInto(node.left, value))
+            value > node.value -> node.copy(right = avlInsertInto(node.right, value))
+            else -> return node
+        }
+        return rebalance(grown, value)
+    }
+
+    private fun rebalance(node: BstNode, inserted: Int): BstNode {
+        val balance = heightOf(node.left) - heightOf(node.right)
+        return when {
+            balance > 1 && inserted < requireNotNull(node.left).value -> rotateRightAt(node)
+            balance < -1 && inserted > requireNotNull(node.right).value -> rotateLeftAt(node)
+            balance > 1 -> rotateRightAt(node.copy(left = rotateLeftAt(requireNotNull(node.left))))
+            balance < -1 -> rotateLeftAt(node.copy(right = rotateRightAt(requireNotNull(node.right))))
+            else -> node
+        }
+    }
+
+    private fun rotateLeftAt(node: BstNode): BstNode {
+        val riser = node.right ?: return node
+        return riser.copy(left = node.copy(right = riser.left))
+    }
+
+    private fun rotateRightAt(node: BstNode): BstNode {
+        val riser = node.left ?: return node
+        return riser.copy(right = node.copy(left = riser.right))
     }
 
     private fun collectInorder(node: BstNode?, into: MutableList<Int>) {
