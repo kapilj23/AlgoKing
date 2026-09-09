@@ -782,6 +782,155 @@ object Narration {
                 "A BST can degrade to O(n). An AVL tree never lets it: search stays " +
                     "O(log n), guaranteed."
 
+            // ── Dijkstra ──────────────────────────────────────────────────
+            // Every line names the reason — "the cheapest", "a shorter route" —
+            // rather than the control. The learner should be able to say why,
+            // not just what they tapped.
+            NarrationId.DIJ_OPTION_NODE -> arg(0)
+            NarrationId.DIJ_OPTION_VALUE -> arg(0)
+            NarrationId.DIJ_ASK_SELECT -> "Which node does Dijkstra process next?"
+            NarrationId.DIJ_ASK_RELAX ->
+                "${arg(2)} is ${arg(3)} away from ${arg(0)}, so that route costs ${arg(4)}. " +
+                    "${arg(0)} is currently ${arg(1)}. What should it be?"
+
+            NarrationId.DIJ_SELECTED -> "Processing ${arg(0)}, at ${arg(1)}."
+            NarrationId.DIJ_EXAMINED ->
+                "${arg(0)} is ${arg(1)}, and ${arg(0)}→${arg(4)} costs ${arg(2)}. That makes ${arg(3)}."
+
+            NarrationId.DIJ_FIRST_REACH ->
+                "${arg(0)} had no distance at all, so ${arg(1)} becomes its first."
+
+            NarrationId.DIJ_UPDATED -> "${arg(0)}: ${arg(2)} → ${arg(1)}."
+            NarrationId.DIJ_KEPT -> "${arg(0)} stays at ${arg(2)}."
+            NarrationId.DIJ_SKIP_SETTLED ->
+                "${arg(0)} is already settled at ${arg(1)} — nothing can improve it now."
+
+            NarrationId.DIJ_SETTLED -> "${arg(0)} is settled at ${arg(1)}."
+            NarrationId.DIJ_TARGET_SETTLED ->
+                "${arg(0)} is settled at ${arg(1)} — and it is the target."
+
+            NarrationId.DIJ_HINT_SELECT ->
+                "Read the distances. Dijkstra always continues from the cheapest node " +
+                    "it has reached but not settled."
+
+            NarrationId.DIJ_HINT_RELAX ->
+                "${arg(0)} is ${arg(1)} away, and this edge costs ${arg(2)}, so the route " +
+                    "through it costs ${arg(3)}. Is that better than what is already known?"
+
+            NarrationId.DIJ_RETRY_SELECT_LOOK -> "Look at the distances again."
+            NarrationId.DIJ_RETRY_SELECT_ASK ->
+                "Which node has been reached, is not settled, and has the smallest distance?"
+
+            NarrationId.DIJ_RETRY_SELECT_EXPLAIN ->
+                "${arg(0)} is at ${arg(1)}, and nothing unsettled is closer. That is the one " +
+                    "Dijkstra takes."
+
+            NarrationId.DIJ_RETRY_RELAX_LOOK ->
+                "That route costs ${arg(0)}. ${arg(1)} is already ${arg(2)}."
+
+            NarrationId.DIJ_RETRY_RELAX_ASK_BETTER ->
+                "${arg(0)} is smaller than ${arg(1)}. Which of them is the better route?"
+
+            NarrationId.DIJ_RETRY_RELAX_ASK_WORSE ->
+                "${arg(0)} is not smaller than ${arg(1)}. Does anything need to change?"
+
+            NarrationId.DIJ_RETRY_RELAX_EXPLAIN_UPDATE ->
+                "${arg(0)} beats ${arg(1)}, so ${arg(2)} takes the shorter route: ${arg(0)}."
+
+            NarrationId.DIJ_RETRY_RELAX_EXPLAIN_KEEP ->
+                "${arg(0)} is no better than ${arg(1)}, so ${arg(2)} keeps ${arg(1)}. " +
+                    "Examining an edge does not mean changing anything."
+
+            // Each wrong tap is the misconception it is.
+            NarrationId.DIJ_WHY_ALREADY_SETTLED ->
+                "${arg(0)} is already settled. Its distance is final and Dijkstra never " +
+                    "goes back to it."
+
+            NarrationId.DIJ_WHY_UNREACHED ->
+                "${arg(0)} has no distance yet — nothing has reached it. Dijkstra only " +
+                    "continues from nodes it can already get to."
+
+            NarrationId.DIJ_WHY_NOT_CHEAPEST ->
+                "${arg(0)} is ${arg(1)} away, but ${arg(2)} is only ${arg(3)}. Dijkstra always " +
+                    "takes the cheapest node it knows about."
+
+            // The classic slip: taking the edge and forgetting where you already are.
+            NarrationId.DIJ_WHY_WEIGHT_ONLY ->
+                "${arg(0)} is what the edge costs, not what the route costs. Add it to " +
+                    "${arg(2)}'s own distance: that is ${arg(4)}."
+
+            NarrationId.DIJ_WHY_MISSED_IMPROVEMENT ->
+                "${arg(4)} is shorter than ${arg(5)}, so leaving ${arg(1)} where it is would " +
+                    "keep the longer route."
+
+            NarrationId.DIJ_WHY_WORSE_ROUTE ->
+                "${arg(4)} is not shorter than ${arg(5)}, so this route is no improvement. " +
+                    "A distance only ever goes down."
+
+            NarrationId.DIJ_CORRECT_SELECT ->
+                "${arg(0)} at ${arg(1)} — nothing unsettled is closer, so nothing can reach " +
+                    "it more cheaply later."
+
+            NarrationId.DIJ_CORRECT_UPDATE ->
+                "${arg(1)} beats ${arg(2)}, so ${arg(0)} takes the route through ${arg(3)}."
+
+            NarrationId.DIJ_CORRECT_KEEP ->
+                "${arg(1)} is no better than ${arg(2)}, so ${arg(0)} keeps what it had."
+
+            // ── Dijkstra — WATCH ──────────────────────────────────────────
+            NarrationId.DIJ_WATCH_SETUP ->
+                "Find the cheapest route from ${arg(0)} to ${arg(1)}."
+
+            NarrationId.DIJ_WATCH_SETUP_SUPPORT ->
+                "Every node starts at ∞ except ${arg(0)}, which is 0. We know nothing yet " +
+                    "except where we are."
+
+            NarrationId.DIJ_WATCH_SELECT -> "Process ${arg(0)}, at ${arg(1)}."
+            NarrationId.DIJ_WATCH_SELECT_WHY ->
+                "Nothing unsettled is closer, so no route found later could beat it."
+
+            NarrationId.DIJ_WATCH_SELECT_IMPROVED_WHY ->
+                "${arg(0)} got to ${arg(1)} by being beaten down, not by being reached first — " +
+                    "the route through ${arg(2)} turned out cheaper."
+
+            NarrationId.DIJ_WATCH_REACH -> "${arg(0)} is reached: ${arg(1)}."
+            NarrationId.DIJ_WATCH_REACH_WHY ->
+                "${arg(0)} is ${arg(1)} and the edge costs ${arg(2)}, so the route costs " +
+                    "${arg(3)}. Anything beats ∞, so there is nothing to compare yet."
+
+            NarrationId.DIJ_WATCH_UPDATE -> "${arg(0)}: ${arg(1)} → ${arg(2)}."
+            NarrationId.DIJ_WATCH_UPDATE_WHY ->
+                "${arg(0)} is ${arg(1)} and this edge costs ${arg(2)}, so the route costs " +
+                    "${arg(3)} — shorter than ${arg(4)}. The old distance was only ever a claim."
+
+            NarrationId.DIJ_WATCH_KEEP -> "${arg(0)} stays at ${arg(1)}."
+            NarrationId.DIJ_WATCH_KEEP_WHY ->
+                "${arg(0)} is ${arg(1)} and this edge costs ${arg(2)}, so this route costs " +
+                    "${arg(3)} — no better than ${arg(4)}. Examining an edge does not mean " +
+                    "changing anything."
+
+            NarrationId.DIJ_WATCH_DONE -> "${arg(0)} is settled at ${arg(1)}. Done."
+            NarrationId.DIJ_WATCH_DONE_WHY ->
+                "Once ${arg(0)} is the cheapest thing left, no route still being explored " +
+                    "could reach it for less."
+
+            NarrationId.DIJ_WATCH_INSIGHT -> "A distance is a claim, until something beats it."
+            NarrationId.DIJ_WATCH_INSIGHT_SUPPORT ->
+                "Taking the cheapest node is safe because every edge costs something: any " +
+                    "route through a node still unsettled is already at least as long. That " +
+                    "one sentence is the whole proof — and it is exactly what a negative " +
+                    "edge would break, which is why Dijkstra needs positive weights."
+
+            NarrationId.DIJ_WATCH_SUMMARY -> "${arg(0)} — ${arg(1)}."
+            NarrationId.DIJ_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.DIJ_IDEA_1 -> "Start at 0; everything else is ∞ until it is reached."
+            NarrationId.DIJ_IDEA_2 -> "Always continue from the cheapest node not yet settled."
+            NarrationId.DIJ_IDEA_3 -> "Relax every edge: distance + weight, and keep the smaller."
+            NarrationId.DIJ_IDEA_4 -> "O((V + E) log V) with a heap; O(V) space. Positive weights only."
+            NarrationId.DIJ_IDEA_5 ->
+                "DFS goes deep, BFS goes level by level, Dijkstra goes by distance — and " +
+                    "where every edge costs 1, that is BFS."
+
             // ── Binary Tree — Inorder: LEFT → NODE → RIGHT ────────────────
             // The learner taps nodes, so an "option" label is just the value.
             NarrationId.INORDER_ASK -> "${arg(0)}"

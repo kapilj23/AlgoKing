@@ -336,6 +336,11 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "The queue is the whole difference: first in, first out means BFS finishes a level " +
             "before it goes deeper. O(V + E), same as DFS."
 
+    AlgorithmId.DIJKSTRA ->
+        "A distance is only a claim until something beats it. Taking the cheapest node is " +
+            "safe because every edge costs something — so no route still being explored " +
+            "could get there for less. That is also why the weights must be positive."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

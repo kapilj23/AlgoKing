@@ -83,6 +83,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.DIJKSTRA,
+        title = "Dijkstra",
+        description = "Cheapest route first, one distance at a time.",
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",

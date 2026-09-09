@@ -174,7 +174,10 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // The shelf ends on the Binary Search Tree, which closes the loop: it is
     // Binary Search's decision rule again, this time held by the structure
     // instead of recomputed from positions.
-    AlgorithmId.GRAPH_BFS -> AlgorithmId.BINARY_SEARCH_TREE
+    // BFS hands over to Dijkstra, which is the same idea once edges cost
+    // something — so the contrast lands while BFS is still fresh.
+    AlgorithmId.GRAPH_BFS -> AlgorithmId.DIJKSTRA
+    AlgorithmId.DIJKSTRA -> AlgorithmId.BINARY_SEARCH_TREE
     // The BST hands over to the tree that keeps itself short — which is the
     // answer to the caveat that lesson has to end on.
     AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.AVL_TREE

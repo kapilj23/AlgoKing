@@ -71,6 +71,12 @@ object Dimens {
     // and the node is a 48dp circle so it clears the 48dp minimum touch target.
     val graphStageHeight = 260.dp
     val graphNode = 48.dp
+
+    // An edge weight pill. Wide enough for two digits at labelSmall, and short
+    // enough that a midpoint label clears the node circles either side of it —
+    // both validated at 360dp before the lesson was built.
+    val edgeLabel = 24.dp
+    val edgeLabelHeight = 18.dp
     val sceneCellGap = 4.dp
     val sceneGroupGap = 3.dp
     val sceneRailHeight = 20.dp

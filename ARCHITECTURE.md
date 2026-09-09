@@ -622,10 +622,19 @@ untouched (ADR-037).
 
 The three traversal lessons then added **nothing at all** — not one field, and not one line of
 `:app/ui/components`. They are the first lessons to arrive with the renderer already able to
-draw them, which is what the contract was for. Seven lessons now share that scene and its one
+draw them, which is what the contract was for. Eight lessons now share that scene and its one
 renderer, and the three traversals additionally share one **engine**: `TreeTraversalAlgorithm`
 reads a `TraversalRule` whose `order` is the algorithm, stated on one line in each lesson's own
 file — `LinearStructureAlgorithm(flavour)` applied a second time (ADR-027, ADR-038).
+
+Dijkstra is the one that needed the renderer to learn something new, and it is worth being
+precise about what: **edges had never carried a value before.** `Graph` gained a defaulted
+`weights` map, `GraphEdgeView` a defaulted `label`, and `GraphNodeView` a defaulted
+`secondaryLabel` for the tentative distance — which is drawn *inside* the node, because a
+1:1 layout spike at 360dp showed that on a graph the space beside a node is where its edges
+leave (ADR-039). Every field is defaulted and no existing lesson passes any of them, so the
+seven that came before draw exactly as they did; `GraphWeightTest` pins that by asserting DFS
+and BFS produce byte-identical states on a graph that carries weights.
 
 The three elementary sorts in particular had to end up looking different from each other, and
 they do — trading neighbours, carrying a minimum to the front, and walking a gap backwards are

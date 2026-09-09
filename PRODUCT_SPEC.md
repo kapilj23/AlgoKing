@@ -76,6 +76,7 @@ advancement is performed by the app, never by the user.
 | Prefix Sum | gives the leading `prefix[0] = 0` | **each running total**, then **which two prefix values answer the range** |
 | Graph DFS | gives the start node | **which node DFS moves to next** — deeper into the first unvisited neighbour, or back to where it came from |
 | Graph BFS | gives the start node | **which node BFS touches next** — the next unseen neighbour onto the queue, or the front of the queue off it |
+| Dijkstra | adds `distance + weight` and states the candidate | **which node is cheapest**, then **what the neighbour's distance becomes** |
 | Binary Search Tree | compares the target with the current node and states the result | **which way the search goes** — LEFT, RIGHT, or "found" |
 | AVL Tree | places the value by the BST rule and computes every balance factor | **which node is out of balance**, then **which node moves up into its place** |
 | Binary Tree — Inorder | returns to the parent once a node is finished | **which node the traversal touches next** — LEFT → NODE → RIGHT |
@@ -146,6 +147,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Selection Sort | "A whole pass. One swap." |
 | Insertion Sort | "The left side is always already sorted." |
 | Two Pointers | "Each move rules out a whole row of pairs." |
+| Dijkstra | "A distance is a claim, until something beats it." |
 | Binary Search Tree | "One path from the root, not a scan of every node." |
 | AVL Tree | "A rotation changes depth, never order." |
 | Binary Tree — Inorder | "Every node waits for its whole left subtree." |

@@ -1753,6 +1753,101 @@ line of `:app/ui/components` was touched by any of the three.
 
 ---
 
+## ADR-039 — Dijkstra: weights are additive, and the frontier is not a queue strip
+
+**Decision.** Dijkstra ships as a `LessonPack` with WATCH and TRY, in **Advanced**, as the
+third graph lesson. `Graph` gains a defaulted `weights` map; `GraphEdgeView` gains a
+defaulted `label`; `GraphNodeView` gains a defaulted `secondaryLabel`. The learner makes two
+decisions — **tap the cheapest node**, then **choose what a distance becomes**. Full detail:
+`docs/dijkstra.md`; the plan and its validation: `docs/dijkstra-plan.md`.
+
+**Why it follows BFS.** DFS and BFS are traversals; this is the first graph lesson that is a
+**search**. It also closes the set: where every edge costs 1, the cheapest unsettled node is
+the nearest one, so Dijkstra *is* BFS — and the weights are the entire reason a different
+algorithm exists. That is one line in the recap, not a comparison screen.
+
+### Weighted edges are one defaulted field, not a second graph type
+
+`Graph.adjacency` is `Map<String, List<String>>`, and changing it to carry edge objects would
+have touched DFS, BFS, their datasets and six test helpers. Instead `weights: Map<String, Int>
+= emptyMap()`, keyed canonically so an undirected edge has one entry however it is looked up.
+Every existing construction site compiles and behaves identically, and `GraphWeightTest`
+asserts the thing that actually matters: **DFS and BFS produce byte-identical states on a
+graph that carries weights**, because a traversal asks where it can get to and never what it
+costs.
+
+`weightsOf` **rejects a non-positive weight at construction**. A negative edge does not make
+Dijkstra give a worse answer, it makes it give a wrong one, so the lesson must be unable to
+hold one — validated where it is authored rather than handled at runtime.
+
+### Relaxation is asked as a number, and the wrong numbers are the misconceptions
+
+The selection rule is the famous half of Dijkstra, but relaxation is the half that is
+actually understood or not. It is asked as a choice between three values — Prefix Sum's
+pattern (ADR-033):
+
+> C is 2, C→B costs 1, B is currently 5. What should B be? **3** · 1 · 5
+
+`1` is the edge weight alone — *forgetting to add where you already are*. `5` is *not
+updating*. In the KEEP case the same question offers `11` · `5` · **`7`** and the correct
+answer is to change nothing. **One question shape covers both branches and three of the
+listed misconceptions**, with no second control, and the comparison is never printed before
+the learner makes it.
+
+### Two beats stay the app's, and the pedagogy survives both
+
+A neighbour with **no distance yet** is not asked about: ∞ loses to everything, so there is
+nothing to compare (PRODUCT_SPEC.md §3). The app still says the arithmetic out loud, so the
+formula is narrated five times and tested four. Stepping past an **already settled**
+neighbour is narrated rather than asked, and that narration is where *"settled means final"*
+is taught. Together they cut about twenty raw actions to nine decisions.
+
+### The frontier is amber nodes, not a sorted strip
+
+The plan asked whether to show the priority queue. It is shown — **as the amber nodes
+carrying their distances** — and deliberately not also as a sorted list, because a strip
+reading `C 2 · B 5` answers the question the lesson asks before the learner does (ADR-030).
+BFS may draw its queue because taking the front is not a judgement there; here it is the
+entire rule. A heap with sift-up and sift-down is an implementation of the idea, not the idea.
+
+### The layout was validated before the lesson was written
+
+A 1:1 spike at 360dp, run as its own step, found two things this ADR would otherwise have
+shipped wrong:
+
+1. **The proposed positions failed.** A and B sat 69dp apart, leaving 21dp of bare edge for a
+   20dp label. Replaced with a **ladder** — the graph is a strip of triangles, so it draws as
+   two rows with one diagonal rung. Shortest edge 83.5dp, every label clearing every circle,
+   no crossings. Only coordinates changed; the dataset did not.
+2. **Distances cannot reuse `caption`.** AVL hangs its balance factor off the node's
+   top-right, which works on a *tree* because that space is empty by construction. On a graph
+   it is where edges leave, and two of six captions landed on one. Hence `secondaryLabel`,
+   rendered **inside** the circle — the only placement that cannot collide, because the node
+   already owns that space.
+
+Node touch targets stayed at 48dp. **The lesson was fitted to the phone by moving nodes, not
+by shrinking them** — which is the rule worth keeping from this exercise.
+
+### TRY gets a different graph
+
+The house default, and here it matters more than usual: the answer is a short memorable
+sentence and the run is nine decisions, so recall would replace reasoning entirely. TRY's
+graph also teaches what WATCH cannot — **two** KEEPs rather than one, and a winning route
+that is the plain direct one, with all the work elsewhere not on it.
+
+**Alternatives considered.**
+- *A `WeightedGraph` type beside `Graph`.* Rejected: two graph models to keep in step, and
+  every renderer branch doubled.
+- *Changing `adjacency` to carry edge objects.* Rejected: it breaks DFS, BFS and six test
+  helpers to add a field two of them will never read.
+- *A sorted priority-queue strip.* Rejected above.
+- *Asking UPDATE / KEEP as two buttons.* Rejected: it tests the comparison but not the
+  arithmetic, and the arithmetic is where the two commonest mistakes live.
+- *Charging a tap for reaching a node at ∞.* Rejected: one legal answer is not a decision.
+- *Shrinking the node to fit nine edges.* Rejected — see the spike.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

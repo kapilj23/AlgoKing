@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -131,7 +132,29 @@ fun GraphStage(
                 }
             }
 
-            // 2 — Nodes, tappable.
+            // 2 — Edge weights, at the midpoint, on a surface pill.
+            //
+            //     Drawn as `Text` rather than into the Canvas above: ARCHITECTURE
+            //     §10.5 keeps text out of `Canvas` entirely. A layout spike at
+            //     360dp confirmed every midpoint on the weighted teaching graph
+            //     clears every node circle, so a plain midpoint needs no offset.
+            scene.edges.forEach { edge ->
+                val label = edge.label ?: return@forEach
+                val a = scene.nodes.getOrNull(edge.from) ?: return@forEach
+                val b = scene.nodes.getOrNull(edge.to) ?: return@forEach
+                val (ax, ay) = px(a)
+                val (bx, by) = px(b)
+                EdgeWeight(
+                    label = label,
+                    active = edge.state == EdgeState.ACTIVE,
+                    modifier = Modifier.offset(
+                        x = (ax + bx) / 2 - Dimens.edgeLabel / 2,
+                        y = (ay + by) / 2 - Dimens.edgeLabelHeight / 2,
+                    ),
+                )
+            }
+
+            // 3 — Nodes, tappable.
             scene.nodes.forEach { node ->
                 val (x, y) = px(node)
                 GraphNodeCircle(
@@ -143,7 +166,7 @@ fun GraphStage(
                         y = y - Dimens.graphNode / 2,
                     ),
                 )
-                // 3 — What the node knows about itself, above it: AVL's balance
+                // 4 — What the node knows about itself, above it: AVL's balance
                 //     factor. Drawn after the circles so a caption is never
                 //     covered by a neighbouring node, and outside the circle so
                 //     it cannot be mistaken for the node's value.
@@ -309,14 +332,71 @@ private fun GraphNodeCircle(
             ),
         contentAlignment = Alignment.Center,
     ) {
+        val ink = when {
+            filled -> Color.White
+            eliminated -> AlgoColors.textMuted
+            else -> AlgoColors.textPrimary
+        }
+        // Held locally: `secondaryLabel` crosses the module boundary, so it cannot
+        // be smart-cast at the use site.
+        val secondary = node.secondaryLabel
+        if (secondary == null) {
+            Text(
+                text = node.label,
+                style = AlgoType.numeralMedium,
+                color = ink,
+                textAlign = TextAlign.Center,
+            )
+        } else {
+            // Two lines inside the circle: the name, and what the node knows
+            // about itself. Dijkstra's tentative distance goes here rather than
+            // beside the node, because on a graph the space around a node is
+            // where its edges leave — see GraphNodeView.secondaryLabel.
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = node.label,
+                    style = AlgoType.titleSmall,
+                    color = ink,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = secondary,
+                    style = AlgoType.labelSmall,
+                    color = if (filled) Color.White.copy(alpha = 0.92f) else AlgoColors.textMuted,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * What one edge costs, drawn at its midpoint.
+ *
+ * A `surface` pill so it stays legible over the line it labels, and it takes the
+ * `comparing` violet while its edge is the one being relaxed — so the weight the
+ * arithmetic is about is the weight that is lit.
+ */
+@Composable
+private fun EdgeWeight(label: String, active: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .width(Dimens.edgeLabel)
+            .height(Dimens.edgeLabelHeight)
+            .background(AlgoColors.surface, Radius.pill)
+            .border(
+                BorderStroke(
+                    width = if (active) 1.5.dp else Dimens.hairline,
+                    color = if (active) AlgoViz.comparing else AlgoColors.border,
+                ),
+                Radius.pill,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
-            text = node.label,
-            style = AlgoType.numeralMedium,
-            color = when {
-                filled -> Color.White
-                eliminated -> AlgoColors.textMuted
-                else -> AlgoColors.textPrimary
-            },
+            text = label,
+            style = AlgoType.labelSmall,
+            color = if (active) AlgoViz.comparing else AlgoColors.textSecondary,
             textAlign = TextAlign.Center,
         )
     }

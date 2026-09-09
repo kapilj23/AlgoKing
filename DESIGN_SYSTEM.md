@@ -590,6 +590,26 @@ stack, not yet emitted — is the one that carries the difference (ADR-038):
 Same tokens, same tree, three rhythms. Nothing was added to the design system for any of
 them, which is the strongest evidence the scene contract holds.
 
+**An edge may carry a value.** Dijkstra is the first lesson where the *edges* mean something,
+so a `GraphEdgeView` may carry a `label` — its weight — drawn at the edge's midpoint on a
+`surface` pill with a hairline `border`, `labelSmall` in `textSecondary`. The edge being
+relaxed right now takes `comparing` violet for both its pill outline and its numeral, so the
+weight the arithmetic is about is the weight that is lit. It is a `Text`, never text drawn
+into a `Canvas` (`ARCHITECTURE.md` §10.5).
+
+**A node may carry a second line, and it goes *inside*.** Dijkstra's tentative distance —
+`∞` until the node is reached — is drawn under the node's name within the 48dp circle:
+`titleSmall` over `labelSmall`, white on a filled node, `textMuted` on an empty one. It is
+deliberately not AVL's top-right `caption`. That placement works on a **tree**, where the
+space above a node is empty by construction; on a **graph** it is where edges leave, and a
+1:1 spike at 360dp put two of six distances straight through an edge. Inside the circle is
+the only placement that cannot collide, because the node already owns that space.
+
+**Fit a graph by moving nodes, not by shrinking them.** The same spike rejected the first
+set of Dijkstra's node positions — two nodes 69dp apart leave 21dp of bare edge, and a weight
+pill needs about 20 — and the fix was a different layout, not a smaller node. **48dp stays
+48dp**; it is the touch minimum, and the graph is what gives way.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

@@ -77,12 +77,33 @@ data class GraphNodeView(
     val caption: String? = null,
     /** True when the caption is the thing that is wrong: AVL's ±2. */
     val captionAlert: Boolean = false,
+    /**
+     * A second line drawn **inside** the node, under its name — Dijkstra's
+     * tentative distance.
+     *
+     * Not [caption], and the difference is load-bearing. AVL hangs its balance
+     * factor off the node's top-right corner, which works on a tree because the
+     * space above a node is empty by construction. On a graph that corner is
+     * exactly where edges leave: a layout spike at 360dp put two distance captions
+     * straight through an edge. Inside the circle is the only placement that
+     * cannot collide with anything, because the node already owns that space.
+     *
+     * Null for every lesson that does not need it, so nothing else changes.
+     */
+    val secondaryLabel: String? = null,
 )
 
 data class GraphEdgeView(
     val from: Int,
     val to: Int,
     val state: EdgeState,
+    /**
+     * What this edge costs, drawn at its midpoint — Dijkstra's weights.
+     *
+     * Null for an unweighted graph, which is what DFS, BFS and the tree lessons
+     * draw, so none of them gained a label when this arrived.
+     */
+    val label: String? = null,
 )
 
 enum class EdgeState {

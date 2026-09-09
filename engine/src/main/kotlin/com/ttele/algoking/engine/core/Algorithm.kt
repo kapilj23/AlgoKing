@@ -31,6 +31,14 @@ data class Dataset(
     /** Where a graph traversal begins. */
     val startNode: String? = null,
     /**
+     * Where a graph *search* is trying to get to — Dijkstra looks for the cheapest
+     * route to it, and stops once its distance is final.
+     *
+     * Optional and defaulted: a traversal has no destination, so DFS and BFS never
+     * set it and never read it.
+     */
+    val targetNode: String? = null,
+    /**
      * A binary search tree, for a lesson whose data is a tree rather than an
      * array or a graph — BST search walks one.
      *
@@ -58,6 +66,11 @@ enum class AlgorithmId {
 
     // Advanced: the same graph as DFS, driven by a queue instead of a stack.
     GRAPH_BFS,
+
+    // Advanced: the third graph lesson, and the first that is a *search* rather
+    // than a traversal. DFS goes deep, BFS goes level by level, Dijkstra goes by
+    // distance — which on an unweighted graph is the same thing as BFS.
+    DIJKSTRA,
 
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.

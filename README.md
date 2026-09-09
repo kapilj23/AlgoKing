@@ -24,7 +24,7 @@ existed to leave behind. No stars — Try is never scored.
 
 ---
 
-## The nineteen lessons
+## The twenty lessons
 
 | | Lessons | The learner decides |
 |---|---|---|
@@ -36,6 +36,7 @@ existed to leave behind. No stars — Try is never scored.
 | **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 | **Advanced** | **Graph DFS** | which node DFS moves to next — deeper, or back |
 | **Advanced** | **Graph BFS** | which node BFS touches next — enqueue a neighbour, or dequeue the front |
+| **Advanced** | **Dijkstra** | which node is cheapest, then what a distance becomes when a shorter route turns up |
 | **Advanced** | **Binary Search Tree** | which way the comparison sends the search — left, right, or found |
 | **Advanced** | **AVL Tree** | which node is out of balance, then which node takes its place |
 | **Advanced** | **Binary Tree — Inorder** | which node the traversal touches next — LEFT → NODE → RIGHT |
@@ -73,11 +74,11 @@ Everything else falls out of it:
   caller *could* apply. The rule is structural, not a convention each new algorithm must
   remember.
 - **The renderer cannot name an algorithm.** It receives a `Scene` and branches only on the
-  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, or a graph). Nineteen lessons, one
+  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, or a graph). Twenty lessons, one
   renderer entry point, zero `when (algorithm)` in `:app`.
 - **Adding a lesson adds a `LessonPack`** — an algorithm, a projector, a narrator and two
   authored datasets. Never a screen, never a renderer.
-- **13 events cover all nineteen lessons.** None was added after the first — Two Pointers,
+- **13 events cover all twenty lessons.** None was added after the first — Two Pointers,
   written long after the event model was fixed, needed none (ADR-032), and the Binary Search
   Tree added no renderer either: a tree is a graph, so it draws itself with the one the
   graph lessons already use (ADR-036).
@@ -86,7 +87,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 567 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 595 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -98,7 +99,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 567 unit tests, no device needed
+./gradlew :engine:test        # 595 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -119,17 +120,17 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-038 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-039 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
 inherits — and the Advanced lessons
-[`two-pointers.md`](docs/two-pointers.md) [`prefix-sum.md`](docs/prefix-sum.md) [`graph-dfs.md`](docs/graph-dfs.md) [`graph-bfs.md`](docs/graph-bfs.md) [`binary-search-tree.md`](docs/binary-search-tree.md) [`avl-tree.md`](docs/avl-tree.md) and [`tree-traversals.md`](docs/tree-traversals.md).
+[`two-pointers.md`](docs/two-pointers.md) [`prefix-sum.md`](docs/prefix-sum.md) [`graph-dfs.md`](docs/graph-dfs.md) [`graph-bfs.md`](docs/graph-bfs.md) [`dijkstra.md`](docs/dijkstra.md) [`binary-search-tree.md`](docs/binary-search-tree.md) [`avl-tree.md`](docs/avl-tree.md) and [`tree-traversals.md`](docs/tree-traversals.md).
 
 ## Status
 
-**Built:** the engine and all nineteen lessons · Watch · Try · Complete · Home · five renderers ·
-the full light design-system token layer · progress persistence · 567 passing tests.
+**Built:** the engine and all twenty lessons · Watch · Try · Complete · Home · five renderers ·
+the full light design-system token layer · progress persistence · 595 passing tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

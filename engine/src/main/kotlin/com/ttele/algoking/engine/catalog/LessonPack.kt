@@ -3,6 +3,10 @@ package com.ttele.algoking.engine.catalog
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraAlgorithm
+import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraProjector
+import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraWatchNarrator
+import com.ttele.algoking.engine.dataset.DijkstraDatasets
 import com.ttele.algoking.engine.algorithms.traversal.InorderRule
 import com.ttele.algoking.engine.algorithms.traversal.InorderWatchNarrator
 import com.ttele.algoking.engine.algorithms.traversal.PostorderRule
@@ -252,6 +256,22 @@ object AlgorithmCatalog {
         tryDataset = TreeDatasets.tryIt,
     )
 
+    /**
+     * The third graph lesson, and the first that is a **search** rather than a
+     * traversal: DFS goes deep, BFS goes level by level, Dijkstra goes by
+     * distance — which on a graph where every edge costs 1 is the same thing BFS
+     * does, and the weights are the entire reason a different algorithm exists.
+     */
+    fun dijkstra() = LessonPack(
+        id = AlgorithmId.DIJKSTRA,
+        displayName = "Dijkstra",
+        algorithm = DijkstraAlgorithm(),
+        projector = DijkstraProjector(),
+        watchNarrator = DijkstraWatchNarrator(),
+        watchDataset = DijkstraDatasets.watch,
+        tryDataset = DijkstraDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -356,6 +376,7 @@ object AlgorithmCatalog {
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()
         AlgorithmId.GRAPH_BFS -> graphBfs()
+        AlgorithmId.DIJKSTRA -> dijkstra()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()

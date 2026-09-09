@@ -707,6 +707,161 @@ object AvlDatasets {
 }
 
 /**
+ * Dijkstra teaching data — a weighted graph, and the first one in the app.
+ *
+ * ```
+ *        B ──1── C          A–B 5   B–C 1   C–D 9
+ *       /│\     /│          A–C 2   B–D 3   D–E 5
+ *    5 / │ \3  / │9         B–E 4   D–F 6   E–F 2
+ *     /  │  \ /  │
+ *    A   4   X   │          start A · target F
+ *     \  │  / \  │
+ *    2 \ │ /   \ │
+ *       \│/     \│
+ *        C ──9── D ──6── F
+ * ```
+ *
+ * The drawing above is only a sketch; the real shape is the **ladder** the layout
+ * spike settled on — two rows of three with one diagonal rung, B→D. Positions are
+ * authored from that spike: at 360dp the shortest edge is 83.5dp, every weight
+ * label clears every node circle by at least 7.8dp, and no edge crosses another.
+ *
+ * ### The run
+ *
+ * ```
+ * settle A(0)  ->  C = 2, B = 5
+ * settle C(2)  ->  B: 5 -> 3   (the direct edge from A cost 5; the long way costs 3)
+ *                  D = 11
+ * settle B(3)  ->  D: 11 -> 6,  E = 7
+ * settle D(6)  ->  E: 6+5 = 11, and E is already 7  ->  KEEP
+ *                  F = 12
+ * settle E(7)  ->  F: 12 -> 9
+ * settle F(9)  ->  target reached
+ * ```
+ *
+ * **Order A C B D E F · distances 0 2 3 6 7 9 · path A → C → B → E → F = 9.**
+ * None of that is written down anywhere: the lesson generates it, and the tests
+ * check it against an independent reference implementation.
+ *
+ * Five properties earn this graph its place:
+ *
+ *  - **the direct edge is a trap.** A–B costs 5 and A→C→B costs 3, so the very
+ *    first thing the learner watches is a distance being *beaten*, which is what
+ *    relaxation is;
+ *  - **two more improvements follow**, D 11 → 6 and F 12 → 9, so it is not a trick
+ *    that happens once;
+ *  - **it contains a KEEP.** D offers E 6 + 5 = 11 against E's 7, and nothing
+ *    changes. Without it a learner concludes that examining an edge always updates;
+ *  - **D is settled but is not on the answer** — and D even has the direct edge to
+ *    the target that looks shortest on the page. Settled does not mean chosen;
+ *  - **no ties.** Every selection has a unique cheapest node, so every decision has
+ *    exactly one right answer.
+ */
+object DijkstraDatasets {
+
+    /** Node positions come from the layout spike, not from taste. */
+    val teachingGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.02f, y = 0.50f),
+            GraphNode(id = "B", label = "B", x = 0.30f, y = 0.08f),
+            GraphNode(id = "C", label = "C", x = 0.30f, y = 0.92f),
+            GraphNode(id = "D", label = "D", x = 0.66f, y = 0.92f),
+            GraphNode(id = "E", label = "E", x = 0.66f, y = 0.08f),
+            GraphNode(id = "F", label = "F", x = 0.98f, y = 0.50f),
+        ),
+        // Cheapest edge first at each node, so the walk reads naturally. The order
+        // is data, exactly as it is for DFS: it decides which relaxation is shown
+        // first, and the lesson, the tests and the walkthrough all read it here.
+        adjacency = mapOf(
+            "A" to listOf("C", "B"),
+            "B" to listOf("C", "D", "E", "A"),
+            "C" to listOf("B", "A", "D"),
+            "D" to listOf("B", "E", "F", "C"),
+            "E" to listOf("F", "B", "D"),
+            "F" to listOf("E", "D"),
+        ),
+        weights = Graph.weightsOf(
+            Triple("A", "B", 5),
+            Triple("A", "C", 2),
+            Triple("B", "C", 1),
+            Triple("B", "D", 3),
+            Triple("B", "E", 4),
+            Triple("C", "D", 9),
+            Triple("D", "E", 5),
+            Triple("D", "F", 6),
+            Triple("E", "F", 2),
+        ),
+    )
+
+    /**
+     * TRY gets a different graph, and this is the one lesson where that matters
+     * most: Dijkstra's answer is a short memorable sentence — *"A C B E F, nine"* —
+     * and the whole run is nine decisions, so a learner who recalls it can produce
+     * every one of them without reasoning.
+     *
+     * ```
+     * A–B 4   A–C 1   A–D 5   C–B 2
+     * C–D 7   B–D 3   B–E 9   D–E 2       start A · target E
+     * ```
+     *
+     * It also teaches something WATCH cannot. There are **two KEEPs** here rather
+     * than one — C offers D 8 against 5, and B offers D 6 against 5, and both are
+     * refused — and the winning route turns out to be the plain direct one,
+     * `A → D → E = 7`, with all the work around C and B not on it at all.
+     *
+     * ```
+     * settle A(0) -> B = 4, C = 1, D = 5
+     * settle C(1) -> B: 4 -> 3,  D: 1+7 = 8 vs 5  ->  KEEP
+     * settle B(3) -> D: 3+3 = 6 vs 5  ->  KEEP,   E = 12
+     * settle D(5) -> E: 12 -> 7
+     * settle E(7) -> target reached
+     * ```
+     */
+    val tryGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.04f, y = 0.50f),
+            GraphNode(id = "B", label = "B", x = 0.36f, y = 0.06f),
+            GraphNode(id = "C", label = "C", x = 0.36f, y = 0.94f),
+            GraphNode(id = "D", label = "D", x = 0.72f, y = 0.50f),
+            GraphNode(id = "E", label = "E", x = 0.98f, y = 0.06f),
+        ),
+        adjacency = mapOf(
+            "A" to listOf("C", "B", "D"),
+            "B" to listOf("C", "D", "E", "A"),
+            "C" to listOf("A", "B", "D"),
+            "D" to listOf("A", "B", "E", "C"),
+            "E" to listOf("D", "B"),
+        ),
+        weights = Graph.weightsOf(
+            Triple("A", "B", 4),
+            Triple("A", "C", 1),
+            Triple("A", "D", 5),
+            Triple("C", "B", 2),
+            Triple("C", "D", 7),
+            Triple("B", "D", 3),
+            Triple("B", "E", 9),
+            Triple("D", "E", 2),
+        ),
+    )
+
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        graph = teachingGraph,
+        startNode = "A",
+        targetNode = "F",
+    )
+
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        graph = tryGraph,
+        startNode = "A",
+        targetNode = "E",
+    )
+}
+
+/**
  * Tree traversal teaching data — **shared by Inorder, Preorder and Postorder**.
  *
  * ### WATCH: one tree, three lessons
