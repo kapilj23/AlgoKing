@@ -782,6 +782,254 @@ object Narration {
                 "A BST can degrade to O(n). An AVL tree never lets it: search stays " +
                     "O(log n), guaranteed."
 
+            // ── Binary Tree — Inorder: LEFT → NODE → RIGHT ────────────────
+            // The learner taps nodes, so an "option" label is just the value.
+            NarrationId.INORDER_ASK -> "${arg(0)}"
+            NarrationId.INORDER_HINT ->
+                "Inorder finishes the whole left subtree, then the node, then the right."
+
+            NarrationId.INORDER_RETRY_LOOK -> "Look at what is still owed below ${arg(0)}."
+            NarrationId.INORDER_RETRY_ASK ->
+                "Is anything left of ${arg(0)} still unvisited? Nothing comes out before it."
+
+            NarrationId.INORDER_RETRY_EXPLAIN ->
+                "Left, then the node, then right — so from ${arg(0)} the next thing is " +
+                    "${arg(1)}."
+
+            NarrationId.INORDER_WHY_VISITED ->
+                "${arg(0)} is already visited — it is in the output."
+
+            NarrationId.INORDER_WHY_NOT_ADJACENT ->
+                "A traversal only moves to a child or back to a parent. It cannot jump " +
+                    "to ${arg(0)} from ${arg(1)}."
+
+            // The line this lesson exists for.
+            NarrationId.INORDER_WHY_LEFT_FIRST ->
+                "Not yet. Everything in ${arg(0)}'s left subtree is visited before " +
+                    "${arg(0)} itself."
+
+            NarrationId.INORDER_WHY_NODE_BEFORE_RIGHT ->
+                "${arg(1)} has not been visited yet, and it comes before its right " +
+                    "subtree."
+
+            NarrationId.INORDER_WHY_LEFT_BEFORE_RIGHT ->
+                "The left subtree comes first. ${arg(0)} is on the right of ${arg(1)}."
+
+            NarrationId.INORDER_ON_VISIT -> "Visit ${arg(0)}."
+            NarrationId.INORDER_ON_DESCEND -> "Down to ${arg(0)}."
+            NarrationId.INORDER_ON_DESCEND_VISIT -> "Down to ${arg(0)}, and visit it."
+            NarrationId.INORDER_ON_RETURN -> "${arg(0)} is finished. Back to ${arg(1)}."
+            NarrationId.INORDER_CORRECT_VISIT ->
+                "${arg(0)} had nothing unvisited to its left, so it comes out now."
+
+            NarrationId.INORDER_CORRECT_DESCEND ->
+                "Everything left of ${arg(1)} comes out before ${arg(1)} does."
+
+            // ── Binary Tree — Inorder — WATCH ─────────────────────────────
+            NarrationId.INORDER_WATCH_SETUP -> "Inorder: left subtree, node, right subtree."
+            NarrationId.INORDER_WATCH_SETUP_SUPPORT ->
+                "Nothing is emitted on the way down. A node waits until everything to " +
+                    "its left is out."
+
+            NarrationId.INORDER_WATCH_DOWN -> "Down to ${arg(0)}."
+            NarrationId.INORDER_WATCH_DOWN_WHY ->
+                "${arg(0)} has a left subtree of its own, so it has to wait too."
+
+            NarrationId.INORDER_WATCH_DOWN_AND_VISIT -> "Down to ${arg(0)} — and visit it."
+            NarrationId.INORDER_WATCH_DOWN_AND_VISIT_WHY ->
+                "Nothing is to ${arg(0)}'s left, so nothing comes before it. This is where " +
+                    "the output starts."
+
+            NarrationId.INORDER_WATCH_VISIT -> "Visit ${arg(0)}."
+            NarrationId.INORDER_WATCH_VISIT_WHY ->
+                "${arg(0)}'s whole left subtree is out, so ${arg(0)} comes next — before " +
+                    "anything on its right."
+
+            NarrationId.INORDER_WATCH_RETURN -> "${arg(0)} is finished. Back to ${arg(1)}."
+            NarrationId.INORDER_WATCH_RETURN_OWED ->
+                "${arg(0)} is still on the stack, still owed its own visit."
+
+            NarrationId.INORDER_WATCH_RETURN_DONE ->
+                "${arg(0)} is already out, so the right subtree is what is left."
+
+            NarrationId.INORDER_WATCH_INSIGHT -> "Every node waits for its whole left subtree."
+            NarrationId.INORDER_WATCH_INSIGHT_SUPPORT ->
+                "The output came out ${arg(0)} — sorted, because this tree is a search " +
+                    "tree. Inorder is a traversal rule, not a sorting algorithm: run it on " +
+                    "a tree that is not ordered and it will not come out sorted."
+
+            NarrationId.INORDER_WATCH_SUMMARY -> "Inorder: ${arg(0)}."
+            NarrationId.INORDER_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.INORDER_IDEA_1 -> "Left subtree first — all of it."
+            NarrationId.INORDER_IDEA_2 -> "Then the node itself."
+            NarrationId.INORDER_IDEA_3 -> "Then the right subtree."
+            NarrationId.INORDER_IDEA_4 -> "O(n) time; O(h) space, for the stack of waiting nodes."
+
+            // ── Binary Tree — Preorder: NODE → LEFT → RIGHT ───────────────
+            NarrationId.PREORDER_ASK -> "${arg(0)}"
+            NarrationId.PREORDER_HINT ->
+                "Preorder emits a node the moment it reaches it, before either subtree."
+
+            NarrationId.PREORDER_RETRY_LOOK -> "Look at ${arg(0)} itself before looking below it."
+            NarrationId.PREORDER_RETRY_ASK ->
+                "Has ${arg(0)} been emitted yet? In preorder that happens before anything " +
+                    "under it."
+
+            NarrationId.PREORDER_RETRY_EXPLAIN ->
+                "Node, then left, then right — so from ${arg(0)} the next thing is ${arg(1)}."
+
+            NarrationId.PREORDER_WHY_VISITED ->
+                "${arg(0)} is already visited — it is in the output."
+
+            NarrationId.PREORDER_WHY_NOT_ADJACENT ->
+                "A traversal only moves to a child or back to a parent. It cannot jump " +
+                    "to ${arg(0)} from ${arg(1)}."
+
+            NarrationId.PREORDER_WHY_NODE_TOO_EARLY ->
+                "${arg(0)} is already out. What is left is the subtrees below it."
+
+            // The line this lesson exists for.
+            NarrationId.PREORDER_WHY_NODE_FIRST ->
+                "The node is visited first in preorder. ${arg(1)} comes out before " +
+                    "anything below it."
+
+            NarrationId.PREORDER_WHY_LEFT_BEFORE_RIGHT ->
+                "The left subtree comes first. ${arg(0)} is on the right of ${arg(1)}."
+
+            NarrationId.PREORDER_ON_VISIT -> "Visit ${arg(0)}."
+            NarrationId.PREORDER_ON_DESCEND -> "Down to ${arg(0)}."
+            NarrationId.PREORDER_ON_DESCEND_VISIT -> "Down to ${arg(0)}, and visit it."
+            NarrationId.PREORDER_ON_RETURN -> "${arg(0)} is finished. Back to ${arg(1)}."
+            NarrationId.PREORDER_CORRECT_VISIT ->
+                "${arg(0)} comes out before either of its subtrees is looked at."
+
+            NarrationId.PREORDER_CORRECT_DESCEND ->
+                "${arg(1)} is already out, so the traversal moves down to ${arg(0)} — and " +
+                    "emits it on arrival."
+
+            // ── Binary Tree — Preorder — WATCH ────────────────────────────
+            NarrationId.PREORDER_WATCH_SETUP -> "Preorder: node, left subtree, right subtree."
+            NarrationId.PREORDER_WATCH_SETUP_SUPPORT ->
+                "A node is emitted the moment the traversal reaches it — on the way down, " +
+                    "never on the way back."
+
+            NarrationId.PREORDER_WATCH_ROOT -> "Visit ${arg(0)} — the root, first of all."
+            NarrationId.PREORDER_WATCH_ROOT_WHY ->
+                "Nothing under ${arg(0)} has been looked at yet, and it does not have to " +
+                    "be. The node comes first."
+
+            NarrationId.PREORDER_WATCH_DOWN -> "Down to ${arg(0)}, and visit it."
+            NarrationId.PREORDER_WATCH_DOWN_LEFT_WHY ->
+                "${arg(0)} is out, so the left subtree is next — and its root is emitted " +
+                    "on arrival too."
+
+            NarrationId.PREORDER_WATCH_DOWN_RIGHT_WHY ->
+                "${arg(0)}'s left subtree is finished, so the right one starts — same rule."
+
+            NarrationId.PREORDER_WATCH_RETURN -> "${arg(0)} is finished. Back to ${arg(1)}."
+            NarrationId.PREORDER_WATCH_RETURN_WHY ->
+                "Nothing is emitted on the way up. Everything preorder does happens going down."
+
+            NarrationId.PREORDER_WATCH_INSIGHT -> "The node is emitted on the way down."
+            NarrationId.PREORDER_WATCH_INSIGHT_SUPPORT ->
+                "The output starts at the root, ${arg(0)}, and every parent comes out before " +
+                    "its children — which is exactly the order you would need to rebuild " +
+                    "this tree from the sequence."
+
+            NarrationId.PREORDER_WATCH_SUMMARY -> "Preorder: ${arg(0)}."
+            NarrationId.PREORDER_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.PREORDER_IDEA_1 -> "The node first — before either subtree."
+            NarrationId.PREORDER_IDEA_2 -> "Then the whole left subtree."
+            NarrationId.PREORDER_IDEA_3 -> "Then the whole right subtree."
+            NarrationId.PREORDER_IDEA_4 -> "O(n) time; O(h) space, for the stack of open nodes."
+
+            // ── Binary Tree — Postorder: LEFT → RIGHT → NODE ──────────────
+            NarrationId.POSTORDER_ASK -> "${arg(0)}"
+            NarrationId.POSTORDER_HINT ->
+                "Postorder emits a node only once both of its subtrees are completely done."
+
+            NarrationId.POSTORDER_RETRY_LOOK -> "Look at what is still unvisited below ${arg(0)}."
+            NarrationId.POSTORDER_RETRY_ASK ->
+                "Are both of ${arg(0)}'s subtrees out yet? Until they are, ${arg(0)} waits."
+
+            NarrationId.POSTORDER_RETRY_EXPLAIN ->
+                "Left, then right, then the node — so from ${arg(0)} the next thing is " +
+                    "${arg(1)}."
+
+            NarrationId.POSTORDER_WHY_VISITED ->
+                "${arg(0)} is already visited — it is in the output."
+
+            NarrationId.POSTORDER_WHY_NOT_ADJACENT ->
+                "A traversal only moves to a child or back to a parent. It cannot jump " +
+                    "to ${arg(0)} from ${arg(1)}."
+
+            // The line this lesson exists for.
+            NarrationId.POSTORDER_WHY_CHILDREN_FIRST ->
+                "Not yet. In postorder both child subtrees are visited before the parent, " +
+                    "and ${arg(0)} still has one outstanding."
+
+            NarrationId.POSTORDER_WHY_NODE_TOO_EARLY ->
+                "${arg(1)} is not owed a visit yet — its subtrees are. ${arg(0)} is not " +
+                    "the next one of them."
+
+            NarrationId.POSTORDER_WHY_LEFT_BEFORE_RIGHT ->
+                "The left subtree is finished first. ${arg(0)} is on the right of ${arg(1)}."
+
+            NarrationId.POSTORDER_ON_VISIT -> "Visit ${arg(0)}."
+            NarrationId.POSTORDER_ON_DESCEND -> "Down to ${arg(0)}."
+            NarrationId.POSTORDER_ON_DESCEND_VISIT -> "Down to ${arg(0)}, and visit it."
+            NarrationId.POSTORDER_ON_RETURN -> "${arg(0)} is finished. Back to ${arg(1)}."
+            NarrationId.POSTORDER_CORRECT_VISIT ->
+                "Both of ${arg(0)}'s subtrees are out, so now ${arg(0)} is."
+
+            NarrationId.POSTORDER_CORRECT_DESCEND ->
+                "${arg(1)} has to wait until everything below it is out, so the traversal " +
+                    "goes down to ${arg(0)} first."
+
+            // ── Binary Tree — Postorder — WATCH ───────────────────────────
+            NarrationId.POSTORDER_WATCH_SETUP -> "Postorder: left subtree, right subtree, node."
+            NarrationId.POSTORDER_WATCH_SETUP_SUPPORT ->
+                "A node is emitted only once there is nothing left below it. Children " +
+                    "first, parent last."
+
+            NarrationId.POSTORDER_WATCH_DOWN -> "Down to ${arg(0)}."
+            NarrationId.POSTORDER_WATCH_DOWN_WHY ->
+                "Nothing is emitted on the way down — ${arg(0)} has subtrees of its own to " +
+                    "finish first."
+
+            NarrationId.POSTORDER_WATCH_DOWN_AND_VISIT -> "Down to ${arg(0)} — and visit it."
+            NarrationId.POSTORDER_WATCH_LEAF_WHY ->
+                "${arg(0)} has no subtrees to wait for, so it is out immediately. That is " +
+                    "where the output starts."
+
+            NarrationId.POSTORDER_WATCH_VISIT -> "Now visit ${arg(0)}."
+            NarrationId.POSTORDER_WATCH_VISIT_WHY ->
+                "Both of ${arg(0)}'s subtrees are out, so ${arg(0)} can finally follow them."
+
+            NarrationId.POSTORDER_WATCH_VISIT_ROOT_WHY ->
+                "The root, last of all — every other node in the tree is already out."
+
+            NarrationId.POSTORDER_WATCH_RETURN -> "Back to ${arg(1)}."
+            NarrationId.POSTORDER_WATCH_RETURN_NOT_YET ->
+                "But not ${arg(0)} yet — it still has a right subtree that has not been " +
+                    "touched."
+
+            NarrationId.POSTORDER_WATCH_RETURN_NOW ->
+                "${arg(0)} has nothing unvisited left below it now."
+
+            NarrationId.POSTORDER_WATCH_INSIGHT -> "A node waits for everything beneath it."
+            NarrationId.POSTORDER_WATCH_INSIGHT_SUPPORT ->
+                "The root, ${arg(0)}, came out last — after every one of its descendants. " +
+                    "That is why postorder is the order you delete a tree in, or evaluate " +
+                    "an expression tree in: nothing is reached before what it depends on."
+
+            NarrationId.POSTORDER_WATCH_SUMMARY -> "Postorder: ${arg(0)}."
+            NarrationId.POSTORDER_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.POSTORDER_IDEA_1 -> "The whole left subtree first."
+            NarrationId.POSTORDER_IDEA_2 -> "Then the whole right subtree."
+            NarrationId.POSTORDER_IDEA_3 -> "Then, last, the node itself."
+            NarrationId.POSTORDER_IDEA_4 -> "O(n) time; O(h) space, for the stack of waiting parents."
+
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"
             NarrationId.BS_COMPARE_GREATER -> "${arg(0)} > ${arg(1)}"

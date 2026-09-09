@@ -618,7 +618,14 @@ and a `badge` joined the scene as defaulted fields, and no existing lesson chang
 The AVL tree then added nothing but a **number**: `GraphNodeView.caption` and `.captionAlert`,
 so a node can show what it knows about itself — a balance factor — and mark it when it has
 broken a rule. Defaulted again, so the four lessons already projecting into `GraphScene` were
-untouched (ADR-037). Four lessons now share that scene and its one renderer.
+untouched (ADR-037).
+
+The three traversal lessons then added **nothing at all** — not one field, and not one line of
+`:app/ui/components`. They are the first lessons to arrive with the renderer already able to
+draw them, which is what the contract was for. Seven lessons now share that scene and its one
+renderer, and the three traversals additionally share one **engine**: `TreeTraversalAlgorithm`
+reads a `TraversalRule` whose `order` is the algorithm, stated on one line in each lesson's own
+file — `LinearStructureAlgorithm(flavour)` applied a second time (ADR-027, ADR-038).
 
 The three elementary sorts in particular had to end up looking different from each other, and
 they do — trading neighbours, carrying a minimum to the front, and walking a gap backwards are

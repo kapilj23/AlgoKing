@@ -6,6 +6,7 @@ import com.ttele.algoking.engine.core.BinaryTree
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.core.Graph
 import com.ttele.algoking.engine.core.GraphNode
+import com.ttele.algoking.engine.core.TreeNode
 import com.ttele.algoking.engine.core.Trace
 import com.ttele.algoking.engine.decision.Action
 import com.ttele.algoking.engine.event.Outcome
@@ -703,4 +704,74 @@ object AvlDatasets {
         label = "try",
         tree = tryTree,
     )
+}
+
+/**
+ * Tree traversal teaching data — **shared by Inorder, Preorder and Postorder**.
+ *
+ * ### WATCH: one tree, three lessons
+ *
+ * ```
+ *              50
+ *             /  \
+ *           30    70
+ *          / \    / \
+ *        20  40  60  80
+ * ```
+ *
+ * All three walkthroughs run on **this same tree**, which is the whole reason the
+ * three lessons are worth shipping separately: the data is identical, the picture
+ * is identical, the gesture is identical, and the orders that come out are not.
+ *
+ * ```
+ * inorder    20 → 30 → 40 → 50 → 60 → 70 → 80
+ * preorder   50 → 30 → 20 → 40 → 70 → 60 → 80
+ * postorder  20 → 40 → 30 → 60 → 80 → 70 → 50
+ * ```
+ *
+ * None of those three sequences is written down in the code. Each is produced by
+ * running its own lesson, and a test asserts all three against `BinaryTree`'s
+ * independent recursive implementations.
+ *
+ * ### TRY: a different tree, and deliberately **not** a search tree
+ *
+ * ```
+ *         7
+ *        / \
+ *       4   9
+ *      /     \
+ *     2       5
+ * ```
+ *
+ * Read in order that is `2, 4, 7, 9, 5` — **not sorted**, and that is the point.
+ *
+ * > **Inorder traversal is a traversal rule, not a sorting algorithm. It produces
+ * > sorted values only when the tree itself is a search tree.**
+ *
+ * On the WATCH tree, inorder happens to come out sorted, so a learner could
+ * produce the whole answer by sorting seven numbers without traversing anything.
+ * Here they cannot: only the rule produces `2, 4, 7, 9, 5`. The same tree also
+ * carries two edge cases as ordinary content — 4 has only a left child and 9 has
+ * only a right one — and five nodes keeps TRY to nine decisions.
+ *
+ * It is built from [TreeNode] literals rather than by insertion, because
+ * `BinaryTree.of` inserts in search-tree order and could not express a tree that
+ * is not one.
+ */
+object TreeDatasets {
+
+    /** The shared teaching tree. Same shape in all three traversal lessons. */
+    val teachingTree: BinaryTree = BinaryTree.of(50, 30, 70, 20, 40, 60, 80)
+
+    /** Not a search tree, on purpose. */
+    val tryTree: BinaryTree = BinaryTree(
+        TreeNode(
+            value = 7,
+            left = TreeNode(4, left = TreeNode(2)),
+            right = TreeNode(9, right = TreeNode(5)),
+        ),
+    )
+
+    val watch = Dataset(values = emptyList(), label = "watch", tree = teachingTree)
+    val tryIt = Dataset(values = emptyList(), label = "try", tree = tryTree)
 }

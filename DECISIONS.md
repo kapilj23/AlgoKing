@@ -1636,6 +1636,123 @@ for the honest caveat the BST lesson was made to end on.
 
 ---
 
+## ADR-038 — Three traversal lessons over one machine, with the rule stated in each
+
+**Decision.** Inorder, Preorder and Postorder ship as **three separate Advanced lessons** —
+three `AlgorithmId`s, three `LessonPack`s, three cards, three progress entries, three
+narrators, three test suites — driven by **one** `TreeTraversalAlgorithm`. Each lesson
+supplies a `TraversalRule` whose `order` is the algorithm, written on one line in its own
+file. The gesture is DFS's: **tap the node the traversal touches next.** Full detail:
+`docs/tree-traversals.md`; the design plan and its decision trail: `docs/tree-traversals-plan.md`.
+
+⚠ **Product-owner decision**, taken 2026-09-09: three user-facing modules, no duplicated
+engine.
+
+### Why three lessons rather than one with a picker
+
+The three orders on one tree *are* the content. A single lesson with a mode selector would
+make the difference a thing the learner switches rather than a thing they produce, and
+would give one progress entry for three ideas. Three modules also mean a learner can meet
+postorder — the hardest — on its own terms rather than as a third tab.
+
+### Why one machine rather than three
+
+The three state machines are the same machine with `VISIT` in a different position in a
+three-element list. Writing that out three times would have been ~380 lines of near-identical
+code and three places to fix any bug in the stack handling.
+
+This is exactly what ADR-027 did for Stack and Queue — one `LinearStructureAlgorithm`, one
+flipped property, two lessons — and the objection there and here is the same: does the
+lesson's content disappear into a constructor argument? It does not, because the argument
+is not passed from anywhere. Each lesson file *is* the rule:
+
+```kotlin
+object InorderRule : TraversalRule {
+    override val order = listOf(Step.LEFT, Step.VISIT, Step.RIGHT)   // the algorithm
+}
+```
+
+One line, named, documented, in `InorderTraversal.kt`, above the fifteen lines of that
+lesson's own copy. The rule is the most visible thing in the file, which is the test that
+matters — not whether the machine underneath is shared.
+
+### One gesture, and why it is never ambiguous
+
+At any moment the traversal's next action is one of four things, and each maps to a
+**different node**: the left child, the node itself, the right child, the parent. So "tap
+the node" carries both *what* and *which* without the learner ever saying which kind of
+touch they meant, and the same gesture serves all three lessons — which is what stops a
+learner attributing the different orders to different controls.
+
+A row of `GO LEFT / VISIT / GO RIGHT / BACK` buttons was rejected for the reason ADR-034
+rejected a BACKTRACK button, and because four `DecisionButton`s do not fit one row.
+
+### Two beats the app performs, and why that is not a loss
+
+**Returning to the parent.** Once a node's steps are done there is nothing else the
+traversal could do. Unlike DFS — where *when* to backtrack is the judgement — it is never a
+choice here, so it is bookkeeping (PRODUCT_SPEC.md §3). Nothing is lost, because the
+question asked immediately *after* a return is the beat that separates the three
+traversals: *visit this node, or go right?*
+
+**Visiting on arrival.** Moving into a node performs its own visit when that is the next
+step. Without it the learner taps the same node twice in a row at every leaf, and the second
+tap has exactly one legal target — the gesture-teaching trap, at every leaf, in every
+lesson. A test asserts no two consecutive taps are ever the same node.
+
+Together these cut 17 raw actions to 9 decisions, and 20-odd beats to 12–16.
+
+### The same line of logic produces opposite walkthroughs
+
+A return earns a WATCH beat **when it lands on a node that still owes something.** In
+postorder that is every return, and those beats are where the lesson lives. In preorder it
+is never, because a parent is always already out by the time the traversal comes back up —
+so preorder's walkthrough has no return beats at all, and *that is the lesson* rather than
+an omission. One predicate, three characters.
+
+### The trap in the shared tree, found and fenced
+
+`BinaryTree` was built for search trees, and `node()`, `searchPath()`, `parentOf()` and
+`subtree()` descend **by comparing values**. On a tree that is not ordered they silently
+fail to find nodes that are plainly on screen — and the traversal lessons deliberately use
+one. Structural equivalents were **added** (`findNode`, `pathToNode`, `parentByStructure`,
+`childrenOf`, `preorder`, `postorder`); nothing existing changed, so BST and AVL behaviour
+could not move. `BinaryTreeTest` pins the distinction with the trap itself: `node(5)`
+returns null on the TRY tree while `findNode(5)` returns the node.
+
+`BstNode` → `TreeNode` landed first, in its own revertable commit, with the full suite green
+either side.
+
+### TRY runs on a tree that is not a search tree
+
+Inorder on a BST is the sorted order, so the WATCH answer could be produced by sorting seven
+numbers without traversing anything. TRY's tree gives `2 4 7 9 5`, which only the rule
+produces — and the Inorder lesson says the reason out loud: *"Inorder traversal is a
+traversal rule, not a sorting algorithm. It produces sorted values only when the tree itself
+is a search tree."* It carries a left-only and a right-only child as ordinary content too.
+
+### The gate held
+
+Adding Preorder, and then Postorder, after Inorder was finished required: a rule object, a
+narrator, a copy block, a dataset reference, a card, a test suite. **Zero** new events, scene
+shapes, renderer changes, screens or interaction models, **zero** lines of
+`TreeTraversalAlgorithm` or `TreeWalk`, and **zero** changes to any existing lesson. Not one
+line of `:app/ui/components` was touched by any of the three.
+
+**Alternatives considered.**
+- *Three fully independent engines.* Rejected by the product owner, and the plan's own
+  estimate agreed: ~380 lines against ~120, with three places to fix one bug.
+- *One lesson with a traversal picker.* Rejected above.
+- *Four decision buttons.* Rejected above.
+- *Charging a tap for the return to the parent.* Rejected: 13 decisions instead of 9, for a
+  move with exactly one legal target.
+- *TRY on the same tree.* Rejected: inorder becomes answerable by sorting.
+- *Level-order as a fourth rule.* Deferred, and it does not belong here: it is driven by a
+  queue rather than a stack, so it is a sibling of this machine rather than a fourth order
+  for it.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

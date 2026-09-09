@@ -345,4 +345,18 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "A rotation changes how deep the nodes are, never what order they are in — so the " +
             "tree can reshape itself whenever it needs to and still be a search tree. That " +
             "is what buys a guaranteed O(log n)."
+
+    AlgorithmId.TREE_INORDER ->
+        "Left subtree first, then the node, then the right subtree. Every node waits for " +
+            "everything to its left — which is why a search tree comes out sorted, and why " +
+            "a tree that is not one does not."
+
+    AlgorithmId.TREE_PREORDER ->
+        "Visit the node before exploring its subtrees. Everything preorder does happens on " +
+            "the way down, which is why the sequence starts at the root and why it is the " +
+            "order you would rebuild a tree from."
+
+    AlgorithmId.TREE_POSTORDER ->
+        "Process both subtrees before visiting the node. Nothing is reached before what it " +
+            "depends on — which is why postorder is the order you delete a tree in."
 }

@@ -3,6 +3,15 @@ package com.ttele.algoking.engine.catalog
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.ttele.algoking.engine.algorithms.traversal.InorderRule
+import com.ttele.algoking.engine.algorithms.traversal.InorderWatchNarrator
+import com.ttele.algoking.engine.algorithms.traversal.PostorderRule
+import com.ttele.algoking.engine.algorithms.traversal.PostorderWatchNarrator
+import com.ttele.algoking.engine.algorithms.traversal.PreorderRule
+import com.ttele.algoking.engine.algorithms.traversal.PreorderWatchNarrator
+import com.ttele.algoking.engine.algorithms.traversal.TraversalProjector
+import com.ttele.algoking.engine.algorithms.traversal.TreeTraversalAlgorithm
+import com.ttele.algoking.engine.dataset.TreeDatasets
 import com.ttele.algoking.engine.algorithms.avl.AvlProjector
 import com.ttele.algoking.engine.algorithms.avl.AvlTreeAlgorithm
 import com.ttele.algoking.engine.algorithms.avl.AvlWatchNarrator
@@ -197,6 +206,52 @@ object AlgorithmCatalog {
         tryDataset = AvlDatasets.tryIt,
     )
 
+    /**
+     * The first of three traversal lessons. They are separate modules that share
+     * one machine: the rule each teaches is one line in its own file
+     * (`InorderRule.order`), and everything the learner sees — the datasets, the
+     * script, the walkthrough, the progress, the card — is its own.
+     */
+    fun inorderTraversal() = LessonPack(
+        id = AlgorithmId.TREE_INORDER,
+        displayName = "Inorder Traversal",
+        algorithm = TreeTraversalAlgorithm(InorderRule),
+        projector = TraversalProjector("Inorder"),
+        watchNarrator = InorderWatchNarrator(),
+        watchDataset = TreeDatasets.watch,
+        tryDataset = TreeDatasets.tryIt,
+    )
+
+    /**
+     * The second traversal. Same machine, same tree, same gesture as Inorder —
+     * and a different order out, because `PreorderRule.order` puts the visit
+     * first. That is the whole comparison the three lessons exist to make.
+     */
+    fun preorderTraversal() = LessonPack(
+        id = AlgorithmId.TREE_PREORDER,
+        displayName = "Preorder Traversal",
+        algorithm = TreeTraversalAlgorithm(PreorderRule),
+        projector = TraversalProjector("Preorder"),
+        watchNarrator = PreorderWatchNarrator(),
+        watchDataset = TreeDatasets.watch,
+        tryDataset = TreeDatasets.tryIt,
+    )
+
+    /**
+     * The third, and the one with the most to teach: a node waits for *both* of
+     * its subtrees, so every parent sits on the stack while its children come out
+     * underneath it.
+     */
+    fun postorderTraversal() = LessonPack(
+        id = AlgorithmId.TREE_POSTORDER,
+        displayName = "Postorder Traversal",
+        algorithm = TreeTraversalAlgorithm(PostorderRule),
+        projector = TraversalProjector("Postorder"),
+        watchNarrator = PostorderWatchNarrator(),
+        watchDataset = TreeDatasets.watch,
+        tryDataset = TreeDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -303,6 +358,9 @@ object AlgorithmCatalog {
         AlgorithmId.GRAPH_BFS -> graphBfs()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
+        AlgorithmId.TREE_INORDER -> inorderTraversal()
+        AlgorithmId.TREE_PREORDER -> preorderTraversal()
+        AlgorithmId.TREE_POSTORDER -> postorderTraversal()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

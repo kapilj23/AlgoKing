@@ -148,6 +148,9 @@ object ChallengeCatalog {
         AlgorithmId.GRAPH_BFS -> null
         AlgorithmId.BINARY_SEARCH_TREE -> null
         AlgorithmId.AVL_TREE -> null
+        AlgorithmId.TREE_INORDER -> null
+        AlgorithmId.TREE_PREORDER -> null
+        AlgorithmId.TREE_POSTORDER -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

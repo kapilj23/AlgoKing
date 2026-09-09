@@ -178,7 +178,13 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // The BST hands over to the tree that keeps itself short — which is the
     // answer to the caveat that lesson has to end on.
     AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.AVL_TREE
-    AlgorithmId.AVL_TREE -> AlgorithmId.BINARY_SEARCH
+    // The trees hand over to the three traversals of one.
+    AlgorithmId.AVL_TREE -> AlgorithmId.TREE_INORDER
+    // The three traversals run consecutively, so the contrast lands while the
+    // previous order is still fresh — the same reason Queue follows Stack.
+    AlgorithmId.TREE_INORDER -> AlgorithmId.TREE_PREORDER
+    AlgorithmId.TREE_PREORDER -> AlgorithmId.TREE_POSTORDER
+    AlgorithmId.TREE_POSTORDER -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

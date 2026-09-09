@@ -121,8 +121,58 @@ data class BinaryTree(val root: TreeNode? = null) {
      */
     fun insert(value: Int): BinaryTree = BinaryTree(insertInto(root, value))
 
-    /** Values in ascending order. A BST read in order **is** a sorted array. */
+    // -- Traversals — structural, correct for any binary tree ------------------
+    //
+    // The reference implementations, written the way the textbook writes them, so
+    // the three traversal lessons have something independent to be checked
+    // against. A lesson generates its order one learner decision at a time; these
+    // generate it by recursion, and a test asserts they agree.
+
+    /**
+     * **LEFT → NODE → RIGHT.**
+     *
+     * On a search tree this comes out sorted — but that is a fact about the tree,
+     * not about the traversal. On an unordered binary tree it is simply the order
+     * the nodes sit in from left to right.
+     */
     fun inorder(): List<Int> = buildList { collectInorder(root, this) }
+
+    /** **NODE → LEFT → RIGHT.** The node is emitted on the way *down*. */
+    fun preorder(): List<Int> = buildList { collectPreorder(root, this) }
+
+    /** **LEFT → RIGHT → NODE.** A node is emitted only once nothing is left below it. */
+    fun postorder(): List<Int> = buildList { collectPostorder(root, this) }
+
+    // -- Structural lookups ----------------------------------------------------
+    //
+    // The same questions [node], [searchPath] and [parentOf] answer, asked of a
+    // tree that may not be ordered. They walk the whole shape rather than
+    // descending by comparison, so they cost O(n) instead of O(h) — which is the
+    // right trade for a lesson that has already drawn every node on screen.
+
+    /** The node holding [value] anywhere in the tree, ordered or not. */
+    fun findNode(value: Int): TreeNode? = searchStructure(root, value)
+
+    /** True when [value] is anywhere in the tree. Ordering not required. */
+    fun holds(value: Int): Boolean = findNode(value) != null
+
+    /**
+     * The path from the root down to [value], inclusive — empty when it is absent.
+     *
+     * This is what tells a traversal lesson whether a tapped node is a child of
+     * where it is standing, and what a return unwinds.
+     */
+    fun pathToNode(value: Int): List<Int> = buildList {
+        if (!collectPath(root, value, this)) clear()
+    }
+
+    /** The parent of [value] by structure, or null for the root and absent values. */
+    fun parentByStructure(value: Int): Int? =
+        pathToNode(value).let { path -> path.getOrNull(path.lastIndex - 1) }
+
+    /** The children of [value], left first, skipping the ones that are not there. */
+    fun childrenOf(value: Int): List<Int> =
+        findNode(value)?.let { listOfNotNull(it.left?.value, it.right?.value) }.orEmpty()
 
     // -- Balance ---------------------------------------------------------------
     //
@@ -321,6 +371,37 @@ data class BinaryTree(val root: TreeNode? = null) {
         collectInorder(node.left, into)
         into += node.value
         collectInorder(node.right, into)
+    }
+
+    private fun collectPreorder(node: TreeNode?, into: MutableList<Int>) {
+        node ?: return
+        into += node.value
+        collectPreorder(node.left, into)
+        collectPreorder(node.right, into)
+    }
+
+    private fun collectPostorder(node: TreeNode?, into: MutableList<Int>) {
+        node ?: return
+        collectPostorder(node.left, into)
+        collectPostorder(node.right, into)
+        into += node.value
+    }
+
+    private fun searchStructure(node: TreeNode?, value: Int): TreeNode? = when {
+        node == null -> null
+        node.value == value -> node
+        else -> searchStructure(node.left, value) ?: searchStructure(node.right, value)
+    }
+
+    /** Depth-first, recording the route; returns false and leaves nothing behind. */
+    private fun collectPath(node: TreeNode?, value: Int, into: MutableList<Int>): Boolean {
+        node ?: return false
+        into += node.value
+        if (node.value == value) return true
+        if (collectPath(node.left, value, into)) return true
+        if (collectPath(node.right, value, into)) return true
+        into.removeAt(into.lastIndex)
+        return false
     }
 
     private fun collectSubtree(node: TreeNode): Set<Int> = buildSet {

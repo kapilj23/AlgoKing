@@ -577,6 +577,19 @@ wrong. Every node carries one or none: showing the number only where it is broke
 `ACTIVE`, and the nodes keep their columns and change rows — which is the invariant that
 makes the rotation legal, shown rather than said (ADR-037).
 
+**Waiting is a state, and it is what tells three traversals apart.** The three tree-traversal
+lessons draw the *same* tree with the *same* four states, and `CANDIDATE` — reached, on the
+stack, not yet emitted — is the one that carries the difference (ADR-038):
+
+| | what the amber does |
+|---|---|
+| **Postorder** | parents sit amber while their children turn green underneath them, then go green last — "children first, parent last" as a picture |
+| **Preorder** | a node turns green the instant it is reached, so green grows *downward* ahead of the walk and amber barely appears |
+| **Inorder** | both — and an amber node between a green left subtree and an untouched right one is exactly the beat being taught |
+
+Same tokens, same tree, three rhythms. Nothing was added to the design system for any of
+them, which is the strongest evidence the scene contract holds.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

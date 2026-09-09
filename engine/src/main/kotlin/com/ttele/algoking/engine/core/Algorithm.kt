@@ -67,6 +67,13 @@ enum class AlgorithmId {
     // the BST lesson has to end on.
     AVL_TREE,
 
+    // Advanced: three traversals of one binary tree. Separate lessons on purpose
+    // — the same tree and the same gesture produce three different orders, and
+    // that comparison is the reason all three exist.
+    TREE_INORDER,
+    TREE_PREORDER,
+    TREE_POSTORDER,
+
     BUBBLE_SORT,
     SELECTION_SORT,
     INSERTION_SORT,
