@@ -1,7 +1,12 @@
 package com.ttele.algoking.engine.core
 
 /**
- * One node of a binary search tree.
+ * One node of a binary tree.
+ *
+ * Not of a *search* tree: the traversal lessons walk trees whose values are in no
+ * particular order, and a node is the same thing either way. Whether the ordering
+ * invariant holds is a property of the tree, and [BinaryTree] says which of its
+ * operations depend on it.
  *
  * A node is a **value plus two references**, and nothing else. There is no parent
  * pointer, no depth field and no cached size: every one of those would be a second
@@ -12,37 +17,50 @@ package com.ttele.algoking.engine.core
  * new tree rather than mutating this one, so a tree can be a value inside an
  * algorithm state and rewind stays a matter of popping a stack (ADR-001).
  */
-data class BstNode(
+data class TreeNode(
     val value: Int,
-    val left: BstNode? = null,
-    val right: BstNode? = null,
+    val left: TreeNode? = null,
+    val right: TreeNode? = null,
 )
 
 /**
- * A binary search tree — the structure behind the BST lesson.
+ * A binary tree — the shared structure behind every tree lesson.
  *
- * ### The invariant, which is the whole lesson
+ * ### Two kinds of operation, and the difference matters
+ *
+ * **Structural.** [size], [height], [inorder], [preorder], [postorder], [edges],
+ * [depths], [layout], [findNode], [pathToNode], [parentByStructure] — these read
+ * the shape and nothing else. They are correct for **any** binary tree, which is
+ * what the traversal lessons need: a traversal is a rule about structure, and the
+ * values could be anything at all.
+ *
+ * **Search-tree.** [node], [contains], [searchPath], [insert], [subtree],
+ * [parentOf], [heightAt], [balanceFactor], [rotateLeft], [rotateRight] and
+ * [avlInsert] descend **by comparing values**, so they are correct only while the
+ * ordering invariant holds:
  *
  * ```
  * every value in the LEFT subtree  <  node value  <  every value in the RIGHT subtree
  * ```
  *
- * That single property is what makes [searchPath] correct: at every node one
- * comparison rules out an entire subtree, so a search follows one path from the
- * root instead of looking at every value.
+ * That invariant is what makes [searchPath] a *search*: one comparison rules out
+ * an entire subtree, so it follows one path from the root instead of looking at
+ * every value. On a tree that is not ordered, those methods will quietly fail to
+ * find nodes that are there — so a lesson working on an arbitrary tree must use
+ * the structural half. Each one is marked below.
  *
  * ### What lives here and what does not
  *
  * This is the **data structure**, so it holds the shape and the operations the
- * shape defines — search, insert, in-order — and knows nothing about lessons,
- * scenes, steps or narration. `BinarySearchTreeAlgorithm` drives a search one
- * decision at a time for the learner; the helpers here are how a *caller* checks
- * that walk against the structure, and they are what the tests assert against.
+ * shape defines, and knows nothing about lessons, scenes, steps or narration. The
+ * algorithms drive their walks one decision at a time for the learner; the helpers
+ * here are how a *caller* checks such a walk against the structure, and they are
+ * what the tests assert against.
  *
- * Values are assumed unique, which is what the lesson teaches and what [insert]
- * maintains: re-inserting a value already present returns the same tree.
+ * Values are assumed unique across a tree — a lesson identifies a node by its
+ * value, because that is what the learner taps.
  */
-data class BinaryTree(val root: BstNode? = null) {
+data class BinaryTree(val root: TreeNode? = null) {
 
     val isEmpty: Boolean get() = root == null
 
@@ -56,7 +74,7 @@ data class BinaryTree(val root: BstNode? = null) {
      * The node holding [value], found the way the structure says to find it —
      * by descending, never by scanning. Null when the value is not in the tree.
      */
-    fun node(value: Int): BstNode? {
+    fun node(value: Int): TreeNode? {
         var current = root
         while (current != null) {
             current = when {
@@ -238,14 +256,14 @@ data class BinaryTree(val root: BstNode? = null) {
 
     // -- Recursion, kept private so the shape above stays the interface --------
 
-    private fun count(node: BstNode?): Int =
+    private fun count(node: TreeNode?): Int =
         if (node == null) 0 else 1 + count(node.left) + count(node.right)
 
-    private fun heightOf(node: BstNode?): Int =
+    private fun heightOf(node: TreeNode?): Int =
         if (node == null) 0 else 1 + maxOf(heightOf(node.left), heightOf(node.right))
 
-    private fun insertInto(node: BstNode?, value: Int): BstNode = when {
-        node == null -> BstNode(value)
+    private fun insertInto(node: TreeNode?, value: Int): TreeNode = when {
+        node == null -> TreeNode(value)
         value < node.value -> node.copy(left = insertInto(node.left, value))
         value > node.value -> node.copy(right = insertInto(node.right, value))
         // Already there. The lesson's values are unique, and a duplicate insert
@@ -259,7 +277,7 @@ data class BinaryTree(val root: BstNode? = null) {
      * Descends by BST order, which is safe precisely because a rotation does not
      * change it: the path to the old subtree root is still the path to the new one.
      */
-    private fun replaceSubtree(node: BstNode?, at: Int, with: BstNode): BstNode? = when {
+    private fun replaceSubtree(node: TreeNode?, at: Int, with: TreeNode): TreeNode? = when {
         node == null -> null
         node.value == at -> with
         at < node.value -> node.copy(left = replaceSubtree(node.left, at, with))
@@ -267,8 +285,8 @@ data class BinaryTree(val root: BstNode? = null) {
     }
 
     /** Textbook AVL insertion: place by BST order, then rebalance on the way up. */
-    private fun avlInsertInto(node: BstNode?, value: Int): BstNode {
-        if (node == null) return BstNode(value)
+    private fun avlInsertInto(node: TreeNode?, value: Int): TreeNode {
+        if (node == null) return TreeNode(value)
         val grown = when {
             value < node.value -> node.copy(left = avlInsertInto(node.left, value))
             value > node.value -> node.copy(right = avlInsertInto(node.right, value))
@@ -277,7 +295,7 @@ data class BinaryTree(val root: BstNode? = null) {
         return rebalance(grown, value)
     }
 
-    private fun rebalance(node: BstNode, inserted: Int): BstNode {
+    private fun rebalance(node: TreeNode, inserted: Int): TreeNode {
         val balance = heightOf(node.left) - heightOf(node.right)
         return when {
             balance > 1 && inserted < requireNotNull(node.left).value -> rotateRightAt(node)
@@ -288,30 +306,30 @@ data class BinaryTree(val root: BstNode? = null) {
         }
     }
 
-    private fun rotateLeftAt(node: BstNode): BstNode {
+    private fun rotateLeftAt(node: TreeNode): TreeNode {
         val riser = node.right ?: return node
         return riser.copy(left = node.copy(right = riser.left))
     }
 
-    private fun rotateRightAt(node: BstNode): BstNode {
+    private fun rotateRightAt(node: TreeNode): TreeNode {
         val riser = node.left ?: return node
         return riser.copy(right = node.copy(left = riser.right))
     }
 
-    private fun collectInorder(node: BstNode?, into: MutableList<Int>) {
+    private fun collectInorder(node: TreeNode?, into: MutableList<Int>) {
         node ?: return
         collectInorder(node.left, into)
         into += node.value
         collectInorder(node.right, into)
     }
 
-    private fun collectSubtree(node: BstNode): Set<Int> = buildSet {
+    private fun collectSubtree(node: TreeNode): Set<Int> = buildSet {
         add(node.value)
         node.left?.let { addAll(collectSubtree(it)) }
         node.right?.let { addAll(collectSubtree(it)) }
     }
 
-    private fun collectEdges(node: BstNode?, into: MutableList<Pair<Int, Int>>) {
+    private fun collectEdges(node: TreeNode?, into: MutableList<Pair<Int, Int>>) {
         node ?: return
         node.left?.let {
             into += node.value to it.value
@@ -323,7 +341,7 @@ data class BinaryTree(val root: BstNode? = null) {
         }
     }
 
-    private fun collectDepths(node: BstNode?, depth: Int, into: MutableMap<Int, Int>) {
+    private fun collectDepths(node: TreeNode?, depth: Int, into: MutableMap<Int, Int>) {
         node ?: return
         into[node.value] = depth
         collectDepths(node.left, depth + 1, into)

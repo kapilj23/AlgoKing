@@ -3,7 +3,7 @@ package com.ttele.algoking.engine.algorithms.bst
 import com.ttele.algoking.engine.core.Algorithm
 import com.ttele.algoking.engine.core.AlgorithmId
 import com.ttele.algoking.engine.core.BinaryTree
-import com.ttele.algoking.engine.core.BstNode
+import com.ttele.algoking.engine.core.TreeNode
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.core.Probe
 import com.ttele.algoking.engine.core.Transition
@@ -77,7 +77,7 @@ data class BstState(
     /** True once the search reached a null child: the target is not in the tree. */
     val missing: Boolean,
 ) {
-    val currentNode: BstNode? get() = current?.let { tree.node(it) }
+    val currentNode: TreeNode? get() = current?.let { tree.node(it) }
 
     /**
      * How [target] stands against the current node — **the one place the BST
