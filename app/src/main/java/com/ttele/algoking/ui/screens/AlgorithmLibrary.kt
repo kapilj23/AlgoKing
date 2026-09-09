@@ -83,6 +83,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.BINARY_SEARCH_TREE,
+        title = "Binary Search Tree",
+        description = "One comparison per node, and a whole subtree drops out.",
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,
         title = "Bubble Sort",
         description = "Compare neighbours and swap the ones out of order.",

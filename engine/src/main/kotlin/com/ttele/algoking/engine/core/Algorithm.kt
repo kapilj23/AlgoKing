@@ -30,6 +30,15 @@ data class Dataset(
     val graph: Graph? = null,
     /** Where a graph traversal begins. */
     val startNode: String? = null,
+    /**
+     * A binary search tree, for a lesson whose data is a tree rather than an
+     * array or a graph — BST search walks one.
+     *
+     * Optional and defaulted, the same additive move `queryLeft` and `graph`
+     * made before it, so no existing lesson changed when it arrived. A second
+     * tree, a skewed one or a generated one later is data rather than code.
+     */
+    val tree: BinaryTree? = null,
 )
 
 enum class AlgorithmId {
@@ -49,6 +58,10 @@ enum class AlgorithmId {
 
     // Advanced: the same graph as DFS, driven by a queue instead of a stack.
     GRAPH_BFS,
+
+    // Advanced: Binary Search's decision rule, over a structure that stores the
+    // order instead of relying on an array being sorted.
+    BINARY_SEARCH_TREE,
 
     BUBBLE_SORT,
     SELECTION_SORT,

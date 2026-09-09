@@ -589,16 +589,16 @@ Adding a lesson gets progress for free: there is no per-algorithm progress code 
 | Star family | Accuracy | Accuracy | Accuracy | Accuracy | Accuracy |
 | Terminal outcome | `Sorted` | `Sorted` | `Completed` | `Completed` | `Completed` |
 
-| | Hash Map | Two Pointers |
-|---|---|---|
-| The learner decides | which bucket `key % 5` lands in, then what a full bucket does, then which entry matches | which pointer can still improve the sum — or whether this is the pair |
-| The app decides | storing and removing, once every judgement is made | the arithmetic: `values[left] + values[right]` |
-| Decision kinds | `CELL` (over **buckets**) + `OPTIONS` | `OPTIONS` |
-| Probe kinds | `Mechanical` + `Decide` | `Mechanical` + `Decide` |
-| Signature scene | **`BucketScene`** — not a sequence at all | an ordinary `ROW`, with **both ends `COMPARING`** |
-| Signature idea | a collision is normal, and the same key updates rather than duplicating | one move discards a whole row of pairs, and only because the array is sorted |
-| Star family | Accuracy | *(V2)* |
-| Terminal outcome | `Completed` | `Found` / `NotFound` |
+| | Hash Map | Two Pointers | Binary Search Tree |
+|---|---|---|---|
+| The learner decides | which bucket `key % 5` lands in, then what a full bucket does, then which entry matches | which pointer can still improve the sum — or whether this is the pair | which way the comparison sends the search: LEFT, RIGHT, or found |
+| The app decides | storing and removing, once every judgement is made | the arithmetic: `values[left] + values[right]` | the comparison: `target` against the current node |
+| Decision kinds | `CELL` (over **buckets**) + `OPTIONS` | `OPTIONS` | `OPTIONS` |
+| Probe kinds | `Mechanical` + `Decide` | `Mechanical` + `Decide` | `Mechanical` + `Decide` |
+| Signature scene | **`BucketScene`** — not a sequence at all | an ordinary `ROW`, with **both ends `COMPARING`** | the **`GraphScene` DFS already uses** — with `ELIMINATED` nodes, which a traversal never has |
+| Signature idea | a collision is normal, and the same key updates rather than duplicating | one move discards a whole row of pairs, and only because the array is sorted | one comparison rules out an entire subtree, because the structure stores the order |
+| Star family | Accuracy | *(V2)* | *(V2)* |
+| Terminal outcome | `Completed` | `Found` / `NotFound` | `Found` / `NotFound` |
 
 They exercise different halves of the same machinery, which is the point: none was forced into
 another's interaction model, and **no event, probe kind or validator was added after the first**.
@@ -608,6 +608,12 @@ sequence can be shown divided), `Decision.autoInTry` (see below), `SequenceScene
 `SceneLayout` plus `links`/`detached` (the linked list: a sequence can be a chain), and the
 `Scene` union itself (the hash map: a lesson need not be a sequence). Every one of them is data
 on the scene, so the app's only branch is still the shape of what it was given.
+
+The Binary Search Tree is the first lesson to add **no shape at all**: a tree is nodes at
+positions joined by edges, so it projects into the `GraphScene` DFS and BFS already use and is
+drawn by the same renderer. What it did add is a node *state* those two never needed — a search
+rules parts of a structure out, and a traversal visits everything — so `EdgeState.ELIMINATED`
+and a `badge` joined the scene as defaulted fields, and no existing lesson changed (ADR-036).
 
 The three elementary sorts in particular had to end up looking different from each other, and
 they do — trading neighbours, carrying a minimum to the front, and walking a gap backwards are
@@ -631,7 +637,9 @@ sealed interface Scene
 data class SequenceScene(...) : Scene   // ROW | PILE | CHAIN | GRID
 data class BucketScene(...) : Scene     // a table of buckets, plus the hash flow
 data class PrefixScene(...) : Scene     // two aligned arrays of different lengths
-data class GraphScene(...) : Scene      // nodes at positions, joined by edges (DFS and BFS)
+data class GraphScene(...) : Scene      // nodes at positions, joined by edges
+                                        // (DFS, BFS — and the BST, because a tree
+                                        //  is one of these; ADR-036)
 ```
 
 The sequence renderer receives pure data, and its only branch is `layout`:

@@ -554,6 +554,18 @@ Both strips are read straight from engine state, so the display and the algorith
 disagree. For DFS the path *is* the call stack; for BFS the traversal *is* the dequeue order —
 not the enqueue order, which is a different sequence and the most common way a BFS visual lies.
 
+**A tree is a graph, and a search is not a traversal.** The Binary Search Tree draws itself with
+this same stage (ADR-036), and the two differences are the lesson:
+
+| Element | Treatment |
+|---|---|
+| ruled out | `ELIMINATED` — flat `eliminated` fill, `textMuted` label, faded to 55 % and scaled to 0.88, with no "still in play" outline. Less collapse than a cell's 0.82, because a two-digit numeral in a circle stops being readable first |
+| an edge into a ruled-out subtree | 2dp `border` — still drawn, because the structure did not change, and visibly no longer a route |
+| the target | the `primarySoft` badge every search lesson uses, above the stage. A badge, never a hue |
+| the first strip | captioned **Search path**, not Traversal: this walk deliberately never visits most of the tree |
+| the second strip | **absent.** DFS and BFS show the structure driving them; a BST search is driven by the tree itself, and a line repeating the path under another name would be text pretending to be a data structure |
+| node positions | derived from the tree — in-order across, depth down — never authored. Two nodes on one row are always at least two columns apart, so nothing overlaps and nothing has to shrink |
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

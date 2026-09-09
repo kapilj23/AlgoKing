@@ -1442,6 +1442,108 @@ lesson already established (ADR-027) — rather than a line of text. An empty qu
 
 ---
 
+## ADR-036 — A Binary Search Tree is a graph, so it reuses one — and adds no scene shape
+
+**Decision.** BST ships as a `LessonPack` with WATCH and TRY, in the **Advanced**
+category. Its data model is a new `BinaryTree` in `engine/core/`; its picture is the
+**existing `GraphScene`**, drawn by the **existing `GraphStage`**. `Dataset` gains an
+optional `tree`. Full detail: `docs/binary-search-tree.md`.
+
+**Why no fifth shape.** ADR-030, ADR-033 and ADR-034 each added a `Scene` shape because
+the data genuinely was not a sequence: a hash map has buckets, prefix sum has two arrays
+of different lengths, a graph is two-dimensional. A binary tree is **nodes at positions
+joined by edges**, which is exactly what `GraphScene` already is. Adding `TreeScene`
+would have been a second name for the same picture, and the two would then have had to
+be kept looking alike by discipline rather than by construction.
+
+The judgement is the same one those three ADRs made, applied honestly in the other
+direction: a new shape is for a new *kind* of data, not for a new lesson.
+
+### What was genuinely new was a node state, not a shape
+
+DFS and BFS are traversals: they visit everything they can reach, so nothing is ever
+ruled out. A **search** discards regions of the structure without looking at them, and
+that is the whole point of a BST. So the shared scene gained `EdgeState.ELIMINATED`, and
+`GraphStage` learned to draw an `ELIMINATED` node — the state was already in `CellState`
+and already in the legend, and it had simply never reached a graph before.
+
+Four additive, defaulted fields in total (`EdgeState.ELIMINATED`, `badge`,
+`traversalLabel`, `showPathStrip`), so **DFS and BFS did not change** — the same move
+`queue` made when BFS arrived.
+
+### The decision is Binary Search's, and the app owns the arithmetic
+
+`probe` returns `Mechanical(Compare)` to read the target against the current node, then
+`Decide` for the move. Reading `60 > 50` is not a judgement; knowing that greater means
+RIGHT is the entire technique. That is Two Pointers' shape exactly, and it gives WATCH
+its seam for free: the comparison is stated while the search has **not** moved, and the
+move is the next tap. The brief was explicit about this — *"do not instantly jump
+without showing the decision"* — and because the engine emits two transitions, the
+narrator does not have to invent the split.
+
+All three options — LEFT, RIGHT, FOUND — are offered every round, including where FOUND
+is wrong, for the reason ADR-032 gives: an option that only appears when it is correct
+answers the question the beat exists to ask.
+
+### Positions are derived, because a tree's shape is its data
+
+`GraphNode.x` is authored for DFS, and rightly: five nodes have a shape a person should
+choose. A tree does not get that. `BinaryTree.layout()` places each node at its
+**in-order** position horizontally and its depth vertically, which is the only choice
+that makes the drawing a statement about the structure rather than an opinion about it:
+every node sits between its two subtrees, a parent is always above and between its
+children, no two nodes can collide, and left-to-right on screen *is* ascending order —
+the invariant, drawn.
+
+Responsiveness falls out of it rather than being handled: two nodes at the same depth
+always have their lowest common ancestor between them in in-order, so they are at least
+two columns apart, which clears a 48dp node on a 320dp phone without shrinking anything.
+A test pins that property.
+
+### The complexity claim is stated in full
+
+The lesson says **O(log n) balanced, O(n) skewed**, together, in the insight line — and a
+test drives a deliberately skewed tree to prove the degenerate case is real. "A BST is
+O(log n)" is the most common thing said wrongly about them, and a lesson that teaches
+only the happy half is teaching something untrue.
+
+### The Binary Search connection is one bullet
+
+*"Binary Search halves a sorted array by arithmetic. A BST keeps that halving in its
+shape."* That, plus `Dataset.values` being the tree read in order — which is literally
+Binary Search's sorted array. The older lesson is not repeated, and nothing in it changed.
+
+### WATCH and TRY share the tree
+
+The same call DFS and BFS made (ADR-034), for the same reason and one more: seven nodes
+are memorisable either way, so a second tree would buy unfamiliarity rather than a new
+judgement — and the brief specified this tree for both stages. What makes TRY hard is
+producing each comparison's answer with the wrong branch one tap away. A different
+target over the same tree is the obvious next dataset, and it is data rather than code.
+
+**Alternatives considered.**
+- *A `TreeScene` and a tree renderer.* Rejected above — and it would have split the
+  visual language for a picture the graph renderer already draws correctly.
+- *Force it into `SequenceScene` as a row with `links`.* Rejected: the linked list is a
+  chain because a list *is* a line. A tree is not, and the ruled-out subtree — the whole
+  lesson — is not expressible as a contiguous row of cells the learner can read as a
+  shape. (It *is* a contiguous in-order range, which is why `Eliminate` still carries an
+  honest slot range, and why the connection to Binary Search is real.)
+- *Tap the node to move to, as DFS and BFS do.* Rejected, and this is the one place BST
+  deliberately differs from its neighbours: the brief specified LEFT / RIGHT, and it is
+  the better question here. DFS's tap works because *which* neighbour is the judgement;
+  in a BST there are only ever two children and the judgement is **which side the rule
+  sends you to**. Naming the sides is what makes the answer transferable to a tree the
+  learner has not seen.
+- *Ask the learner to perform the comparison.* Rejected: it is arithmetic with one legal
+  answer, and PRODUCT_SPEC.md §3 rejects exactly this.
+- *Teach insertion or traversals as well.* Rejected as scope. `BinaryTree` carries
+  `insert` and its node shape supports delete and the four traversals, so each is an
+  algorithm and a narrator over the same model — but building them now would have made
+  the lesson about a structure rather than about a search.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

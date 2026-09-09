@@ -38,6 +38,22 @@ data class GraphScene(
     val queue: List<String> = emptyList(),
     /** What the path strip is called. A stack for DFS, a queue for BFS. */
     val pathLabel: String = "Path",
+    /**
+     * What the first strip is called. A traversal visits everything; a *search*
+     * follows one path and stops, so BST names it for what it is.
+     */
+    val traversalLabel: String = "Traversal",
+    /**
+     * Whether the second strip is drawn at all.
+     *
+     * DFS and BFS are driven by a structure the learner has to watch — a stack,
+     * a queue — so they show it. A BST search is driven by nothing but the tree,
+     * and a second strip repeating the path above it would be a line of text
+     * pretending to be a data structure.
+     */
+    val showPathStrip: Boolean = true,
+    /** The target, when the lesson is a search: "TARGET 60". */
+    val badge: Badge? = null,
     val legendLabels: Map<CellState, String> = emptyMap(),
 ) : Scene
 
@@ -72,4 +88,14 @@ enum class EdgeState {
     /** The step just taken, unwinding. Drawn differently, because it is the
      *  half of DFS learners lose. */
     BACKTRACK,
+
+    /**
+     * An edge into a part of the structure that has been ruled out.
+     *
+     * A search discards whole regions rather than walking them, and the edge is
+     * where that becomes visible: the branch is still there, and it is no longer
+     * anywhere the algorithm can go. DFS and BFS never emit it — they visit
+     * everything they can reach.
+     */
+    ELIMINATED,
 }

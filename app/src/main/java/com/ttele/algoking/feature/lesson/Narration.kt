@@ -17,6 +17,11 @@ object Narration {
         val a = key.args
         fun arg(i: Int): String = a.getOrNull(i)?.toString() ?: ""
 
+        /** A counted argument, for copy that has to agree with itself about number. */
+        fun count(i: Int): Int = (a.getOrNull(i) as? Int) ?: 0
+        fun plural(i: Int, one: String, many: String): String =
+            if (count(i) == 1) one else many
+
         return when (key.id) {
 
             // ── Two Pointers ──────────────────────────────────────────────
@@ -471,6 +476,160 @@ object Narration {
             NarrationId.BFS_IDEA_2 -> "Take the front of the queue; add unseen neighbours to the back."
             NarrationId.BFS_IDEA_3 -> "First in, first out is what produces level-by-level order."
             NarrationId.BFS_IDEA_4 -> "Empty queue means every reachable node has been processed."
+
+            // ── Binary Search Tree ────────────────────────────────────────
+            // LEFT / RIGHT / FOUND, one word each, for the same reason Two
+            // Pointers uses them: three buttons share one row, and a label that
+            // wraps to three lines reads as ragged. The *direction* is taught in
+            // the prompt and the feedback, where it has room to say why.
+            NarrationId.BST_OPTION_LEFT -> "LEFT"
+            NarrationId.BST_OPTION_RIGHT -> "RIGHT"
+            NarrationId.BST_OPTION_FOUND -> "FOUND"
+            NarrationId.BST_ASK_WHICH_WAY ->
+                "The target is ${arg(0)} and this node is ${arg(1)}. Which way?"
+
+            NarrationId.BST_COMPARED_LESS -> "${arg(0)} is smaller than ${arg(1)}."
+            NarrationId.BST_COMPARED_GREATER -> "${arg(0)} is greater than ${arg(1)}."
+            NarrationId.BST_COMPARED_EQUAL -> "${arg(0)} matches this node."
+            NarrationId.BST_MOVED_LEFT -> "Left from ${arg(0)} to ${arg(1)}."
+            NarrationId.BST_MOVED_RIGHT -> "Right from ${arg(0)} to ${arg(1)}."
+            NarrationId.BST_NO_LEFT_CHILD ->
+                "${arg(0)} has no left child, so ${arg(2)} is not in this tree."
+
+            NarrationId.BST_NO_RIGHT_CHILD ->
+                "${arg(0)} has no right child, so ${arg(2)} is not in this tree."
+
+            NarrationId.BST_FOUND -> "${arg(0)} found, in ${arg(1)} comparisons."
+            NarrationId.BST_HINT_RULE ->
+                "Compare ${arg(0)} with ${arg(1)}: smaller values are LEFT, larger are RIGHT."
+
+            NarrationId.BST_RETRY_LOOK ->
+                "Look at the comparison again: ${arg(0)} against ${arg(1)}."
+
+            NarrationId.BST_RETRY_ASK_SMALLER ->
+                "${arg(0)} is smaller than ${arg(1)}. Which side of a node holds the " +
+                    "smaller values?"
+
+            NarrationId.BST_RETRY_ASK_LARGER ->
+                "${arg(0)} is greater than ${arg(1)}. Which side of a node holds the " +
+                    "larger values?"
+
+            NarrationId.BST_RETRY_ASK_EQUAL ->
+                "You are standing on ${arg(0)}. What is there left to search?"
+
+            NarrationId.BST_RETRY_EXPLAIN_LEFT ->
+                "${arg(0)} is smaller than ${arg(1)}, and every value smaller than a node " +
+                    "is in its left subtree. Go LEFT."
+
+            NarrationId.BST_RETRY_EXPLAIN_RIGHT ->
+                "${arg(0)} is greater than ${arg(1)}, and every value greater than a node " +
+                    "is in its right subtree. Go RIGHT."
+
+            NarrationId.BST_RETRY_EXPLAIN_FOUND ->
+                "${arg(0)} and ${arg(1)} are the same value. This is the node — the search " +
+                    "is over."
+
+            // Each wrong option is answered with the invariant on the side the
+            // learner reached for, so the feedback teaches the rule rather than
+            // reporting a verdict.
+            NarrationId.BST_WHY_LEFT_IMPOSSIBLE ->
+                "Everything left of ${arg(1)} is smaller than ${arg(1)}, and ${arg(0)} is " +
+                    "bigger. It cannot be down there."
+
+            NarrationId.BST_WHY_RIGHT_IMPOSSIBLE ->
+                "Everything right of ${arg(1)} is larger than ${arg(1)}, and ${arg(0)} is " +
+                    "smaller. It cannot be down there."
+
+            NarrationId.BST_WHY_ALREADY_HERE ->
+                "You are already on ${arg(0)}. Moving would walk away from the answer."
+
+            NarrationId.BST_WHY_NOT_THIS_NODE ->
+                "This node is ${arg(1)}, and you are looking for ${arg(0)}."
+
+            // What the right answer *achieved* — which subtree just left the
+            // search — rather than the word "correct".
+            NarrationId.BST_CORRECT_LEFT ->
+                "${arg(0)} is smaller than ${arg(1)}, so everything to the right of " +
+                    "${arg(1)} is out — ${arg(2)} ${plural(2, "node", "nodes")} gone in one " +
+                    "comparison."
+
+            NarrationId.BST_CORRECT_RIGHT ->
+                "${arg(0)} is greater than ${arg(1)}, so everything to the left of " +
+                    "${arg(1)} is out — ${arg(2)} ${plural(2, "node", "nodes")} gone in one " +
+                    "comparison."
+
+            NarrationId.BST_CORRECT_LEFT_EMPTY ->
+                "${arg(0)} is smaller than ${arg(1)}, so the search goes left."
+
+            NarrationId.BST_CORRECT_RIGHT_EMPTY ->
+                "${arg(0)} is greater than ${arg(1)}, so the search goes right."
+
+            NarrationId.BST_CORRECT_FOUND ->
+                "${arg(0)} matches. ${arg(3)} comparisons, and the rest of the tree was " +
+                    "never touched."
+
+            // ── Binary Search Tree — WATCH ────────────────────────────────
+            NarrationId.BST_WATCH_SETUP -> "Find ${arg(0)} in this binary search tree."
+            NarrationId.BST_WATCH_SETUP_SUPPORT ->
+                "Every value in a node's left subtree is smaller than it, and every value " +
+                    "in its right subtree is larger."
+
+            NarrationId.BST_WATCH_ROOT -> "Start at the root: ${arg(0)}."
+            NarrationId.BST_WATCH_ROOT_SUPPORT ->
+                "A BST search starts at the root and only ever walks downwards."
+
+            NarrationId.BST_WATCH_COMPARE_LESS -> "${arg(0)} is smaller than ${arg(1)}."
+            NarrationId.BST_WATCH_COMPARE_GREATER -> "${arg(0)} is greater than ${arg(1)}."
+            NarrationId.BST_WATCH_COMPARE_EQUAL -> "${arg(0)} matches the current node."
+            NarrationId.BST_WATCH_RULE_LEFT ->
+                "In a BST, values smaller than a node are in its LEFT subtree."
+
+            NarrationId.BST_WATCH_RULE_RIGHT ->
+                "In a BST, values greater than a node are in its RIGHT subtree."
+
+            NarrationId.BST_WATCH_RULE_EQUAL -> "That is the search: the target is this node."
+            NarrationId.BST_WATCH_MOVE_LEFT -> "Move LEFT."
+            NarrationId.BST_WATCH_MOVE_RIGHT -> "Move RIGHT."
+            // The values that leave are named, so "a whole subtree" is a sentence
+            // about specific numbers rather than an abstraction.
+            NarrationId.BST_WATCH_MOVE_WHY ->
+                "${arg(0)} cannot be on that side of ${arg(1)}, so ${arg(2)} leave the search."
+
+            NarrationId.BST_WATCH_MOVE_WHY_NONE ->
+                "${arg(0)} had nothing on its other side to rule out."
+
+            NarrationId.BST_WATCH_NOT_FOUND ->
+                "${arg(1)} has no child that way. ${arg(0)} is not in this tree."
+
+            NarrationId.BST_WATCH_NOT_FOUND_SUPPORT ->
+                "Walking off the end of the tree is how a BST proves a value is absent."
+
+            NarrationId.BST_WATCH_FOUND -> "Found ${arg(0)}."
+            NarrationId.BST_WATCH_FOUND_SUPPORT ->
+                "${arg(0)} comparisons, and ${arg(1)} of the ${arg(2)} nodes were never " +
+                    "looked at."
+
+            NarrationId.BST_WATCH_INSIGHT -> "One path from the root, not a scan of every node."
+            // Both halves of the complexity claim, together. O(log n) is a
+            // property of a *balanced* tree, and a lesson that says only the
+            // happy half teaches something untrue.
+            NarrationId.BST_WATCH_INSIGHT_SUPPORT ->
+                "Each comparison ruled out a whole subtree: ${arg(0)} of ${arg(1)} nodes were " +
+                    "never looked at. Balanced, that is O(log n) — but a skewed tree behaves " +
+                    "like a linked list and costs O(n)."
+
+            NarrationId.BST_WATCH_SUMMARY -> "Search path: ${arg(0)}."
+            NarrationId.BST_WATCH_SUMMARY_NOT_FOUND ->
+                "${arg(0)} is not in the tree, and ${arg(1)} proved it."
+
+            NarrationId.BST_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.BST_IDEA_1 -> "Smaller than the node? Go LEFT."
+            NarrationId.BST_IDEA_2 -> "Larger than the node? Go RIGHT."
+            NarrationId.BST_IDEA_3 -> "Equal? That is the node you were looking for."
+            NarrationId.BST_IDEA_4 -> "Every comparison rules out an entire subtree."
+            NarrationId.BST_IDEA_5 ->
+                "Binary Search halves a sorted array by arithmetic. A BST keeps that " +
+                    "halving in its shape."
 
             NarrationId.BS_LOOK_AT_MIDDLE -> "Look at the middle."
             NarrationId.BS_COMPARE_LESS -> "${arg(0)} < ${arg(1)}"

@@ -657,6 +657,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
  * produced them — so Binary Search's eliminated halves and Bubble Sort's settled
  * suffix are described by the same four words in the same four colours.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
     // A bucket table names its own states in the copy, so it needs no legend.
@@ -689,10 +690,14 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
     }
     if (entries.isEmpty()) return
 
-    Row(
+    // Wraps rather than clips. Three short states fit one line and look exactly
+    // as they always have; a lesson with four — the BST has current, in play,
+    // ruled out and path all on screen at once — takes a second line instead of
+    // losing its last swatch off the right edge.
+    FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(Spacing.xxs),
     ) {
         entries.forEach { (color, label) -> LegendEntry(color, label) }
     }

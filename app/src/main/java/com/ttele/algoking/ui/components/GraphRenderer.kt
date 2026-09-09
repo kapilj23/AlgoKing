@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -72,7 +73,32 @@ fun GraphStage(
     selectableSlots: Set<Int> = emptySet(),
     onSelectSlot: (Int) -> Unit = {},
 ) {
-    Column(modifier.fillMaxWidth()) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+
+        // TARGET, when the lesson is a search. A badge, never a colour — the same
+        // treatment every other search lesson gives it, so spending a viz hue on
+        // the target cannot break the legend contract (DESIGN_SYSTEM.md §6.16b).
+        scene.badge?.let { badge ->
+            Row(
+                modifier = Modifier
+                    .background(AlgoColors.primarySoft, Radius.pill)
+                    .padding(horizontal = Spacing.md, vertical = Spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = badge.label.uppercase(),
+                    style = AlgoType.labelSmall,
+                    color = AlgoColors.primary,
+                )
+                Gap(Spacing.xs)
+                Text(
+                    text = badge.valueLabel ?: badge.value.toString(),
+                    style = AlgoType.numeralMedium,
+                    color = AlgoColors.primary,
+                )
+            }
+            Gap(Spacing.sm)
+        }
 
         BoxWithConstraints(
             modifier = Modifier
@@ -138,6 +164,9 @@ private fun DrawScope.drawEdge(from: Offset, to: Offset, state: EdgeState) {
         EdgeState.PATH -> Triple(AlgoViz.pointer, 3.dp, false)
         EdgeState.ACTIVE -> Triple(AlgoViz.comparing, 4.dp, false)
         EdgeState.BACKTRACK -> Triple(AlgoColors.secondary, 3.dp, true)
+        // A branch into a ruled-out subtree. Still drawn — the structure did not
+        // change — but visibly no longer a route the algorithm can take.
+        EdgeState.ELIMINATED -> Triple(AlgoColors.border, 2.dp, false)
     }
     drawLine(
         color = color,
@@ -168,12 +197,26 @@ private fun GraphNodeCircle(
     // the same token the queue cells use, so a node and its queue cell are
     // obviously the same thing. DFS never produces this state.
     val queued = node.state == CellState.CANDIDATE
+
+    // Ruled out by a comparison — a search discards whole regions of a structure,
+    // and a traversal never does. The node stays exactly where it is, because it
+    // has not gone anywhere: it is simply somewhere the algorithm has proved it
+    // does not need to look (DESIGN_SYSTEM.md §6.16b — the collapse is what makes
+    // "a whole subtree, gone" legible).
+    val eliminated = node.state == CellState.ELIMINATED
     val filled = current || visited || queued
 
-    // The current node lifts slightly. It is the one thing on screen the learner
-    // is reasoning from, and in a 2-D picture position alone does not say so.
+    // The current node lifts slightly, and a ruled-out node settles back. It is
+    // the one thing on screen the learner is reasoning from, and in a 2-D picture
+    // position alone does not say so.
     val scale by animateFloatAsState(
-        targetValue = if (current) 1.08f else 1f,
+        targetValue = when {
+            current -> 1.08f
+            // Less than a cell's 0.82: a two-digit numeral inside a circle stops
+            // being readable before a numeral in a box does.
+            eliminated -> 0.88f
+            else -> 1f
+        },
         animationSpec = tween(200, easing = FastOutSlowInEasing),
         label = "graphNodeScale",
     )
@@ -182,6 +225,7 @@ private fun GraphNodeCircle(
             current -> AlgoViz.comparing
             visited -> AlgoViz.sorted
             queued -> AlgoViz.next
+            eliminated -> AlgoViz.eliminated
             else -> AlgoColors.surface
         },
         animationSpec = tween(200, easing = FastOutSlowInEasing),
@@ -192,6 +236,7 @@ private fun GraphNodeCircle(
         modifier = modifier
             .size(Dimens.graphNode)
             .scale(scale)
+            .alpha(if (eliminated) AlgoViz.eliminatedAlpha else 1f)
             .then(
                 if (filled) {
                     Modifier.background(
@@ -218,6 +263,10 @@ private fun GraphNodeCircle(
                     color = when {
                         selectable -> AlgoViz.pointer
                         filled -> Color.Transparent
+                        // Out of play, so it loses the violet "still possible"
+                        // outline: the outline is the thing that says a node is
+                        // still a candidate.
+                        eliminated -> Color.Transparent
                         // The same "still in play" outline an idle cell carries in
                         // every other lesson, so the legend swatch matches the node.
                         else -> AlgoColors.primary.copy(alpha = 0.35f)
@@ -241,7 +290,11 @@ private fun GraphNodeCircle(
         Text(
             text = node.label,
             style = AlgoType.numeralMedium,
-            color = if (filled) Color.White else AlgoColors.textPrimary,
+            color = when {
+                filled -> Color.White
+                eliminated -> AlgoColors.textMuted
+                else -> AlgoColors.textPrimary
+            },
             textAlign = TextAlign.Center,
         )
     }
@@ -258,11 +311,18 @@ private fun GraphNodeCircle(
 private fun TraversalStrip(scene: GraphScene) {
     Column(Modifier.fillMaxWidth()) {
         StripLine(
-            caption = "Traversal",
+            // A traversal for DFS and BFS, a search path for BST — the scene says
+            // which, because "traversal" would be a false claim about a walk that
+            // deliberately never visits most of the structure.
+            caption = scene.traversalLabel,
             value = scene.traversal.takeIf { it.isNotEmpty() }
                 ?.joinToString("  →  ") ?: "—",
             emphasis = true,
         )
+        // A lesson driven by a structure the learner has to watch shows it. A BST
+        // search is driven by the tree itself, so it turns the second strip off
+        // rather than repeating the line above it under another name.
+        if (!scene.showPathStrip) return@Column
         Gap(Spacing.xxs)
         // A stack for DFS, a queue for BFS. Only one is ever populated, so the
         // strip shows whichever structure is actually driving the lesson.

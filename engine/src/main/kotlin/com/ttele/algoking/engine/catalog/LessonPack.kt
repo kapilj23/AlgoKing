@@ -3,6 +3,10 @@ package com.ttele.algoking.engine.catalog
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.ttele.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.ttele.algoking.engine.algorithms.bst.BinarySearchTreeAlgorithm
+import com.ttele.algoking.engine.algorithms.bst.BstProjector
+import com.ttele.algoking.engine.algorithms.bst.BstWatchNarrator
+import com.ttele.algoking.engine.dataset.BstDatasets
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortAlgorithm
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortProjector
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortWatchNarrator
@@ -158,6 +162,22 @@ object AlgorithmCatalog {
         tryDataset = BfsDatasets.tryIt,
     )
 
+    /**
+     * The fifth Advanced lesson, and Binary Search's other half: the same
+     * decision rule — smaller one way, larger the other — over a structure that
+     * *stores* the order instead of relying on an array being sorted. Nothing is
+     * computed; the node itself says which way to go.
+     */
+    fun binarySearchTree() = LessonPack(
+        id = AlgorithmId.BINARY_SEARCH_TREE,
+        displayName = "Binary Search Tree",
+        algorithm = BinarySearchTreeAlgorithm(),
+        projector = BstProjector(),
+        watchNarrator = BstWatchNarrator(),
+        watchDataset = BstDatasets.watch,
+        tryDataset = BstDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -262,6 +282,7 @@ object AlgorithmCatalog {
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()
         AlgorithmId.GRAPH_BFS -> graphBfs()
+        AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

@@ -171,7 +171,11 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // BFS immediately after DFS, so the contrast lands while DFS is still fresh —
     // the same reason Queue follows Stack.
     AlgorithmId.GRAPH_DFS -> AlgorithmId.GRAPH_BFS
-    AlgorithmId.GRAPH_BFS -> AlgorithmId.BINARY_SEARCH
+    // The shelf ends on the Binary Search Tree, which closes the loop: it is
+    // Binary Search's decision rule again, this time held by the structure
+    // instead of recomputed from positions.
+    AlgorithmId.GRAPH_BFS -> AlgorithmId.BINARY_SEARCH_TREE
+    AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

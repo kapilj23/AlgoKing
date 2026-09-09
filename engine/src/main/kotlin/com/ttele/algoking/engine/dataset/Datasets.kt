@@ -2,6 +2,7 @@ package com.ttele.algoking.engine.dataset
 
 import com.ttele.algoking.engine.core.Algorithm
 import com.ttele.algoking.engine.core.AlgorithmRunner
+import com.ttele.algoking.engine.core.BinaryTree
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.core.Graph
 import com.ttele.algoking.engine.core.GraphNode
@@ -571,5 +572,78 @@ object BfsDatasets {
         label = "try",
         graph = GraphDatasets.teachingGraph,
         startNode = "A",
+    )
+}
+
+/**
+ * Binary Search Tree teaching data.
+ *
+ * ```
+ *              50
+ *             /  \
+ *           30    70
+ *          / \    / \
+ *        20  40  60  80
+ * ```
+ *
+ * Searching for **60** produces `50 → 70 → 60` — and that path is *generated* by
+ * the engine from this tree, never written down as an answer anywhere.
+ *
+ * Four properties earn this tree its place:
+ *
+ *  - **the path turns both ways.** 60 is greater than 50 (go RIGHT) and then
+ *    smaller than 70 (go LEFT). A target reached by going right twice would let a
+ *    learner finish the lesson having only ever applied half the rule.
+ *  - **every comparison discards a real subtree.** Going right at 50 rules out
+ *    20, 30 and 40; going left at 70 rules out 80. Four of seven nodes are never
+ *    looked at, which is the entire point made visible.
+ *  - **it is perfectly balanced**, so the lesson's own example is the O(log n)
+ *    case it describes — and the skew that costs O(n) can be shown as the
+ *    contrast rather than being the thing the learner was taught on.
+ *  - **seven nodes over three levels** fit a phone without shrinking anything.
+ *
+ * `values` is the tree read **in order**, which is not decoration: a BST read
+ * in-order *is* a sorted array, and that is the sentence connecting this lesson
+ * to Binary Search.
+ */
+object BstDatasets {
+
+    /**
+     * The lesson tree, built by inserting values rather than by naming children.
+     *
+     * Insertion order is what decides a BST's shape, so authoring it this way
+     * says where the shape came from — and it is checked by the same [insert]
+     * a future insert lesson would teach.
+     */
+    val teachingTree: BinaryTree = BinaryTree.of(50, 30, 70, 20, 40, 60, 80)
+
+    /** The target for both stages. Reached by one RIGHT and one LEFT. */
+    const val TARGET = 60
+
+    val watch = Dataset(
+        values = teachingTree.inorder(),
+        target = TARGET,
+        label = "watch",
+        tree = teachingTree,
+    )
+
+    /**
+     * **The same tree, and the same target** — a deliberate departure from the
+     * lessons whose Try gets fresh data, and the same call DFS and BFS made.
+     *
+     * Seven nodes are memorisable either way, so a second tree would buy
+     * unfamiliarity rather than a new judgement. What makes Try hard here is that
+     * the learner now has to *produce* each comparison's answer instead of
+     * reading it, at every node, with the wrong branch one tap away.
+     *
+     * A different target over this tree is the obvious next dataset — 20 walks
+     * left twice, and 65 ends at a null child — and both are data rather than
+     * code.
+     */
+    val tryIt = Dataset(
+        values = teachingTree.inorder(),
+        target = TARGET,
+        label = "try",
+        tree = teachingTree,
     )
 }
