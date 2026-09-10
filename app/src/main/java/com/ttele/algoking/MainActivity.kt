@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,6 +15,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.ttele.algoking.analytics.Analytics
+import com.ttele.algoking.analytics.MonetizationEvent
+import com.ttele.algoking.analytics.NoopAnalytics
+import com.ttele.algoking.billing.AccessDecision
+import com.ttele.algoking.billing.ProAccess
+import com.ttele.algoking.billing.PurchaseOutcome
+import com.ttele.algoking.billing.SubscriptionRepository
+import com.ttele.algoking.billing.PlayBillingGateway
 import com.ttele.algoking.data.ProgressRepository
 import com.ttele.algoking.engine.catalog.AlgorithmCatalog
 import com.ttele.algoking.engine.catalog.LessonPack
@@ -25,12 +35,14 @@ import com.ttele.algoking.feature.complete.LessonCompleteScreen
 import com.ttele.algoking.feature.lesson.LessonScreen
 import com.ttele.algoking.feature.lesson.Phase
 import com.ttele.algoking.feature.lesson.WatchScreen
+import com.ttele.algoking.feature.paywall.PaywallScreen
 import com.ttele.algoking.feature.settings.AboutScreen
 import com.ttele.algoking.feature.settings.PrivacyPolicyScreen
 import com.ttele.algoking.feature.settings.SettingsScreen
 import com.ttele.algoking.feature.settings.openPlayStoreListing
 import com.ttele.algoking.feature.settings.rememberVersionLabel
 import com.ttele.algoking.ui.screens.HomeScreen
+import com.ttele.algoking.ui.screens.algorithmLibrary
 import com.ttele.algoking.ui.theme.AlgoKingTheme
 import kotlinx.coroutines.launch
 
@@ -56,6 +68,12 @@ private sealed interface Route {
     data object Settings : Route
     data object Privacy : Route
     data object About : Route
+
+    /**
+     * The paywall, carrying the lesson that opened it so the screen can say why it
+     * appeared. Null when it was reached some other way.
+     */
+    data class Paywall(val algorithm: AlgorithmId?) : Route
 }
 
 class MainActivity : ComponentActivity() {
@@ -76,8 +94,25 @@ private fun AlgoKingApp() {
     val context = LocalContext.current
     val progressRepository = remember(context) { ProgressRepository(context) }
     val versionLabel = rememberVersionLabel()
+
     val progress by progressRepository.progress.collectAsState(LearningProgress.EMPTY)
     val scope = rememberCoroutineScope()
+
+    // What the learner owns, and what can be sold. Both come from Play and from
+    // nowhere else — there is no path from a tap to an entitlement (ADR-041).
+    val gateway = remember(context) { PlayBillingGateway(context, scope) }
+    val subscriptions = remember(gateway) { SubscriptionRepository(gateway) }
+    // The store connection belongs to this screen, and goes when it does.
+    DisposableEffect(gateway) { onDispose { gateway.close() } }
+    val entitlement by subscriptions.entitlement.collectAsState()
+    val billing by subscriptions.billing.collectAsState()
+    val lastOutcome by subscriptions.lastOutcome.collectAsState()
+    var purchasing by remember { mutableStateOf(false) }
+
+    // No analytics implementation exists; the events are emitted through the seam
+    // ARCHITECTURE.md §10.4 specified and go nowhere until one does.
+    val analytics: Analytics = remember { NoopAnalytics }
+
     fun markComplete(id: AlgorithmId, stage: Stage) {
         scope.launch { progressRepository.complete(id, stage) }
     }
@@ -93,16 +128,91 @@ private fun AlgoKingApp() {
             progress = progress,
             onOpenAlgorithm = { entry ->
                 attempt = 0
-                // Resume where the learner actually left off. A finished algorithm
-                // reopens at Watch, because re-reading is what practising it again
-                // means once there is nothing left to unlock.
-                route = when (progress[entry.id].nextStage) {
-                    Stage.TRY -> Route.TryIt(entry.id)
-                    else -> Route.Watch(entry.id)
+                // **The one access check in the app.** Free lessons and paid-for
+                // lessons open; a locked one opens the paywall instead, and the
+                // rule lives in `ProAccess` rather than in this screen (ADR-041).
+                route = when (ProAccess.decide(entry.category, entitlement)) {
+                    AccessDecision.OpenLesson ->
+                        // Resume where the learner actually left off. A finished
+                        // algorithm reopens at Watch, because re-reading is what
+                        // practising it again means once there is nothing left to
+                        // unlock.
+                        when (progress[entry.id].nextStage) {
+                            Stage.TRY -> Route.TryIt(entry.id)
+                            else -> Route.Watch(entry.id)
+                        }
+
+                    AccessDecision.ShowPaywall -> {
+                        analytics.log(
+                            MonetizationEvent.PremiumAlgorithmTapped(entry.id.name),
+                        )
+                        Route.Paywall(entry.id)
+                    }
                 }
             },
             onOpenSettings = { route = Route.Settings },
         )
+
+        is Route.Paywall -> {
+            val name = current.algorithm?.let { id ->
+                algorithmLibrary.firstOrNull { it.id == id }?.title
+            }
+            LaunchedEffect(current.algorithm) {
+                analytics.log(MonetizationEvent.PaywallViewed(current.algorithm?.name))
+            }
+            PaywallScreen(
+                billing = billing,
+                triggeringAlgorithm = name,
+                lastOutcome = lastOutcome,
+                purchasing = purchasing,
+                onBack = {
+                    subscriptions.clearOutcome()
+                    route = Route.Home
+                },
+                onUnlock = {
+                    // The purchase is the repository's; this only says when to
+                    // start one and what to do with the answer. Entitlement is
+                    // never set here — it is re-read from the store.
+                    analytics.log(MonetizationEvent.PurchaseStarted(current.algorithm?.name))
+                    purchasing = true
+                    scope.launch {
+                        val outcome = subscriptions.purchase()
+                        purchasing = false
+                        analytics.log(
+                            when (outcome) {
+                                is PurchaseOutcome.Purchased ->
+                                    MonetizationEvent.PurchaseSucceeded(current.algorithm?.name)
+
+                                is PurchaseOutcome.Cancelled ->
+                                    MonetizationEvent.PurchaseCancelled(current.algorithm?.name)
+
+                                is PurchaseOutcome.Failed ->
+                                    MonetizationEvent.PurchaseFailed(outcome.message)
+
+                                is PurchaseOutcome.Unavailable ->
+                                    MonetizationEvent.PurchaseFailed("unavailable")
+                            },
+                        )
+                        // Only a store-verified entitlement opens the lesson, and
+                        // it is re-read rather than assumed from the outcome.
+                        val id = current.algorithm
+                        if (subscriptions.entitlement.value.isPro && id != null) {
+                            route = Route.Watch(id)
+                        }
+                    }
+                },
+                onRestore = {
+                    analytics.log(MonetizationEvent.RestoreStarted)
+                    scope.launch {
+                        subscriptions.restore()
+                        val restored = subscriptions.entitlement.value.isPro
+                        analytics.log(MonetizationEvent.RestoreFinished(restored))
+                    }
+                },
+                onRetry = { subscriptions.refresh() },
+                onPrivacy = { route = Route.Privacy },
+            )
+        }
 
         Route.Settings -> SettingsScreen(
             versionLabel = versionLabel,

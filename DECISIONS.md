@@ -1953,6 +1953,122 @@ value (8, when everything else is 1–4) is what makes that cost concrete.
 - *0..max instead of min..max.* Rejected: the lesson opens by finding the range, and
   a table that ignores what it found would make step 2 decorative.
 
+
+---
+
+## ADR-041 — The Advanced shelf becomes Pro, and entitlement has no back door
+
+**Decision.** The ten **Advanced** lessons require an **AlgoKing Pro** subscription; the
+other eleven stay free. Tapping a locked lesson opens a paywall instead of the lesson.
+Access is decided in one place, `billing/ProAccess.kt`, from the lesson's **category** and
+the store's **entitlement**. Full detail: `docs/pro-access.md`.
+
+⚠ **This reverses a locked principle**, taken by the product owner on 2026-09-10.
+`PRODUCT_SPEC.md` §1 read *"free forever, AdMob only"* and listed subscriptions, paid
+algorithms and locked content under **Never**. §1 is amended in place rather than
+contradicted in silence, because a spec the code disagrees with stops being a spec.
+
+**What did not change.** Coins, gems, energy, lives, leaderboards, a social graph and a
+required login are still never. Neither is anything taken away from a free lesson: eleven
+lessons keep both stages, the whole guidance ladder and their progress. Pro adds lessons.
+
+### Access derives from the category, and is not a second flag
+
+`AlgorithmEntry` gains **no** `isPro` field. ADR-032 established that *Advanced is a
+category, not a new mechanism*, and a price flag beside the category is exactly the parallel
+taxonomy it refused: two things to keep in step, and eventually an Advanced lesson that is
+accidentally free. So the rule is one line — the Advanced shelf is the Pro shelf — and a
+lesson filed there is protected the day it is added, with nothing to remember.
+
+The whole decision is four lines and lives in one object:
+
+```
+free                  -> open the lesson
+pro, and entitled     -> open the lesson
+pro, and not entitled -> show the paywall
+```
+
+`ProEntitlement.Unknown` is deliberately **not** entitled. Showing the paywall to someone who
+turns out to own Pro is a moment's friction that the next purchase-state read corrects;
+opening a paid lesson for someone who does not own it is giving it away.
+
+### There is no path from a tap to an entitlement
+
+This is the invariant the feature rests on, and it is structural rather than a rule someone
+has to follow. `SubscriptionRepository` has no method that sets Pro. `ProEntitlement.Pro` can
+only come out of a `BillingGateway`, which must derive it from queried, acknowledged
+purchases. After a purchase the repository **re-reads what the store owns** instead of
+trusting the outcome it was just handed — and there is a test for the case that matters: a
+flow that reports success while the store owns nothing grants nothing.
+
+No boolean is persisted. Progress is latched and additive (ADR-028) precisely because
+progress is earned and cannot be taken away; an entitlement is the opposite — a refund, an
+expiry or a cancellation must be able to take it back — so it is read from the store every
+time and never cached to disk.
+
+### Billing is a seam, and the seam is now filled
+
+> **Amended the same day.** Play Billing is connected: `PlayBillingGateway` against
+> `billing:8.0.0`, constructed in `MainActivity`. The paragraph below described the state
+> the seam shipped in a few hours earlier, and it is kept because it is why connecting it
+> touched exactly one construction site and no screen, repository or test. The
+> `algoking_pro` product still has to be configured in Play Console before anything can be
+> sold, and `UnconfiguredBillingGateway` survives for tests and previews — still unable to
+> produce `Pro`.
+
+### The seam as it shipped
+
+There is no Play Billing integration in this build and **no stub that pretends otherwise**.
+`UnconfiguredBillingGateway` reports `NOT_CONFIGURED`, entitles nothing, and refuses to sell.
+A debug-only "grant Pro" switch was considered and rejected: it is one merge away from
+shipping, and it is the exact fake entitlement the design exists to prevent. Connecting
+billing for real means writing one `BillingGateway` against `BillingClient` and changing one
+construction site.
+
+Because of that, the paywall today shows no price and its CTA is disabled with the reason
+stated: *"Pro is not on sale yet."* That is the honest state, and it is better than a number
+nobody will be charged.
+
+### The price is never in the app
+
+`ProProduct.formattedPrice` is Play's own localised string, passed through untouched. Nothing
+assembles a price from a number and a currency symbol, because that is how an app shows
+"$4.99" to someone who will be charged ₹399 — and nothing marks a plan "best value" unless
+the store's own configuration does.
+
+### The paywall is a screen in the app, not an ad wearing its clothes
+
+Same cards, same buttons, same 20dp radius, same gold ornament. No countdown, no
+strike-through discount, no invented user counts, no "master DSA in 7 days". Those are all
+available and all cost more trust than they earn — in an app whose pitch is that it is honest
+about how learning works, the paywall is where that claim is tested.
+
+It is **contextual first and complete second**: tapping Dijkstra opens on *"Unlock
+Dijkstra"*, because a paywall that does not say why it appeared reads as a trap, and then
+gives the full offer — what Pro includes, which ten lessons, the price. One dominant CTA, a
+quiet Restore beside Privacy, and the way out as a plain sentence that can never be mistaken
+for the purchase.
+
+### The lock is a crown, not a padlock
+
+A Pro card changes exactly one thing: a small gold `PRO` pill beside its category badge. No
+dimming, no padlock over the tile, no greyed title. A locked lesson is an **offer**, and an
+offer that looks broken sells nothing — it also has to keep looking like the library it lives
+in (DESIGN_SYSTEM.md §6.3a).
+
+**Alternatives considered.**
+- *An `isPro` flag per entry.* Rejected above — a second taxonomy to keep in step with the
+  first.
+- *A `proUntil` timestamp cached in DataStore.* Rejected: it is a stored boolean by another
+  name, it survives a refund, and it is writable by anything that can reach the repository.
+- *A debug flag that grants Pro for testing.* Rejected above. A real `BillingGateway`
+  implementation backed by Play's test tracks is how this gets exercised.
+- *Locking a lesson the learner has already completed.* Not decided here and worth flagging:
+  the ten Advanced lessons have existing progress on installed builds, and this change locks
+  them. `docs/pro-access.md` names it as the open question it is.
+- *Putting the paywall behind Settings as well.* Rejected for now: one entry point, reached
+  by wanting a specific lesson, is the least pushy thing that still works.
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

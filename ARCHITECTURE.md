@@ -951,6 +951,44 @@ actually firing as specified, rather than trusting that they are.
 **Privacy:** no PII, no email, no device identifiers beyond the Firebase instance ID. Analytics
 initialise only after UMP consent. No user-generated content ever leaves the device.
 
+### 10.6 Monetization — entitlement, and the seam under it
+
+The ten Advanced lessons require an AlgoKing Pro subscription (ADR-041,
+`docs/pro-access.md`). The layer is pure Kotlin with no Android and no Compose, for the
+reason `AdPolicy` was (ADR-008): rules about what a learner has paid for are worth more as a
+truth table than as conditions inside screens.
+
+```
+BillingGateway  (the seam — one implementation per store)
+      ↓
+SubscriptionRepository   entitlement: StateFlow<ProEntitlement>
+      ↓                  billing:     StateFlow<BillingState>
+ProAccess.decide(category, entitlement) -> OpenLesson | ShowPaywall
+      ↓
+MainActivity — the one call site
+```
+
+Three rules hold this together:
+
+1. **There is no path from a tap to an entitlement.** `SubscriptionRepository` has no method
+   that sets Pro; only a `BillingGateway` can produce `ProEntitlement.Pro`, and only from
+   queried, acknowledged purchases. After a purchase the repository re-reads what the store
+   owns rather than trusting the outcome it was handed.
+2. **Nothing is persisted.** Progress is latched and additive because it is earned (ADR-028);
+   an entitlement must be able to go away on a refund or an expiry, so it is read from the
+   store every time and never cached to disk.
+3. **Access derives from the lesson's category**, so there is no `isPro` flag to keep in step
+   with the Advanced shelf (ADR-032).
+
+**Play Billing is connected** — `com.android.billingclient:billing:8.0.0`, implemented in
+`PlayBillingGateway`, the only file in the app that knows the library exists. It acknowledges
+every new receipt, treats `PENDING` as not entitled, and derives entitlement solely from
+`queryPurchasesAsync`. `UnconfiguredBillingGateway` remains for unit tests and Compose
+previews, and still cannot produce `Pro` in any build type.
+
+The `algoking_pro` subscription has yet to be configured in Play Console; until it is, the
+store reports no such product, the paywall says so and its CTA stays disabled.
+
 ### 10.5 Performance budget
 
 Target: sustained 60 fps on a 3 GB / mid-range 2022 device (`PRODUCT_SPEC.md` §16 assumption 3).

@@ -131,6 +131,16 @@ Supporting notes live in [`docs/`](docs/), including
 inherits — and the Advanced lessons
 [`two-pointers.md`](docs/two-pointers.md) [`prefix-sum.md`](docs/prefix-sum.md) [`graph-dfs.md`](docs/graph-dfs.md) [`graph-bfs.md`](docs/graph-bfs.md) [`dijkstra.md`](docs/dijkstra.md) [`binary-search-tree.md`](docs/binary-search-tree.md) [`avl-tree.md`](docs/avl-tree.md) and [`tree-traversals.md`](docs/tree-traversals.md) — and the newest Sorting lesson [`counting-sort.md`](docs/counting-sort.md).
 
+## Access
+
+Eleven lessons are free and complete — both stages, the full guidance ladder, progress.
+The ten **Advanced** lessons are **AlgoKing Pro**, a Play subscription: tapping one opens a
+paywall rather than the lesson. Pro adds lessons and never takes anything away from a free
+one. Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
+be configured in Play Console before anything can be sold, and until it is the paywall shows
+no price and its CTA stays disabled. See [`docs/pro-access.md`](docs/pro-access.md)
+and ADR-041.
+
 ## Status
 
 **Built:** the engine and all twenty-one lessons · Watch · Try · Complete · Home · six renderers ·

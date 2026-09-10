@@ -41,6 +41,15 @@ object Dimens {
     val chipHeight = 34.dp
     val chipPadding = Spacing.md
     val badgeHeight = 22.dp
+
+    /** The crown in the PRO badge: small enough to sit inside a 22dp pill. */
+    val proBadgeGlyph = 12.dp
+
+    // The paywall. One ornament at the top, sized like an algorithm tile rather
+    // than like an illustration — this is a screen in the app, not a billboard.
+    val paywallCrown = 72.dp
+    val paywallCrownGlyph = 36.dp
+    val tickGlyph = 16.dp
     val badgePadding = 10.dp
 
     val statusColumn = 62.dp

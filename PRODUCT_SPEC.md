@@ -30,8 +30,23 @@ V2:   WATCH → TRY → CHALLENGE → RESULT
 - **A NEW problem tests understanding.** Challenge data is never the Watch data.
 - **Mastery represents demonstrated skill.** Not time spent, not lessons opened.
 
-**Monetization:** free forever, AdMob only.
-**Never:** subscriptions · paid algorithms · locked content · coins · gems · energy · lives · leaderboards · social graph · required login.
+> **⚠ MONETIZATION AMENDMENT — 2026-09-10, product owner.** This section previously read
+> *"free forever, AdMob only"* and listed **subscriptions**, **paid algorithms** and
+> **locked content** under Never. That is reversed: the ten **Advanced** lessons become
+> **AlgoKing Pro**, a Play subscription, and the other eleven stay free. The rest of the
+> Never list stands unchanged. Recorded in full at ADR-041 and `docs/pro-access.md`.
+
+**Monetization:** eleven free lessons, and a **Pro subscription** for the ten Advanced ones.
+Ads remain unbuilt and are now unlikely — §9 stands as written but is no longer the plan.
+
+**Free means complete, not crippled.** A free lesson has both stages, the whole guidance
+ladder and its progress. Pro *adds* lessons; it never removes anything from a free one, never
+gates progress the learner already earned, and never interrupts a free lesson to advertise
+itself. The paywall is reached by tapping a locked lesson, and nothing else in the app pushes
+it.
+
+**Never:** coins · gems · energy · lives · leaderboards · social graph · required login ·
+countdown offers · fake discounts · invented social proof.
 
 ---
 

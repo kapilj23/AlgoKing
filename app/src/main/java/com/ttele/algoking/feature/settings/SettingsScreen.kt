@@ -316,20 +316,30 @@ fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) 
             ),
             InfoSection(
                 heading = "What it never collects",
-                body = "No account, no sign-in, no name, no email address, no contacts, no " +
+                body = "No account with us, no name, no email address, no contacts, no " +
                     "location, no device identifiers, and no advertising ID. The app has no " +
                     "analytics and shows no ads.",
             ),
             InfoSection(
                 heading = "What it sends",
-                body = "Nothing. AlgoKing makes no network requests at all — every lesson runs " +
-                    "on the device, which is why the whole app works in airplane mode.",
+                body = "The lessons send nothing. Every lesson runs on the device, which is " +
+                    "why they all work in airplane mode.\n\nThe one exception is AlgoKing " +
+                    "Pro: opening the paywall asks Google Play for the price, and buying or " +
+                    "restoring a subscription goes through Google Play. Google handles that " +
+                    "payment and tells this app one thing back — whether a subscription is " +
+                    "active. We never see your payment details.",
             ),
             InfoSection(
                 heading = "Removing your data",
                 body = "Clearing the app's storage, or uninstalling it, deletes your progress " +
                     "permanently. There is no copy anywhere else, so there is nothing to ask " +
                     "us to delete.",
+            ),
+            InfoSection(
+                heading = "Your subscription",
+                body = "A Pro subscription belongs to your Google account, not to this app, " +
+                    "and is managed and cancelled in the Play Store. Reinstalling restores it " +
+                    "with Restore purchases.",
             ),
             InfoSection(
                 heading = "Children",
@@ -367,15 +377,17 @@ fun AboutScreen(
                     "have performed well.",
             ),
             InfoSection(
-                heading = "Twenty lessons",
-                body = "Searching, the five sorts, the four structures, and an Advanced shelf " +
-                    "that runs from Two Pointers through the graph algorithms to the trees and " +
-                    "their traversals.",
+                heading = "Twenty-one lessons",
+                body = "Eleven are free: searching, the six sorts, and the four data " +
+                    "structures. Ten are the Advanced shelf — the graph algorithms, the " +
+                    "trees and their traversals — and those are AlgoKing Pro.",
             ),
             InfoSection(
-                heading = "Free, and staying that way",
-                body = "No subscription, no locked lessons, no coins, no energy, no leaderboard " +
-                    "and no login. $versionLabel",
+                heading = "What free means here",
+                body = "Every free lesson is complete: both stages, the full guidance, and " +
+                    "your progress. No ads, no coins, no energy, no leaderboard and no " +
+                    "login. Pro adds lessons; it never takes anything away from the free " +
+                    "ones. $versionLabel",
             ),
         ),
     )

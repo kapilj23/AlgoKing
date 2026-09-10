@@ -284,6 +284,25 @@ Row: **56dp icon tile** → 12dp → **text column (weight 1)** → **status col
 - **Selected variant:** fill becomes `primarySurface`, shadow is removed, and the category badge
   switches to the solid-gradient treatment. Nothing else changes — not the radius, not the padding.
 
+### 6.3a The Pro mark — `ProBadge`
+
+A locked lesson carries **one** difference: a gold `PRO` pill beside its category
+badge — the crown glyph at 12dp, the word in `goldInk` on `goldSoft`, at the
+`CategoryBadge`'s own 22dp height so the two sit on one line.
+
+Gold is already the brand's ornament — the wordmark's crown, the streak bolt — so
+the mark borrows a colour the learner has only ever seen as *nice*. It spends no
+viz hue, and it is deliberately not a padlock.
+
+**Nothing else about a Pro card changes.** No dimming, no lock over the icon tile,
+no greyed title, no altered ring. A locked lesson is an **offer**, and an offer
+that looks broken sells nothing — it also has to keep looking like the library it
+lives in.
+
+`goldInk` `#7A5300` was added for this: the ornament gold is far too light to read
+at `labelSmall` on its own tint, so it has an ink, the same job `onSuccessSoft`
+does for green.
+
 ### 6.4 Category chip — `CategoryChip`
 Pill, 34dp tall, 16dp horizontal padding, `labelMedium`.
 - **Selected:** `primary` gradient fill, white label, `Elevation.card`.

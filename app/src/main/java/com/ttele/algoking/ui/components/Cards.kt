@@ -200,6 +200,13 @@ fun AlgorithmCard(
     status: AlgorithmStatus,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    /**
+     * Marks the card as part of Pro. It changes **one** thing — a small crown pill
+     * beside the category badge — and deliberately nothing else: not the tile, not
+     * the title, not the ring. A locked lesson should read as *more* on offer, not
+     * as damaged goods (DESIGN_SYSTEM.md §6.3a).
+     */
+    pro: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -237,7 +244,13 @@ fun AlgorithmCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Gap(Spacing.xs)
-                CategoryBadge(category, accent, solid = selected)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CategoryBadge(category, accent, solid = selected)
+                    if (pro) {
+                        Gap(Spacing.xxs)
+                        ProBadge()
+                    }
+                }
             }
 
             Gap(Spacing.xs)
@@ -265,6 +278,34 @@ fun AlgorithmCard(
             Gap(Spacing.xs)
             AlgoIcon(AlgoIcons.ChevronRight, AlgoColors.disabled, Dimens.chevron)
         }
+    }
+}
+
+/**
+ * The Pro mark — DESIGN_SYSTEM.md §6.3a.
+ *
+ * A gold crown and the word, on `goldSoft`, at exactly the [CategoryBadge]'s
+ * height so the two sit on one line without either looking bolted on. Gold is
+ * already the app's ornament hue — the wordmark's crown, the streak bolt — so this
+ * borrows a colour the learner has only ever seen as *nice*, rather than spending
+ * a viz hue or reaching for a padlock.
+ *
+ * It is the **only** difference a Pro card carries. No dimming, no lock over the
+ * tile, no greyed title: a lesson behind Pro is an offer, and an offer that looks
+ * broken sells nothing.
+ */
+@Composable
+fun ProBadge(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .height(Dimens.badgeHeight)
+            .background(AlgoColors.goldSoft, Radius.pill)
+            .padding(horizontal = Dimens.badgePadding),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AlgoIcon(AlgoIcons.Crown, AlgoColors.gold, Dimens.proBadgeGlyph)
+        Gap(Spacing.xxs)
+        Text("PRO", style = AlgoType.labelSmall, color = AlgoColors.goldInk)
     }
 }
 

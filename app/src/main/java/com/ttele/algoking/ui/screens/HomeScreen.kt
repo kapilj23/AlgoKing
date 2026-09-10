@@ -23,6 +23,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import com.ttele.algoking.billing.ProAccess
 import com.ttele.algoking.engine.progress.LearningProgress
 import com.ttele.algoking.ui.components.AlgoHeader
 import com.ttele.algoking.ui.components.AlgoScreen
@@ -129,6 +130,9 @@ fun HomeScreen(
                         glyph = entry.glyph,
                         status = statusFor(progress[entry.id]),
                         selected = entry.id == inProgress?.id,
+                        // Derived from the category, never stored per entry —
+                        // there is one definition of what Pro covers (ADR-041).
+                        pro = ProAccess.requiresPro(entry.category),
                         modifier = gutter,
                         onClick = { onOpenAlgorithm(entry) },
                     )

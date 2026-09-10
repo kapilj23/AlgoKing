@@ -52,6 +52,13 @@ object AlgoColors {
     val gold = Color(0xFFFBA90A)
     val goldSoft = Color(0xFFFDF4DF)
 
+    /**
+     * Text on [goldSoft] — the PRO badge. The ornament gold is far too light to
+     * read at labelSmall on its own tint, so this is its ink, the same job
+     * [onSuccessSoft] does for green. 6:1 on goldSoft.
+     */
+    val goldInk = Color(0xFF7A5300)
+
     // ── Surfaces & neutrals (blue-violet biased; never pure grey) ─────────────
     val background = Color(0xFFFCFCFD)
     val backgroundGlowWarm = Color(0xFFFDF3F9)
@@ -146,6 +153,17 @@ object AlgoGradients {
 
     /** Algorithm icon tiles and badges, keyed off the accent. */
     fun accentTile(accent: AlgoAccent) = diagonal(accent.light, accent.core)
+
+    /**
+     * The one gold-filled surface in the app: the paywall's crown tile.
+     *
+     * Gold is the brand's ornament — the wordmark's crown, the streak bolt — and
+     * this is the single place it fills a shape rather than drawing a glyph. It is
+     * deliberately the same 72dp tile geometry an algorithm card uses, so the
+     * paywall opens on something the learner recognises from the library rather
+     * than on an illustration.
+     */
+    fun goldTile() = diagonal(Color(0xFFFECD4D), AlgoColors.gold)
 
     /** Array bars — vertical, light at the top. */
     fun bar(top: Color, bottom: Color) = vertical(top, bottom)
