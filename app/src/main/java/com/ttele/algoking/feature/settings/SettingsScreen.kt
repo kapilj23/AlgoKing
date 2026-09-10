@@ -68,10 +68,20 @@ import com.ttele.algoking.ui.theme.algoShadow
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     versionLabel: String = "",
+    /**
+     * Whether UMP says this learner must be able to change their ad consent.
+     *
+     * The SDK decides, from their region and what they were asked. Being able to
+     * withdraw consent is part of having asked for it — but a row that opened a
+     * form for someone who was never asked would be noise, so the entry point
+     * appears exactly when it is required (`docs/ads.md`).
+     */
+    privacyOptionsRequired: Boolean = false,
     onBack: () -> Unit = {},
     onRate: () -> Unit = {},
     onOpenPrivacy: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
+    onPrivacyOptions: () -> Unit = {},
 ) {
     AlgoScreen(modifier) {
         Column(Modifier.fillMaxSize()) {
@@ -145,6 +155,18 @@ fun SettingsScreen(
                     description = "What AlgoKing is for, and how a lesson actually works.",
                     onClick = onOpenAbout,
                 )
+
+                // Only when UMP says it is required — which is the only time it
+                // has anything to open.
+                if (privacyOptionsRequired) {
+                    SettingsCard(
+                        icon = AlgoIcons.Shield,
+                        accent = AlgoAccent.Green,
+                        title = "Ad privacy options",
+                        description = "Change the advertising choices you made for this app.",
+                        onClick = onPrivacyOptions,
+                    )
+                }
 
                 Gap(Spacing.xs)
             }

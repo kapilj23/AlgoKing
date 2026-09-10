@@ -1,7 +1,7 @@
 # Advertising in AlgoKing
 
-**Status:** implemented · production ad units configured · 2026-09-10
-**Decision:** ADR-042 · **Spec:** `PRODUCT_SPEC.md` §9, amended
+**Status:** implemented · production ad units configured · UMP consent gathered · 2026-09-10
+**Decisions:** ADR-042 (placement) · ADR-043 (consent) · **Spec:** `PRODUCT_SPEC.md` §9, amended
 
 ---
 
@@ -83,6 +83,8 @@ layer (ADR-041); there is no second Pro flag.
 ## Architecture
 
 ```
+ConsentManager           UMP: gathered every launch; canRequestAds is the gate
+        ↓
 AlgoKingApplication      MobileAds.initialize, once, on a background thread
         ↓
 InterstitialAds          load / ready / show / dismiss / failure / preload
@@ -124,6 +126,51 @@ production ids are pinned exactly, and — reading `build.gradle.kts` from the t
 "changed one, forgot the other" mistake, caught by a test rather than by an ad
 unit that silently never fills.
 
+## Consent — UMP
+
+Google's **User Messaging Platform**, the certified CMP required for EEA, UK and
+Swiss users. It arrives with `play-services-ads` 24.7.0 (as `user-messaging-platform`
+3.2.0) and is not declared separately. `ConsentManager` is the only file that
+knows it exists.
+
+```
+every launch:  requestConsentInfoUpdate            <- regions and rules change
+               loadAndShowConsentFormIfRequired    <- UMP decides if a form is shown
+               canRequestAds()                     <- the gate
+                     ↓  and not Pro
+               MobileAds.initialize (once) -> preload
+```
+
+**Nothing is requested before consent allows it.** `MobileAds.initialize` is not
+called in `Application.onCreate`; it hangs off the consent result, guarded by an
+`AtomicBoolean` so it can only ever run once. The gate itself is a pure function —
+`AdPolicy.mayRequestAds(entitlement, canRequestAds)` — so it is tested without a
+device.
+
+| | |
+|---|---|
+| **Refreshed** | every launch. A learner's region, the rules for it, and the consent they gave can all change between sessions. |
+| **Form shown** | only when `loadAndShowConsentFormIfRequired` says so. Most learners here — India-weighted (`PRODUCT_SPEC.md` §16) — will never see one. |
+| **The form** | Google's own, from the AdMob Privacy & Messaging configuration. There is no custom dialog: one would not produce a valid TCF consent string and would not be a certified CMP. |
+| **Pro** | information refreshed, **no form, no ad request**. Nobody is asked to consent to advertising they have paid to not see. |
+| **On failure** | `canRequestAds` stays false. No SDK, no request, no message — every lesson behaves identically. |
+
+### Privacy options
+
+When UMP reports `privacyOptionsRequirementStatus == REQUIRED`, Settings shows an
+**Ad privacy options** row that opens Google's own form. Being able to withdraw
+consent is part of having asked for it. When it is not required the row does not
+exist — one that opened a consent form for someone never asked to consent is
+noise.
+
+### Testing the form outside the EEA
+
+`ConsentDebugSettings` can force `DEBUG_GEOGRAPHY_EEA`, wired in **debug builds
+only** and only once a hashed test-device id is added by hand to
+`ConsentManager.TEST_DEVICE_HASHED_IDS`. That list ships empty, so the override is
+inert by default; run the app once and take the hashed id UMP logs. `reset()` is
+debug-only too — in a release build it would re-ask every learner on every launch.
+
 ## Privacy and Play Console
 
 The in-app privacy copy has been updated in the same change: it now says free
@@ -142,10 +189,12 @@ it is required for targetSdk 33+ and must be declared in Data Safety.
 
 ## Still required before release
 
-1. **UMP / consent.** `PRODUCT_SPEC.md` §9 requires the UMP consent SDK in the
-   first build for GDPR/DMA, and **it is not implemented**. Serving personalised
-   ads in the EEA/UK without a consent flow is a compliance problem, not a polish
-   item. This is the blocker.
-2. **Data Safety declarations** in Play Console.
-3. **A device pass**: test ad shows after a free completion, does not show for
-   Pro, does not show twice, and the app carries on when it fails to load.
+1. **Configure Privacy & Messaging in the AdMob console** — the GDPR message and
+   the privacy-options form. UMP renders whatever is configured there; with nothing
+   configured no form can be shown, so in regions that require one `canRequestAds`
+   stays false and no ads serve. The SDK side is done; this is the console side.
+2. **Data Safety declarations** in Play Console, covering the advertising ID the
+   SDK's merged `AD_ID` permission allows.
+3. **A device pass**: the ad shows after a free completion, does not show for Pro,
+   does not show twice, the app carries on when it fails to load, and — with a
+   forced EEA geography — the consent form appears and the Settings row with it.

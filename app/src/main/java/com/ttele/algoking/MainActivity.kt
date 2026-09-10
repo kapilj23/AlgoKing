@@ -52,6 +52,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -142,6 +143,29 @@ private fun AlgoKingApp() {
     // it. `AdPolicy` refuses it anyway; this throws it away as well.
     LaunchedEffect(entitlement) {
         if (entitlement.isPro) interstitials?.discard() else interstitials?.resume()
+    }
+
+    // Consent, on **every launch** — a learner's region and the rules for it can
+    // both change between sessions (docs/ads.md). UMP decides whether a form is
+    // shown at all; a Pro subscriber is never asked, because they will never see
+    // an ad to consent to. Ads start only once this says they may, and if it never
+    // does, nothing here notices and every lesson works as it always did.
+    val consent = remember(application) { application?.consent }
+    val canRequestAds by (consent?.canRequestAds ?: remember { MutableStateFlow(false) })
+        .collectAsState()
+    val privacyOptionsRequired by
+        (consent?.privacyOptionsRequired ?: remember { MutableStateFlow(false) })
+            .collectAsState()
+
+    LaunchedEffect(activity, entitlement) {
+        val host = activity ?: return@LaunchedEffect
+        consent?.gather(host, showFormIfRequired = !entitlement.isPro)
+    }
+
+    LaunchedEffect(canRequestAds, entitlement) {
+        if (AdPolicy.mayRequestAds(entitlement, canRequestAds)) {
+            application?.initializeAdsOnce()
+        }
     }
 
     // What the finished lesson cost, for the completion screen.
@@ -240,6 +264,11 @@ private fun AlgoKingApp() {
 
         Route.Settings -> SettingsScreen(
             versionLabel = versionLabel,
+            // UMP decides whether this learner gets the row at all.
+            privacyOptionsRequired = privacyOptionsRequired,
+            onPrivacyOptions = {
+                activity?.let { host -> consent?.showPrivacyOptions(host) }
+            },
             onBack = { route = Route.Home },
             // The store listing is another app's job, so the intent is fired here
             // rather than inside the screen, which stays a function of its

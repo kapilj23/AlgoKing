@@ -2161,6 +2161,87 @@ production unit is invalid traffic, and AdMob suspends accounts for it.
 - *Retrying a failed load on a timer.* Rejected: a learner with no signal would generate a
   request per completion forever, and the payoff is an ad nobody asked for.
 
+
+---
+
+## ADR-043 — Consent is gathered before the ads SDK starts, not after
+
+**Decision.** Google's **User Messaging Platform** gathers consent on every launch, and
+`MobileAds.initialize` runs only once UMP reports `canRequestAds()`. A Pro subscriber is
+never asked. When UMP says a privacy-options entry point is required, Settings grows one.
+Full detail: `docs/ads.md`.
+
+**Why it had to be this order.** The tempting shape is to initialise the SDK at startup and
+gather consent alongside it — the app feels the same and the ad is ready sooner. It is also
+the shape that gets an app's ad serving restricted: under GDPR and the DMA, using the
+advertising ID to personalise ads is processing personal data, and AdMob policy requires a
+certified CMP for EEA, UK and Swiss users **before** that happens. An SDK initialised first
+has already started before anyone has been asked.
+
+So the sequence is `requestConsentInfoUpdate` → `loadAndShowConsentFormIfRequired` →
+`canRequestAds()` → `initializeAdsOnce()`, and nothing requests an ad before the last step.
+
+### Every launch, and the form only when UMP says so
+
+Consent information is refreshed on **every** launch, because a learner's region and the
+rules that apply to it can both change between sessions — and because the consent they gave
+can expire. What is *not* done every launch is showing a form:
+`loadAndShowConsentFormIfRequired` decides that from the actual region and consent state. On
+an India-weighted audience (`PRODUCT_SPEC.md` §16) most learners will never see one, and
+that is the SDK's answer rather than an assumption made here.
+
+**No custom dialog.** The form is Google's, rendered from the Privacy & Messaging
+configuration in the AdMob console. A hand-rolled one would not produce a valid TCF consent
+string and would not be a certified CMP, so it would look like compliance while being none.
+
+### Failure leaves the app exactly as it was
+
+If the update fails, the form fails to load, or the learner declines, `canRequestAds` stays
+false: the ads SDK is never initialised, no ad is ever requested, and every lesson behaves
+identically. Nothing waits on consent machinery and the learner is never told about it —
+the same rule ADR-042 set for ad availability, applied one layer earlier.
+
+The gate is a pure function, `AdPolicy.mayRequestAds(entitlement, canRequestAds)`, so the
+rule is testable without a device or a network.
+
+### Pro is not asked to consent to advertising it will never see
+
+A subscriber's consent information is still refreshed — so that someone who consented while
+free keeps their privacy-options entry and can withdraw, and so a lapsed subscription finds
+the state current — but no form is shown and no ad is requested. Asking a paying learner to
+consent to ad personalisation would be a dark pattern in miniature: a question whose only
+possible purpose is a thing they have paid to not have.
+
+### The privacy-options entry point appears exactly when it is required
+
+Being able to withdraw consent is part of having asked for it, so when
+`privacyOptionsRequirementStatus` is `REQUIRED` Settings shows an **Ad privacy options** row
+that opens Google's own form. When it is not required the row does not exist — a row that
+opened a consent form for someone who was never asked to consent is noise, and it makes the
+Settings screen a worse answer to "what can I change here?".
+
+### Testing it outside the EEA
+
+`ConsentDebugSettings` can force the geography, and it is wired in — but only in a
+debuggable build, and only when a hashed test-device id has been added by hand. The id list
+ships **empty**, so the override is inert by default: a populated list checked into a
+release would be a developer's own device steering real behaviour. `reset()` is likewise
+debug-only; in a release build it would re-ask every learner on every launch.
+
+**Alternatives considered.**
+- *Initialise ads at startup and gather consent in parallel.* Rejected above — it is the
+  arrangement the requirement exists to prevent.
+- *A custom consent dialog matching the design system.* Rejected: not a certified CMP, no
+  valid consent string, and it would look like compliance while providing none. This is one
+  of the few places in the app where Google's own UI is the right answer.
+- *Show the form to everyone, to keep the code simple.* Rejected: it is exactly the
+  "unnecessary form" the guidance warns about, and it would ask most of this app's learners
+  a question their region does not require.
+- *Ask Pro subscribers too, for uniformity.* Rejected above.
+- *Declaring `user-messaging-platform` explicitly in the version catalog.* Rejected as a
+  duplicate: it arrives with `play-services-ads` 24.7.0 (as 3.2.0), and pinning a second
+  version is how the two drift.
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

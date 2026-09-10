@@ -7,6 +7,7 @@ import com.ttele.algoking.ads.AdUnits
 import com.ttele.algoking.ads.Placement
 import com.ttele.algoking.billing.ProEntitlement
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -167,6 +168,39 @@ class AdPolicyTest {
                 ),
             )
         }
+    }
+
+    // ── The consent gate: may an ad even be requested? ───────────────────────
+
+    @Test
+    fun `no ad is requested until consent allows it`() {
+        // UMP reports false until the consent state is known, and stays false if
+        // the learner declined or the check failed. Either way nothing is fetched
+        // — which is the difference between "we did not show an ad" and "we did
+        // not collect anything to show one with".
+        assertFalse(AdPolicy.mayRequestAds(ProEntitlement.Free, canRequestAds = false))
+        assertFalse(AdPolicy.mayRequestAds(ProEntitlement.Unknown, canRequestAds = false))
+        assertTrue(AdPolicy.mayRequestAds(ProEntitlement.Free, canRequestAds = true))
+    }
+
+    @Test
+    fun `a Pro subscriber never requests an ad, consent or not`() {
+        // Not merely "never shown" — never fetched. There is no point spending a
+        // request on something that cannot be displayed.
+        assertFalse(AdPolicy.mayRequestAds(ProEntitlement.Pro, canRequestAds = true))
+        assertFalse(AdPolicy.mayRequestAds(ProEntitlement.Pro, canRequestAds = false))
+    }
+
+    @Test
+    fun `requesting and showing are separate questions`() {
+        // Consent gates the request; entitlement and repetition gate the display.
+        // A learner can be allowed to request and still not be shown one — which
+        // is exactly what happens on the second visit to the same Complete screen.
+        assertTrue(AdPolicy.mayRequestAds(ProEntitlement.Free, canRequestAds = true))
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.ALREADY_SHOWN_FOR_COMPLETION),
+            decide(completionId = 3, lastShown = 3),
+        )
     }
 
     // ── Test units ───────────────────────────────────────────────────────────

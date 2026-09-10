@@ -49,6 +49,23 @@ sealed interface AdDecision {
 object AdPolicy {
 
     /**
+     * Whether an ad may be **requested from the network at all**.
+     *
+     * A different question from [decide], and asked earlier. Two things have to be
+     * true before a single request goes out:
+     *
+     * - the learner is not a subscriber — a Pro learner never sees an ad, so
+     *   fetching one would be traffic spent on something that cannot be shown;
+     * - UMP says consent allows it (`ConsentManager.canRequestAds`), which is
+     *   false until the consent state is known, and stays false if the learner
+     *   declined or the check failed.
+     *
+     * Nothing else in the app requests an ad, so this is the whole gate.
+     */
+    fun mayRequestAds(entitlement: ProEntitlement, canRequestAds: Boolean): Boolean =
+        !entitlement.isPro && canRequestAds
+
+    /**
      * Whether the one interstitial may be shown right now.
      *
      * @param entitlement what the learner owns, from the billing layer — there is

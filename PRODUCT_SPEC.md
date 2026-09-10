@@ -450,6 +450,8 @@ it comparable between friends with zero social infrastructure.
 > The banner, interstitial-cap and rewarded tables below described a plan built around the
 > CHALLENGE stage and the Daily Challenge, neither of which exists; they are retained as the
 > reasoning trail. Where they and this amendment disagree, the amendment wins.
+> Consent is gathered with Google's UMP before the ads SDK is initialised, and a privacy
+> options entry point appears in Settings when UMP says one is required (ADR-043).
 > Full detail: `docs/ads.md`.
 >
 > **The exit-path rule is amended, not dropped.** It was written to stop an ad landing on a

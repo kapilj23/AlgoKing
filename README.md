@@ -140,8 +140,11 @@ one.
 
 **Ads are one interstitial**, shown to a free learner after they finish a lesson's TRY run,
 and nowhere else — no banner, no rewarded ad, nothing during a lesson, nothing on Home.
-Pro subscribers see none at all. The build runs on Google's test ad units, and UMP consent
-is not implemented yet ([`docs/ads.md`](docs/ads.md)). Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
+Pro subscribers see none at all. Google's UMP gathers consent before any ad is requested,
+and production ad units are configured — debug builds stay on Google's test units, so a
+developer's own device can never touch the real one ([`docs/ads.md`](docs/ads.md)).
+
+Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
 be configured in Play Console before anything can be sold, and until it is the paywall shows
 no price and its CTA stays disabled. See [`docs/pro-access.md`](docs/pro-access.md)
 and ADR-041.
