@@ -25,6 +25,11 @@ import com.ttele.algoking.feature.complete.LessonCompleteScreen
 import com.ttele.algoking.feature.lesson.LessonScreen
 import com.ttele.algoking.feature.lesson.Phase
 import com.ttele.algoking.feature.lesson.WatchScreen
+import com.ttele.algoking.feature.settings.AboutScreen
+import com.ttele.algoking.feature.settings.PrivacyPolicyScreen
+import com.ttele.algoking.feature.settings.SettingsScreen
+import com.ttele.algoking.feature.settings.openPlayStoreListing
+import com.ttele.algoking.feature.settings.rememberVersionLabel
 import com.ttele.algoking.ui.screens.HomeScreen
 import com.ttele.algoking.ui.theme.AlgoKingTheme
 import kotlinx.coroutines.launch
@@ -46,6 +51,11 @@ private sealed interface Route {
     data class Watch(val algorithm: AlgorithmId) : Route
     data class TryIt(val algorithm: AlgorithmId) : Route
     data class Complete(val algorithm: AlgorithmId) : Route
+
+    /** Settings and the two pages it opens. Reached from Home's gear, and only there. */
+    data object Settings : Route
+    data object Privacy : Route
+    data object About : Route
 }
 
 class MainActivity : ComponentActivity() {
@@ -65,6 +75,7 @@ private fun AlgoKingApp() {
     // on the next frame — no restart, no manual refresh.
     val context = LocalContext.current
     val progressRepository = remember(context) { ProgressRepository(context) }
+    val versionLabel = rememberVersionLabel()
     val progress by progressRepository.progress.collectAsState(LearningProgress.EMPTY)
     val scope = rememberCoroutineScope()
     fun markComplete(id: AlgorithmId, stage: Stage) {
@@ -90,6 +101,25 @@ private fun AlgoKingApp() {
                     else -> Route.Watch(entry.id)
                 }
             },
+            onOpenSettings = { route = Route.Settings },
+        )
+
+        Route.Settings -> SettingsScreen(
+            versionLabel = versionLabel,
+            onBack = { route = Route.Home },
+            // The store listing is another app's job, so the intent is fired here
+            // rather than inside the screen, which stays a function of its
+            // arguments (ARCHITECTURE.md §2).
+            onRate = { openPlayStoreListing(context) },
+            onOpenPrivacy = { route = Route.Privacy },
+            onOpenAbout = { route = Route.About },
+        )
+
+        Route.Privacy -> PrivacyPolicyScreen(onBack = { route = Route.Settings })
+
+        Route.About -> AboutScreen(
+            versionLabel = versionLabel,
+            onBack = { route = Route.Settings },
         )
 
         is Route.Watch -> LessonFlow(current.algorithm) { pack ->

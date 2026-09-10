@@ -139,6 +139,44 @@ object AlgoIcons {
 
     val Check: ImageVector by lazy { stroked("M5.2 12.6 9.7 17.2 18.8 7.2", width = 2.8f) }
 
+    // ── Settings ──────────────────────────────────────────────────────────────
+
+    /**
+     * The gear that opens Settings — a six-lobed cog around an open centre.
+     *
+     * The outline is a **computed polygon**, not a hand-drawn arc path: six teeth
+     * at 60°, flanks at ±10.5° on a 9.4 radius dropping to 6.3 in the valleys,
+     * with the round joins doing the softening. Curves eyeballed at this size come
+     * out lopsided, and a cog is the one glyph where that is obvious.
+     */
+    val Settings: ImageVector by lazy {
+        stroked(
+            "M10.29 2.76 L13.71 2.76 L13.74 5.94 L16.38 7.47 L19.15 5.90 L20.86 8.86 " +
+                "L18.11 10.48 L18.11 13.52 L20.86 15.14 L19.15 18.10 L16.38 16.53 L13.74 18.06 " +
+                "L13.71 21.24 L10.29 21.24 L10.26 18.06 L7.62 16.53 L4.85 18.10 L3.14 15.14 " +
+                "L5.89 13.52 L5.89 10.48 L3.14 8.86 L4.85 5.90 L7.62 7.47 L10.26 5.94 Z",
+            circle(12f, 12f, 3.0f),
+            width = 2f,
+        )
+    }
+
+    /** Rate the app — the only star in the set, and it is never a score. */
+    val Star: ImageVector by lazy {
+        filled(
+            "M12 3.3a.7.7 0 0 1 .63.4l2.3 4.66 5.14.75a.7.7 0 0 1 .39 1.2l-3.72 3.62.88 5.12" +
+                "a.7.7 0 0 1-1.02.74L12 17.37l-4.6 2.42a.7.7 0 0 1-1.02-.74l.88-5.12-3.72-3.62" +
+                "a.7.7 0 0 1 .39-1.2l5.14-.75 2.3-4.66a.7.7 0 0 1 .63-.4z",
+        )
+    }
+
+    /** Privacy — a shield, with the tick that says the data stayed put. */
+    val Shield: ImageVector by lazy {
+        stroked(
+            "M12 3.1 19.2 6v5.5c0 4.28-2.98 7.77-7.2 9.4-4.22-1.63-7.2-5.12-7.2-9.4V6z",
+            "M9.1 11.9 11.3 14.1 15 10.2",
+        )
+    }
+
     // ── Brand ornaments (always solid) ────────────────────────────────────────
 
     val Crown: ImageVector by lazy {

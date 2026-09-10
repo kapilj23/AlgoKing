@@ -30,6 +30,8 @@ import com.ttele.algoking.ui.components.AlgoWordmark
 import com.ttele.algoking.ui.components.AlgorithmCard
 import com.ttele.algoking.ui.components.CategoryChip
 import com.ttele.algoking.ui.components.Gap
+import com.ttele.algoking.ui.components.IconTileButton
+import com.ttele.algoking.ui.icons.AlgoIcons
 import com.ttele.algoking.ui.theme.AlgoColors
 import com.ttele.algoking.ui.theme.AlgoKingTheme
 import com.ttele.algoking.ui.theme.AlgoType
@@ -57,6 +59,7 @@ fun HomeScreen(
      */
     progress: LearningProgress = LearningProgress.EMPTY,
     onOpenAlgorithm: (AlgorithmEntry) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
 ) {
     // The highlighted card is the one the learner is in the middle of — started,
     // not yet mastered. Nothing is hardcoded, so an untouched install highlights
@@ -76,11 +79,20 @@ fun HomeScreen(
 
     AlgoScreen(modifier) {
         Column(Modifier.fillMaxSize()) {
-            // Wordmark only. The crown tile and the search tile were affordances for
-            // a profile and a search that the MVP does not have.
+            // The wordmark, and one gear. The crown tile and the search tile were
+            // affordances for a profile and a search that the MVP does not have;
+            // the gear is the settings entry PRODUCT_SPEC.md §10 puts behind the
+            // Progress tab, parked in the only destination there is.
             AlgoHeader(
                 modifier = Modifier.statusBarsPadding(),
                 center = { AlgoWordmark() },
+                trailing = {
+                    IconTileButton(
+                        icon = AlgoIcons.Settings,
+                        tint = AlgoColors.textSecondary,
+                        onClick = onOpenSettings,
+                    )
+                },
             )
 
             LazyColumn(
