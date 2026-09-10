@@ -26,6 +26,17 @@ android {
             optimization {
                 enable = false
             }
+            // PRODUCTION AdMob app id. Its matching interstitial unit is
+            // `AdUnits.PRODUCTION_INTERSTITIAL` — the two share a publisher id and
+            // must always be changed together (docs/ads.md).
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-2478174291729626~9594340402"
+        }
+        debug {
+            // Google's TEST app id. A debug build never touches the production
+            // account: impressions and clicks from a developer's own device are
+            // invalid traffic, and AdMob suspends accounts for it. The unit id is
+            // switched to match at runtime, off the debuggable flag.
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
         }
     }
     compileOptions {
@@ -48,6 +59,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.billing)
+    implementation(libs.play.services.ads)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

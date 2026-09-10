@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".AlgoKingApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -11,6 +12,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AlgoKing">
+
+        <!--
+            The AdMob app id, per build type — see `buildTypes` in build.gradle.kts:
+            release gets the production id, debug gets Google's test id. The unit
+            id is switched to match in `ads/AdUnits.kt`, so a build is always
+            wholly test or wholly production and never a mix (docs/ads.md).
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -13,8 +13,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.ttele.algoking.ads.AdDecision
+import com.ttele.algoking.ads.AdPolicy
+import com.ttele.algoking.ads.Placement
 import com.ttele.algoking.analytics.Analytics
 import com.ttele.algoking.analytics.MonetizationEvent
 import com.ttele.algoking.analytics.NoopAnalytics
@@ -44,6 +48,10 @@ import com.ttele.algoking.feature.settings.rememberVersionLabel
 import com.ttele.algoking.ui.screens.HomeScreen
 import com.ttele.algoking.ui.screens.algorithmLibrary
 import com.ttele.algoking.ui.theme.AlgoKingTheme
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -119,6 +127,22 @@ private fun AlgoKingApp() {
 
     // Bumped to start a stage over from scratch rather than resuming a finished run.
     var attempt by remember { mutableIntStateOf(0) }
+
+    // The ad layer. `interstitials` lives on the Application — one instance, one
+    // initialisation — and the Activity is passed in at show time rather than
+    // held, so nothing here can leak a window or show into a finishing one.
+    val application = context.applicationContext as? AlgoKingApplication
+    val interstitials = remember(application) { application?.interstitials }
+    val activity = remember(context) { context.findActivity() }
+    var completionId by rememberSaveable { mutableIntStateOf(0) }
+    var lastAdCompletion by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    // A subscription bought mid-session stops ads immediately, including one
+    // already in hand: an ad loaded before the purchase must not be shown after
+    // it. `AdPolicy` refuses it anyway; this throws it away as well.
+    LaunchedEffect(entitlement) {
+        if (entitlement.isPro) interstitials?.discard() else interstitials?.resume()
+    }
 
     // What the finished lesson cost, for the completion screen.
     var lastRun by remember { mutableStateOf<Metrics?>(null) }
@@ -257,12 +281,44 @@ private fun AlgoKingApp() {
                 onStageComplete = { markComplete(current.algorithm, Stage.TRY) },
                 onFinishLesson = { controller ->
                     lastRun = controller.finalMetrics()
+                    // Each finished run gets its own id. It is what makes "one
+                    // completion, at most one ad" true no matter how many times
+                    // Compose recomposes or the screen is rotated.
+                    completionId += 1
                     route = Route.Complete(current.algorithm)
                 },
             )
         }
 
         is Route.Complete -> LessonFlow(current.algorithm) { pack ->
+            // **The only ad in the app.** The learner has finished TRY and is
+            // looking at how the run went; the lesson is over, so nothing is
+            // interrupted. Whether it may actually show is `AdPolicy`'s decision,
+            // and the answer is no for a Pro subscriber, no for a completion that
+            // has already had its turn, and no when nothing is loaded — in which
+            // case the learner simply carries on (docs/ads.md).
+            LaunchedEffect(completionId, entitlement) {
+                // A beat, so the metrics and the takeaway land before anything
+                // covers them. Completion feedback first; the ad is the thing
+                // that comes after.
+                delay(AD_SETTLE_MS)
+                val ads = interstitials
+                val host = activity
+                val decision = AdPolicy.decide(
+                    placement = Placement.LESSON_COMPLETE,
+                    entitlement = entitlement,
+                    completionId = completionId,
+                    lastShownForCompletion = lastAdCompletion,
+                    adReady = ads?.isReady == true,
+                )
+                if (decision is AdDecision.Show && ads != null && host != null) {
+                    // Recorded before the ad opens, so a recomposition while it is
+                    // on screen cannot queue a second one.
+                    lastAdCompletion = completionId
+                    ads.show(host)
+                }
+            }
+
             LessonCompleteScreen(
                 algorithmName = pack.displayName,
                 algorithmId = pack.id,
@@ -349,3 +405,29 @@ private fun LessonFlow(
     val pack = remember(id) { AlgorithmCatalog.byId(id) as LessonPack<Any, Action> }
     content(pack)
 }
+
+/**
+ * The Activity behind a Compose `LocalContext`, or null.
+ *
+ * An interstitial needs a real window to show into. Walking the wrapper chain is
+ * the supported way to find one, and returning null rather than casting means a
+ * context that is not an Activity is a "no ad" — never a crash.
+ */
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
+}
+
+/**
+ * How long the Complete screen has to itself before an ad may cover it.
+ *
+ * The rule is that completion feedback comes first (`docs/ads.md`): the learner
+ * finished the lesson, and what they earned is the point of the screen. Long
+ * enough to read the metric row and register the takeaway; short enough that the
+ * ad still reads as part of the same beat rather than as an ambush later on.
+ */
+private const val AD_SETTLE_MS = 1_200L

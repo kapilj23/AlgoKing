@@ -2069,6 +2069,98 @@ in (DESIGN_SYSTEM.md §6.3a).
 - *Putting the paywall behind Settings as well.* Rejected for now: one entry point, reached
   by wanting a specific lesson, is the least pushy thing that still works.
 
+
+---
+
+## ADR-042 — One interstitial, after the lesson, for free learners only
+
+**Decision.** AlgoKing shows **interstitial ads only, to free learners, once, after a TRY
+run is finished**, on the Complete screen. No banner, no rewarded, no native, no app-open,
+and no second placement anywhere. Pro subscribers see nothing. Full detail: `docs/ads.md`.
+
+**Why this shape.** `PRODUCT_SPEC.md` §9 already argued the hard part: an ad that interrupts
+learning costs more than it earns, and the rules are subtle enough that scattering them
+across navigation callbacks guarantees drift. What changed is that the assessment stage §9
+was written around no longer exists, and Pro now does the earning — so the ad surface could
+shrink to the smallest thing that still makes sense: the moment a lesson is genuinely over.
+
+### `Placement` has one member, on purpose
+
+The enum could have been a string, or a boolean, or nothing at all. Making it a one-member
+enum means **a new ad placement cannot be added by writing a call site** — someone has to
+edit the policy file, which is exactly where the argument about whether a banner belongs on
+Home should happen. It is the same reasoning ADR-008 used to make ads structurally
+unreachable from lesson code, applied to a codebase that now has an ad in it.
+
+### Where it fires, and why not on the exit tap
+
+§9 said "ads fire on exit paths, never forward paths", which implies the interstitial belongs
+on the tap that leaves the Complete screen. That is **not** what shipped, and the reason is
+that §9's own rule forbids it: two of the three exits from Complete — *Next algorithm* and
+*Try again* — lead **into** more learning, and an interstitial there is precisely the
+forward-path ad the section prohibits. Attaching it to the third exit only would mean the ad
+depends on which button the learner reaches for, which is worse than either.
+
+So it fires on **arrival** at Complete, after a 1.2 second settle. The learner has finished,
+the metrics and the takeaway have landed, and nothing sits between them and a lesson. §9 is
+amended to say so rather than left contradicting the code.
+
+### One completion, one opportunity — and it is not a convention
+
+Each finished run mints a `completionId`; the policy refuses any id it has already shown
+for; the id is `rememberSaveable`, so a rotation or process death cannot resurrect the
+opportunity; and `InterstitialAds.show` clears the loaded ad *before* presenting it, so a
+double call has nothing left to show. Four independent mechanisms, because Compose
+recomposition is not a thing to be careful about — it is a thing to be immune to.
+
+### Availability is never the learner's problem
+
+Failed load, no fill, no network, no Activity, an SDK error, a presentation that does not
+take: all of them end with the app carrying on and the next ad requested quietly. Three
+consecutive failures stop the requests until something succeeds, so an offline device does
+not burn battery asking. **Nothing is ever said to the learner about an ad** — no error, no
+"watch this to continue", no placeholder, no container. The app looks identical when no ad
+is showing, which is the point.
+
+### Pro is checked first, and the loaded ad is thrown away
+
+The order of the conditions is load-bearing: entitlement is tested before anything else, so
+no combination of "already loaded" and "not yet shown" can reach a subscriber. On top of
+that, the moment entitlement turns Pro the loaded ad is discarded and loading stops — an ad
+fetched while the learner was free must not be shown to them after they pay for its absence.
+Entitlement comes from the billing layer built in ADR-041; there is no second Pro flag.
+
+### The SDK is initialised once, off the main thread
+
+`AlgoKingApplication` is the class `ARCHITECTURE.md` §3 always named and never needed until
+now. `MobileAds.initialize` does disk and network work, and on the mid-range devices this app
+targets (`PRODUCT_SPEC.md` §16) that is a visible hitch on the first frame — so it runs on a
+background thread, and the first ad is requested from its callback. No screen initialises the
+SDK, and nothing re-initialises it.
+
+`InterstitialAds` holds the **application** context and takes the Activity as a parameter to
+`show`. A long-lived singleton with an Activity field is the classic leak, and it is also how
+an ad ends up presented into a window that is already finishing.
+
+### Test units ship, and a test says so
+
+The build points at Google's sample app id and interstitial unit. `AdPolicyTest` asserts
+that — the test failing is the signal that a production unit was set, and a reminder that
+the manifest's `APPLICATION_ID` is the other half of the same change. Testing against a
+production unit is invalid traffic, and AdMob suspends accounts for it.
+
+**Alternatives considered.**
+- *A banner on Home.* Rejected: §9 forbade it before there was any ad code, and a permanent
+  ad container contradicts the one thing the design system is for.
+- *A rewarded ad for a hint.* Rejected: hints belong to CHALLENGE, which does not exist, and
+  the guidance ladder deliberately arrives without the learner having to ask (ADR-031).
+- *An ad on the exit tap from Complete.* Rejected above.
+- *Firing at TRY's terminal state rather than on Complete.* Rejected: the learner would be
+  interrupted between finishing and finding out how they did, which is the one beat the
+  Complete screen exists for.
+- *Retrying a failed load on a timer.* Rejected: a learner with no signal would generate a
+  request per completion forever, and the payoff is an ad nobody asked for.
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

@@ -442,6 +442,23 @@ it comparable between friends with zero social infrastructure.
 
 ## 9. Ads
 
+> **⚠ ADS AMENDMENT — 2026-09-10.** Ads are now built, and they are far smaller than this
+> section describes. **One interstitial, for a free learner, once, after a TRY run is
+> finished** — and nothing else, anywhere. No banner, no rewarded, no app-open, no Daily
+> result slot, no Hub slot. Pro subscribers see nothing at all (ADR-041, ADR-042).
+>
+> The banner, interstitial-cap and rewarded tables below described a plan built around the
+> CHALLENGE stage and the Daily Challenge, neither of which exists; they are retained as the
+> reasoning trail. Where they and this amendment disagree, the amendment wins.
+> Full detail: `docs/ads.md`.
+>
+> **The exit-path rule is amended, not dropped.** It was written to stop an ad landing on a
+> tap that moves the learner deeper into learning, and it still does — but on the Complete
+> screen, two of the three exits (*Next algorithm*, *Try again*) are exactly such taps. So
+> the ad fires on **arrival** at Complete, after the run's metrics and the takeaway have
+> landed, and is attached to no navigation tap at all. Nothing sits between the learner and
+> a lesson, which is what the rule was protecting.
+
 > **One rule governs everything: ads fire on exit paths, never forward paths.**
 
 ### Absolute prohibitions

@@ -883,6 +883,21 @@ structurally absent during learning rather than conditionally hidden.
 
 ### 10.3 Ads
 
+> **⚠ AS BUILT — 2026-09-10.** The design below survived; its scope did not. What shipped is
+> **one interstitial, for a free learner, once, after a finished TRY run** — and nothing
+> else (ADR-042, `docs/ads.md`). `Placement` has a single member so a new ad surface cannot
+> be added by writing a call site, `AdSuppressed` is three reasons rather than nine, and
+> there is no `Clock`, because with one placement and no session caps there is nothing to
+> time. The signature that shipped is:
+>
+> ```kotlin
+> AdPolicy.decide(placement, entitlement, completionId, lastShownForCompletion, adReady)
+> ```
+>
+> The two things that did not change are the ones that mattered: the rules are pure Kotlin
+> with no Android imports and are table-tested, and ad code is unreachable from lesson code —
+> `MainActivity` is the only caller, and `:engine` has never heard of it.
+
 ```kotlin
 // Pure Kotlin, zero Android imports, fully unit-tested.
 class AdPolicy(private val clock: Clock) {

@@ -136,7 +136,12 @@ inherits — and the Advanced lessons
 Eleven lessons are free and complete — both stages, the full guidance ladder, progress.
 The ten **Advanced** lessons are **AlgoKing Pro**, a Play subscription: tapping one opens a
 paywall rather than the lesson. Pro adds lessons and never takes anything away from a free
-one. Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
+one.
+
+**Ads are one interstitial**, shown to a free learner after they finish a lesson's TRY run,
+and nowhere else — no banner, no rewarded ad, nothing during a lesson, nothing on Home.
+Pro subscribers see none at all. The build runs on Google's test ad units, and UMP consent
+is not implemented yet ([`docs/ads.md`](docs/ads.md)). Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
 be configured in Play Console before anything can be sold, and until it is the paywall shows
 no price and its CTA stays disabled. See [`docs/pro-access.md`](docs/pro-access.md)
 and ADR-041.

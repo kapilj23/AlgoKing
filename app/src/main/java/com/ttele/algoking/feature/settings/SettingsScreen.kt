@@ -316,18 +316,27 @@ fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) 
             ),
             InfoSection(
                 heading = "What it never collects",
-                body = "No account with us, no name, no email address, no contacts, no " +
-                    "location, no device identifiers, and no advertising ID. The app has no " +
-                    "analytics and shows no ads.",
+                body = "No account with us, no name, no email address, no contacts and no " +
+                    "location. The app has no analytics of its own and never reads what you " +
+                    "do in a lesson.",
             ),
             InfoSection(
                 heading = "What it sends",
                 body = "The lessons send nothing. Every lesson runs on the device, which is " +
-                    "why they all work in airplane mode.\n\nThe one exception is AlgoKing " +
-                    "Pro: opening the paywall asks Google Play for the price, and buying or " +
-                    "restoring a subscription goes through Google Play. Google handles that " +
-                    "payment and tells this app one thing back — whether a subscription is " +
-                    "active. We never see your payment details.",
+                    "why they all work in airplane mode.\n\nTwo Google services are the " +
+                    "exception. AlgoKing Pro: opening the paywall asks Google Play for the " +
+                    "price, and buying or restoring goes through Google Play, which handles " +
+                    "the payment and tells this app one thing back — whether a subscription " +
+                    "is active. We never see your payment details.",
+            ),
+            InfoSection(
+                heading = "Advertising",
+                body = "Free learners see one full-screen ad after finishing the practice " +
+                    "stage of a lesson, and nowhere else — no banners, no rewarded ads, and " +
+                    "nothing during a lesson. Google's ad service uses your device's " +
+                    "advertising ID to choose and measure those ads; you can reset or delete " +
+                    "that ID in Android's privacy settings.\n\nPro subscribers see no ads at " +
+                    "all.",
             ),
             InfoSection(
                 heading = "Removing your data",
@@ -385,9 +394,10 @@ fun AboutScreen(
             InfoSection(
                 heading = "What free means here",
                 body = "Every free lesson is complete: both stages, the full guidance, and " +
-                    "your progress. No ads, no coins, no energy, no leaderboard and no " +
-                    "login. Pro adds lessons; it never takes anything away from the free " +
-                    "ones. $versionLabel",
+                    "your progress. No coins, no energy, no leaderboard and no login. There " +
+                    "is one ad, after you finish a lesson's practice stage — never during " +
+                    "one. Pro adds lessons and removes that ad; it never takes anything away " +
+                    "from the free ones. $versionLabel",
             ),
         ),
     )

@@ -237,6 +237,7 @@ private fun Includes() {
                 "Interactive WATCH and TRY for every one",
                 "Graph and tree algorithms",
                 "Learn by driving the algorithm, not memorising it",
+                "No ads, anywhere in the app",
                 "Your progress, kept on your device",
                 // A plan, not a promise of a date: new lessons have arrived at a
                 // steady rate and are expected to keep doing so, and saying more
