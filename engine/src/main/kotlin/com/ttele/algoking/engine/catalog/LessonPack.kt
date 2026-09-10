@@ -25,6 +25,10 @@ import com.ttele.algoking.engine.algorithms.bst.BstProjector
 import com.ttele.algoking.engine.algorithms.bst.BstWatchNarrator
 import com.ttele.algoking.engine.dataset.BstDatasets
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortAlgorithm
+import com.ttele.algoking.engine.algorithms.countingsort.CountingSortAlgorithm
+import com.ttele.algoking.engine.algorithms.countingsort.CountingSortProjector
+import com.ttele.algoking.engine.algorithms.countingsort.CountingSortWatchNarrator
+import com.ttele.algoking.engine.dataset.CountingSortDatasets
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortProjector
 import com.ttele.algoking.engine.algorithms.bubblesort.BubbleSortWatchNarrator
 import com.ttele.algoking.engine.core.Algorithm
@@ -322,6 +326,16 @@ object AlgorithmCatalog {
         tryDataset = QuickSortDatasets.tryIt,
     )
 
+    fun countingSort() = LessonPack(
+        id = AlgorithmId.COUNTING_SORT,
+        displayName = "Counting Sort",
+        algorithm = CountingSortAlgorithm(),
+        projector = CountingSortProjector(),
+        watchNarrator = CountingSortWatchNarrator(),
+        watchDataset = CountingSortDatasets.watch,
+        tryDataset = CountingSortDatasets.tryIt,
+    )
+
     fun stack() = structure(
         flavour = StackFlavour,
         displayName = "Stack",
@@ -387,6 +401,7 @@ object AlgorithmCatalog {
         AlgorithmId.INSERTION_SORT -> insertionSort()
         AlgorithmId.MERGE_SORT -> mergeSort()
         AlgorithmId.QUICK_SORT -> quickSort()
+        AlgorithmId.COUNTING_SORT -> countingSort()
         AlgorithmId.STACK -> stack()
         AlgorithmId.QUEUE -> queue()
         AlgorithmId.LINKED_LIST -> linkedList()

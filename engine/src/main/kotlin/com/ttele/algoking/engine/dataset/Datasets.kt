@@ -258,6 +258,48 @@ object QuickSortDatasets {
 }
 
 /**
+ * Counting Sort teaches on a **small range with holes in it**, because both halves
+ * of the table have to be readable.
+ *
+ * ```
+ * input   [4, 2, 2, 8, 3, 3, 1]      n = 7
+ * range   1 .. 8                     k = 8
+ * counts   1:1  2:2  3:2  4:1  5:0  6:0  7:0  8:1
+ * output  [1, 2, 2, 3, 3, 4, 8]
+ * ```
+ *
+ * Four properties earn this dataset its place:
+ *
+ *  - **two values repeat**, and one of them repeats on consecutive inputs. A
+ *    bucket going `1 → 2` is the beat that makes a count a count rather than a
+ *    yes/no flag, and it has to arrive early — it lands on the fourth value.
+ *  - **three buckets stay empty.** `5`, `6` and `7` never appear, so the rebuild
+ *    has to step over them, and "a count of zero places nothing" is something the
+ *    learner watches rather than something the copy asserts.
+ *  - **the range starts at 1, not 0**, so the table is visibly `min..max` — the
+ *    range the lesson just went and found — rather than something that happens to
+ *    start where arrays do.
+ *  - **8 is an outlier.** It is the only value above 4, which is what makes the
+ *    cost of `k` visible: three of the eight buckets exist only because one value
+ *    is far away, and that is exactly when counting sort stops being a good idea.
+ */
+object CountingSortDatasets {
+
+    val watch = Dataset(values = listOf(4, 2, 2, 8, 3, 3, 1), label = "watch")
+
+    /**
+     * `[3, 1, 4, 1, 5, 3]` — range `1..5`, output `[1, 1, 3, 3, 4, 5]`.
+     *
+     * Application rather than recall: a tighter range, a different hole (`2` is
+     * missing), and the repeats are **not** adjacent in the input, so the learner
+     * cannot count a run by eye and has to use the table. It also opens on a value
+     * that is not the smallest, so the first placement is never the first thing
+     * counted.
+     */
+    val tryIt = Dataset(values = listOf(3, 1, 4, 1, 5, 3), label = "try")
+}
+
+/**
  * Stack and Queue share their teaching numbers **on purpose**.
  *
  * The two lessons run the identical script over the identical values, so the only

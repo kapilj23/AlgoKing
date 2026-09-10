@@ -157,6 +157,10 @@ object ChallengeCatalog {
         AlgorithmId.INSERTION_SORT -> insertionSort()
         AlgorithmId.MERGE_SORT -> mergeSort()
         AlgorithmId.QUICK_SORT -> quickSort()
+        // Not authored: a counting-sort challenge needs generated data whose value
+        // range is small enough to stay readable and wide enough to have holes in
+        // it, and that constraint has not been written. Null rather than a guess.
+        AlgorithmId.COUNTING_SORT -> null
         AlgorithmId.STACK -> stack()
         AlgorithmId.QUEUE -> queue()
         AlgorithmId.LINKED_LIST -> linkedList()

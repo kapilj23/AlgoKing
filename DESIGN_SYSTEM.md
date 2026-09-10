@@ -610,6 +610,46 @@ set of Dijkstra's node positions — two nodes 69dp apart leave 21dp of bare edg
 pill needs about 20 — and the fix was a different layout, not a smaller node. **48dp stays
 48dp**; it is the touch minimum, and the graph is what gives way.
 
+### 6.16h Three rows — `CountingTable`
+
+The fifth scene shape, and the second that is a table rather than a line
+(ADR-040). Counting Sort has an **input array**, a **count table** and an **output
+array**, and the picture's whole job is keeping them apart while making one
+relationship obvious: a value, and the bucket that counts it.
+
+```
+INPUT    [4] [2] [2] [8] [3] [3] [1]
+
+COUNT    [1] [2] [2] [1] [0] [0] [0] [1]
+          1   2   3   4   5   6   7   8
+
+         count[2]:  1 → 2
+
+OUTPUT   [1] [2] [2] [ ] [ ] [ ] [ ]
+```
+
+| Element | Treatment |
+|---|---|
+| row caption | `labelSmall` in `textMuted`, uppercase — three arrays must never read as one |
+| cell | the same `SceneCell` every other lesson draws. The weight goes **into** the cell, exactly as it does in `PrefixTable` |
+| a bucket | the **count inside**, the **value it counts underneath** in `labelSmall` — the slot an index rail occupies everywhere else, because that is where the eye already looks for "what this cell is about" |
+| a selectable bucket | the `pointer` outline every tappable cell carries, and its caption turns `pointer` violet too: the value is what the learner is choosing |
+| a bucket that counted nothing | `ELIMINATED`. "Place none of these" is a state worth drawing, and it is what makes a gap in the range visible |
+| a spent bucket | `FINALIZED` — it gave up everything it counted |
+| the bucket being read | `CANDIDATE` amber: holding something, about to give it up |
+| unfilled output slot | `GHOST` — a hole with no numeral, the rule Insertion Sort set |
+| tally strip | `surfaceVariant` card: `count[3]` in `labelSmall` over `1 → 2` in `numeralMedium`, the new count in `primary` |
+
+**The rows do not share columns.** `PrefixTable` aligns its two arrays because
+`array[i]` genuinely produced `prefix[i + 1]`; here input position 0 has nothing to
+do with bucket 0, so each row fills the width on its own terms. Sharing slots would
+draw a relationship the algorithm does not have.
+
+**The strip reports, it never asks.** `count[3]: 1 → ?` while the learner is being
+asked which bucket takes a 3 would answer the question in the act of posing it, so
+the strip shows the change that *just happened* and there is none at all before the
+first tap — the same rule the hash flow follows (§6.16e).
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

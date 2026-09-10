@@ -1646,6 +1646,101 @@ object Narration {
             NarrationId.QUICK_IDEA_2 -> "Partition around it."
             NarrationId.QUICK_IDEA_3 -> "Repeat on each side."
 
+            // ── Counting Sort. Every line names the value and its bucket; the
+            //    word "index" never appears, because the offset into the table is
+            //    the app's business and the value is the learner's.
+            NarrationId.CS_OPTION_BUCKET -> "Bucket ${arg(0)}"
+            NarrationId.CS_ASK_BUCKET -> "Which bucket counts ${arg(0)}?"
+            NarrationId.CS_ASK_NEXT_OUT -> "Which value goes in slot ${arg(0)}?"
+            NarrationId.CS_COUNTED ->
+                "${arg(0)} counted. count[${arg(1)}]: ${arg(2)} → ${arg(3)}"
+            NarrationId.CS_PLACED ->
+                "${arg(0)} placed in slot ${arg(1)}. ${arg(2)} left in its bucket."
+            NarrationId.CS_HINT_BUCKET ->
+                "A bucket counts one value, and it has that value written under it."
+            NarrationId.CS_HINT_REBUILD ->
+                "Read the table left to right. The smallest value that still has " +
+                    "something in it comes out next."
+            NarrationId.CS_RETRY_COUNT_LOOK -> "Look at the value again: it is ${arg(0)}."
+            NarrationId.CS_RETRY_COUNT_ASK ->
+                "Counting a ${arg(0)} changes how many ${arg(0)}s we have seen. " +
+                    "Which bucket holds that number?"
+            NarrationId.CS_RETRY_COUNT_EXPLAIN ->
+                "A ${arg(0)} is counted in bucket ${arg(0)}, which goes from " +
+                    "${arg(1)} to ${arg(2)}. Every other bucket counts a different value."
+            NarrationId.CS_RETRY_PLACE_LOOK ->
+                "The output is built smallest first. Read the table from the left."
+            NarrationId.CS_RETRY_PLACE_ASK ->
+                "Which is the smallest value that still has something left to give?"
+            NarrationId.CS_RETRY_PLACE_EXPLAIN ->
+                "${arg(0)} is the smallest value with anything left — " +
+                    "${plural(1, "there is 1", "there are ${arg(1)}")} still to place. " +
+                    "It comes out next."
+            NarrationId.CS_WHY_WRONG_BUCKET ->
+                "Bucket ${arg(0)} counts how many ${arg(0)}s there are. This value is ${arg(1)}."
+            NarrationId.CS_WHY_EMPTY_BUCKET ->
+                "${arg(0)} was never counted — its bucket is 0, so no ${arg(0)} goes " +
+                    "in the output at all."
+            NarrationId.CS_WHY_BUCKET_SPENT ->
+                "Every ${arg(0)} is already placed. That bucket has nothing left to give."
+            NarrationId.CS_WHY_OUT_OF_ORDER ->
+                "${arg(0)} is larger than ${arg(1)}, and ${arg(1)} still has values " +
+                    "waiting. Taking ${arg(0)} now would put it in front of them."
+            NarrationId.CS_CORRECT_COUNT ->
+                "Yes — count[${arg(0)}] goes from ${arg(1)} to ${arg(2)}."
+            NarrationId.CS_CORRECT_PLACE ->
+                "Yes — ${arg(0)} comes out next, and its bucket has ${arg(1)} left."
+
+            // ── Counting Sort — WATCH
+            NarrationId.CS_WATCH_SETUP -> "Sort this array without comparing anything."
+            NarrationId.CS_WATCH_SETUP_SUPPORT ->
+                "Bubble, Selection and Quick Sort all decide order by comparing " +
+                    "elements. This one never compares two values at all."
+            NarrationId.CS_WATCH_RANGE -> "The values run from ${arg(0)} to ${arg(1)}."
+            NarrationId.CS_WATCH_RANGE_SUPPORT ->
+                "That range decides the size of the table: ${arg(0)} buckets, one " +
+                    "for every value from ${arg(1)} to ${arg(2)}."
+            NarrationId.CS_WATCH_TABLE -> "A count for each of the ${arg(0)} values, all starting at 0."
+            NarrationId.CS_WATCH_TABLE_SUPPORT ->
+                "Nothing has been counted yet, so every bucket is empty."
+            NarrationId.CS_WATCH_COUNT ->
+                "${arg(0)} goes in bucket ${arg(0)}: ${arg(1)} → ${arg(2)}."
+            NarrationId.CS_WATCH_COUNT_FIRST -> "The first ${arg(0)} we have seen."
+            NarrationId.CS_WATCH_COUNT_AGAIN ->
+                "That is ${arg(1)} of them. A bucket counts, it does not just remember."
+            NarrationId.CS_WATCH_COUNT_REST -> "The last ${arg(0)} values are counted the same way."
+            NarrationId.CS_WATCH_COUNT_REST_SUPPORT ->
+                "One pass over the array, one bucket raised each time."
+            NarrationId.CS_WATCH_COUNTED -> "The table now says how many of each value there are."
+            NarrationId.CS_WATCH_COUNTED_SUPPORT ->
+                "All ${arg(0)} values, in one pass, and the array is not needed again."
+            NarrationId.CS_WATCH_PLACE ->
+                "Bucket ${arg(0)} holds ${arg(1)} — place a ${arg(0)}."
+            NarrationId.CS_WATCH_PLACE_MORE -> "${arg(1)} more ${arg(0)} still to place."
+            NarrationId.CS_WATCH_PLACE_LAST -> "That bucket is empty now. Move to the next value."
+            NarrationId.CS_WATCH_PLACE_REST -> "The rest of the table is read the same way."
+            NarrationId.CS_WATCH_PLACE_REST_SUPPORT ->
+                "Left to right, each bucket giving up as many values as it counted — " +
+                    "and empty buckets giving up none."
+            NarrationId.CS_WATCH_DONE -> "Sorted."
+            NarrationId.CS_WATCH_DONE_SUPPORT ->
+                "The order came out of the table, not out of comparing anything."
+            NarrationId.CS_WATCH_INSIGHT ->
+                "Count how many times each value appears, then rebuild from the counts."
+            NarrationId.CS_WATCH_INSIGHT_SUPPORT ->
+                "${arg(0)} comparisons. The table did the ordering, because a bucket's " +
+                    "position already is its value."
+            NarrationId.CS_WATCH_SUMMARY ->
+                "${arg(0)} values, ${arg(1)} buckets, one pass each way."
+            NarrationId.CS_WATCH_SUMMARY_SUPPORT ->
+                "O(n + k): the count of elements plus the width of the range."
+            NarrationId.CS_IDEA_1 -> "Comparison sorts ask which of two values is bigger."
+            NarrationId.CS_IDEA_2 -> "Counting Sort asks how many of each value there are."
+            NarrationId.CS_IDEA_3 -> "A count of 0 places nothing — that is how gaps are skipped."
+            NarrationId.CS_IDEA_4 ->
+                "Fast when the range is small, and wasteful when it is not: a table " +
+                    "of a million buckets to sort seven values costs a million steps to read."
+
             // ── Linear structures. Shared wording, so the only thing that reads
             //    differently between Stack and Queue is the rule itself.
             NarrationId.STRUCT_OPTION_POINT -> "This one"

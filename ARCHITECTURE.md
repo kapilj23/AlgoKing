@@ -661,7 +661,15 @@ data class PrefixScene(...) : Scene     // two aligned arrays of different lengt
 data class GraphScene(...) : Scene      // nodes at positions, joined by edges
                                         // (DFS, BFS — and the BST and AVL trees,
                                         //  because a tree is one of these; ADR-036)
+data class CountingScene(...) : Scene   // an array, a table indexed by VALUE, and
+                                        // the answer being rebuilt (ADR-040)
 ```
+
+The fifth shape is the clearest statement of the rule the union exists for. A count table
+is not a sequence *because its slots are values rather than positions* — bucket 3 answers
+"how many threes?", and that is the whole of what Counting Sort teaches. Adding it changed
+no existing lesson: four `when` sites over `Scene` gained a branch, and the compiler found
+all four.
 
 The sequence renderer receives pure data, and its only branch is `layout`:
 

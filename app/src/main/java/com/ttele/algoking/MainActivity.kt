@@ -189,7 +189,9 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     AlgorithmId.SELECTION_SORT -> AlgorithmId.INSERTION_SORT
     AlgorithmId.INSERTION_SORT -> AlgorithmId.MERGE_SORT
     AlgorithmId.MERGE_SORT -> AlgorithmId.QUICK_SORT
-    AlgorithmId.QUICK_SORT -> AlgorithmId.STACK
+    // The comparison sorts hand over to the one that does not compare at all.
+    AlgorithmId.QUICK_SORT -> AlgorithmId.COUNTING_SORT
+    AlgorithmId.COUNTING_SORT -> AlgorithmId.STACK
     AlgorithmId.STACK -> AlgorithmId.QUEUE
     AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
     AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ttele.algoking.engine.event.PointerId
 import com.ttele.algoking.engine.scene.Cell
+import com.ttele.algoking.engine.scene.CountingScene
 import com.ttele.algoking.engine.scene.CellState
 import com.ttele.algoking.engine.scene.BucketScene
 import com.ttele.algoking.engine.scene.Scene
@@ -87,6 +88,7 @@ fun SceneRenderer(
         is BucketScene -> BucketTable(scene, modifier, selectableSlots, onSelectSlot)
         is PrefixScene -> PrefixTable(scene, modifier)
         is GraphScene -> GraphStage(scene, modifier, selectableSlots, onSelectSlot)
+        is CountingScene -> CountingTable(scene, modifier, selectableSlots, onSelectSlot)
     }
 }
 
@@ -626,6 +628,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
         is PrefixScene -> scene.meters
         // A graph carries its counts in the traversal strip instead.
         is GraphScene -> emptyList()
+        is CountingScene -> scene.meters
     }
     if (meters.isEmpty()) return
     Row(
@@ -667,12 +670,16 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is PrefixScene -> (scene.source + scene.prefix).map { it.state }
         // A graph has no cells, but its nodes carry the same states.
         is GraphScene -> scene.nodes.map { it.state }
+        // Three rows, one legend: the input, the table and the answer all use the
+        // same states and must be described by the same words.
+        is CountingScene -> scene.legendStates
         is BucketScene -> return
     }.toSet()
     val labels = when (scene) {
         is SequenceScene -> scene.legendLabels
         is PrefixScene -> scene.legendLabels
         is GraphScene -> scene.legendLabels
+        is CountingScene -> scene.legendLabels
         is BucketScene -> return
     }
     fun name(state: CellState, fallback: String) = labels[state] ?: fallback

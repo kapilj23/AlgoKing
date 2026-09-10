@@ -282,6 +282,12 @@ private fun runLine(metrics: Metrics, clean: Boolean): String {
 
 /** The single idea the lesson exists to leave behind. */
 private fun insightFor(id: AlgorithmId): String = when (id) {
+    AlgorithmId.COUNTING_SORT ->
+        "Count how many times each value appears, then rebuild the array from the counts. " +
+            "Nothing was compared to anything — the order came out of the table, because a " +
+            "bucket's position already is its value. O(n + k), and the k is the catch: the " +
+            "table is as wide as the range, however few values you are sorting."
+
     AlgorithmId.BINARY_SEARCH ->
         "One comparison eliminates half the search space. That is what O(log n) means."
 

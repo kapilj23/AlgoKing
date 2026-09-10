@@ -1848,6 +1848,111 @@ that is the plain direct one, with all the work elsewhere not on it.
 
 ---
 
+
+---
+
+## ADR-040 — Counting Sort is a Sorting lesson, and the table is a fifth scene shape
+
+**Decision.** Counting Sort ships as a `LessonPack` with WATCH and TRY, in the
+**Sorting** category beside the five comparison sorts. `Scene` gains a fifth shape,
+`CountingScene`. The learner's gesture is a tap on a count bucket, and it is the
+same tap in both halves of the lesson. Full detail: `docs/counting-sort.md`.
+
+**Why it was worth building.** Every sort in the library so far answers the same
+question — *is this bigger than that?* — and a learner who has done five of them
+can reasonably conclude that sorting *is* comparing. Counting Sort is the
+counter-example, and it is the first lesson whose Complete screen reports **0
+comparisons** as a true fact about the run rather than as a claim in the copy.
+
+### The category is Sorting, and there is no other kind
+
+The brief asked for it to be free, under Sorting, and not behind "Advanced/Pro".
+Two thirds of that is a no-op here and it is worth writing down why: **AlgoKing has
+no paid tier.** `PRODUCT_SPEC.md` §1 forbids locked content, and "Advanced" is a
+category for techniques rather than a price (ADR-032). So the requirement resolves
+to one line — `category = "Sorting"` on the library entry — and the free/paid half
+had nothing to act on.
+
+The teaching order puts it after Quick Sort: the comparison sorts hand over to the
+one that does not compare at all, which only lands once the learner has met the
+comparison model enough times to have generalised it.
+
+### A count table is not a sequence
+
+`SequenceScene` is one row whose slots are **positions**. The count table is
+indexed by **value** — bucket 3 is not the fourth thing in a line, it is the answer
+to *"how many threes?"* — and that is precisely the idea the lesson exists to
+leave behind. Flattening it into positions would say the opposite of the lesson.
+
+`PrefixScene` was the near miss, and the reason it fails is instructive: its two
+rows share slots because `array[i]` genuinely produced `prefix[i + 1]`, and that
+offset *is* Prefix Sum. Counting Sort's three rows have no column relationship at
+all, so they are laid out independently — inventing an alignment would be a lie
+about the data, and the same judgement ADR-030, ADR-033 and ADR-034 each made.
+
+What the shape did **not** need: no new `VizEvent`, no new interaction model, no
+new renderer contract, and no change to any existing lesson. Four `when` sites over
+`Scene` gained a branch, which is the compiler doing exactly the job the sealed
+union is for.
+
+### One gesture, twice over
+
+Counting and rebuilding are asked with the same tap on the same table. That is
+deliberate: it is one table doing one job — being filled, then being read — and a
+second control would imply a second idea. It is the reasoning ADR-034 used to
+reject a BACKTRACK button, applied to a lesson with two phases instead of two
+kinds of move.
+
+The wrong taps carry the lesson's three real misconceptions, and the engine can
+tell them apart because it knows the difference between a bucket that counted
+nothing, a bucket already spent, and a bucket that still has values but is not
+next.
+
+### Two things the app does, and why that is not a loss
+
+**The increment.** Once the bucket is named, adding one to it is the only legal
+move, and tapping the only legal target teaches a gesture (`PRODUCT_SPEC.md` §3).
+The app raises it and narrates `count[3]: 1 → 2`, which is the beat the lesson is
+about — watching it is the point, performing it is not.
+
+**The offset.** `value - min` is arithmetic with one answer. The learner names a
+value and the app finds the slot, so the word "index" never appears in the copy.
+A bucket is *the bucket for the value 3*, which is the form that transfers to a
+table the learner has not seen.
+
+### Stability is deliberately not taught
+
+Real counting sort accumulates the counts into starting positions so equal
+elements keep their original order. That is a second idea stacked on the first,
+and it makes the rebuild a loop over the *input* rather than over the table —
+which would hide the thing this lesson is for. What ships is the honest core, and
+`docs/counting-sort.md` says so rather than leaving a reader to notice the
+omission. Radix Sort is where stability has to arrive, because that is where it is
+load-bearing.
+
+### The range is `min..max`, and the empty buckets are content
+
+The table spans the range the lesson just went and found, not `0..max`. The
+teaching data leaves three buckets empty on purpose: the rebuild has to step over
+them, so *"a count of zero places nothing"* is watched rather than asserted, and
+the cost of `k` is visible in the picture before the recap names it. An outlier
+value (8, when everything else is 1–4) is what makes that cost concrete.
+
+**Alternatives considered.**
+- *Force it into `SequenceScene` with `groups` separating three sections.* Rejected:
+  groups divide **one** sequence, and these are three arrays with different lengths
+  and different index meanings.
+- *Ask the learner to perform the increment.* Rejected above — one legal answer is
+  not a decision.
+- *Ask "how many of this value?" once per bucket in the rebuild, instead of one tap
+  per element.* Rejected: it collapses `count[2] = 2` into a single answer, and the
+  duplicate coming out twice **is** the beat that connects the table to the output.
+- *Teach the prefix-sum placement pass for stability.* Rejected as scope, above.
+- *Put it in Advanced.* Rejected: it is a named routine over an array, which is what
+  Sorting is; Advanced is where techniques live (ADR-032).
+- *0..max instead of min..max.* Rejected: the lesson opens by finding the range, and
+  a table that ignores what it found would make step 2 decorative.
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

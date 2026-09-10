@@ -85,6 +85,7 @@ advancement is performed by the app, never by the user.
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
 | Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |
+| Counting Sort | finds the range, adds one to the bucket, and does the `value - min` arithmetic | **Which bucket counts this value?** then **which value do the counts say comes out next?** |
 | Stack | — | **Which operation does this job?** then **which item comes off next?** |
 | Queue | — | the same two questions, and the opposite answers |
 | Linked List | — | **Is this the node?** then **which link changes, and where should it point?** |
@@ -146,6 +147,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Bubble Sort | "The largest number bubbled to the end." |
 | Selection Sort | "A whole pass. One swap." |
 | Insertion Sort | "The left side is always already sorted." |
+| Counting Sort | "Count the values, and the order falls out of the table." |
 | Two Pointers | "Each move rules out a whole row of pairs." |
 | Dijkstra | "A distance is a claim, until something beats it." |
 | Binary Search Tree | "One path from the root, not a scan of every node." |

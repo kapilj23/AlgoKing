@@ -171,6 +171,14 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.COUNTING_SORT,
+        title = "Counting Sort",
+        description = "Count each value, then rebuild the array in order.",
+        category = "Sorting",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.STACK,
         title = "Stack",
         description = "A pile you can only touch from the top. Last in, first out.",

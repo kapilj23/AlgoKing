@@ -93,6 +93,11 @@ enum class AlgorithmId {
     MERGE_SORT,
     QUICK_SORT,
 
+    // Sorting without comparing anything: count how many times each value
+    // appears, then read the table back in order. O(n + k), and the k is the
+    // catch the lesson is honest about.
+    COUNTING_SORT,
+
     // Data structures, not algorithms: there is no array to sort and no target to
     // find. What they teach is the rule that decides which item you may touch.
     STACK,
