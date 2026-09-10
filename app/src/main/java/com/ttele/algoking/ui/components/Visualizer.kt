@@ -289,6 +289,14 @@ enum class StageState { Complete, Current, Upcoming }
  * Stage stepper — DESIGN_SYSTEM.md §6.14.
  * The connector leaving a completed node is a green-to-violet gradient: it is the
  * single place where the status hue hands over to the chrome hue.
+ *
+ * **Every node sits directly above its own label.** Both rows are laid out over
+ * the same n equal slots, and a node is centred in its slot exactly as its label
+ * is: hence the half-slot lead-in and lead-out (`weight(1f)` against the
+ * connectors' `weight(2f)`, because the gap between two slot centres is twice the
+ * distance from the edge to the first one). Without them the nodes stretch to the
+ * outer edges of the row while the labels stay at their slot centres, and with
+ * two stages that leaves each circle about 50dp adrift of the word beneath it.
  */
 @Composable
 fun StageStepper(stages: List<Stage>, modifier: Modifier = Modifier) {
@@ -297,6 +305,8 @@ fun StageStepper(stages: List<Stage>, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Half a slot, so node 0 lands on the centre of label 0.
+            Box(Modifier.weight(1f))
             stages.forEachIndexed { index, stage ->
                 if (index > 0) {
                     val previous = stages[index - 1].state
@@ -312,13 +322,16 @@ fun StageStepper(stages: List<Stage>, modifier: Modifier = Modifier) {
                     }
                     Box(
                         Modifier
-                            .weight(1f)
+                            // A whole slot: centre to centre, against the halves
+                            // at either end.
+                            .weight(2f)
                             .height(Dimens.stepperConnector)
                             .background(brush),
                     )
                 }
                 StageNode(index, stage.state)
             }
+            Box(Modifier.weight(1f))
         }
         Gap(Spacing.xs)
         Row(modifier = Modifier.fillMaxWidth()) {
