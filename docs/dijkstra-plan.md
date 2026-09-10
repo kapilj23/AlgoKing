@@ -202,6 +202,18 @@ about 20; the four rules above are what cut it.
 
 ## 5. WATCH — 13 beats
 
+> **⚠ Amended by what shipped — 2026-09-10.** The walkthrough is **19 beats**, not 13.
+> The table below folds each node's *first reach* into the beat that caused it — beat 1
+> covers both `A→C` and `A→B`, and beats 3, 5 and 7 each carry an "also …" reach — while
+> the engine gives every first reach its own `EXAMINE` beat (five of them: C 2, B 5, D 11,
+> E 7, F 12) and narrates F's selection separately from the `FOUND` beat. Every one of
+> those beats moves a number on screen, so none of them is the "nothing changed" step
+> ADR-020 forbids, and the pedagogy this table specifies is unchanged: four relaxations
+> with the KEEP weighted like the three updates, and B chosen *because* it was beaten
+> down. The shipped sequence is pinned beat by beat in
+> `DijkstraTest.the walkthrough is exactly the beats the lesson was designed as`; the
+> table below is kept as the design intent it was.
+
 | # | Beat | Says |
 |---|---|---|
 | 0 | `SETUP` | Find the cheapest route from A to F. *Every node starts at ∞ except A, which is 0 — we know nothing yet except where we are.* |

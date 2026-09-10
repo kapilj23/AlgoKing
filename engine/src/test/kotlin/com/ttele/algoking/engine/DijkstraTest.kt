@@ -3,6 +3,7 @@ package com.ttele.algoking.engine
 import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraAction
 import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraAlgorithm
 import com.ttele.algoking.engine.algorithms.dijkstra.DijkstraState
+import com.ttele.algoking.engine.catalog.AlgorithmCatalog
 import com.ttele.algoking.engine.core.AlgorithmRunner
 import com.ttele.algoking.engine.core.Dataset
 import com.ttele.algoking.engine.core.Graph
@@ -13,6 +14,11 @@ import com.ttele.algoking.engine.decision.DecisionKind
 import com.ttele.algoking.engine.decision.DecisionValidation
 import com.ttele.algoking.engine.decision.Validation
 import com.ttele.algoking.engine.event.Outcome
+import com.ttele.algoking.engine.event.Relation
+import com.ttele.algoking.engine.narration.NarrationId
+import com.ttele.algoking.engine.scene.CellState
+import com.ttele.algoking.engine.scene.GraphScene
+import com.ttele.algoking.engine.walkthrough.WatchStepKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -465,5 +471,235 @@ class DijkstraTest {
                 assertTrue("edge $a-$b is not positive", requireNotNull(w) > 0)
             }
         }
+    }
+
+    // ── The walkthrough ──────────────────────────────────────────────────────
+
+    private fun watchSteps() = AlgorithmCatalog.dijkstra().watchScript().steps
+
+    @Test
+    fun `the walkthrough is exactly the beats the lesson was designed as`() {
+        // Pinned, so "just narrate one more thing" cannot quietly turn a lesson
+        // into a slideshow — and so the shape of the teaching run is reviewable
+        // here rather than only on a device.
+        //
+        // The rhythm is one COMPARE per node processed, one EXAMINE per node
+        // reached for the first time, and one relaxation beat wherever a distance
+        // is actually put to the test.
+        assertEquals(
+            listOf(
+                WatchStepKind.SETUP to NarrationId.DIJ_WATCH_SETUP,
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // A, where we are, at 0
+                WatchStepKind.EXAMINE to NarrationId.DIJ_WATCH_REACH, // C = 2
+                WatchStepKind.EXAMINE to NarrationId.DIJ_WATCH_REACH, // B = 5
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // C, cheapest at 2
+                WatchStepKind.ELIMINATE to NarrationId.DIJ_WATCH_UPDATE, // B: 5 -> 3
+                WatchStepKind.EXAMINE to NarrationId.DIJ_WATCH_REACH, // D = 11
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // B, at 3
+                WatchStepKind.ELIMINATE to NarrationId.DIJ_WATCH_UPDATE, // D: 11 -> 6
+                WatchStepKind.EXAMINE to NarrationId.DIJ_WATCH_REACH, // E = 7
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // D, at 6
+                WatchStepKind.KEEP to NarrationId.DIJ_WATCH_KEEP, // E is offered 11 and stays 7
+                WatchStepKind.EXAMINE to NarrationId.DIJ_WATCH_REACH, // F = 12
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // E, at 7
+                WatchStepKind.ELIMINATE to NarrationId.DIJ_WATCH_UPDATE, // F: 12 -> 9
+                WatchStepKind.COMPARE to NarrationId.DIJ_WATCH_SELECT, // F, at 9
+                WatchStepKind.FOUND to NarrationId.DIJ_WATCH_DONE,
+                WatchStepKind.INSIGHT to NarrationId.DIJ_WATCH_INSIGHT,
+                WatchStepKind.SUMMARY to NarrationId.DIJ_WATCH_SUMMARY,
+            ),
+            watchSteps().map { it.kind to it.headline.id },
+        )
+    }
+
+    @Test
+    fun `every relaxation is a beat, including the one that changes nothing`() {
+        val steps = watchSteps()
+        val updates = steps.filter { it.kind == WatchStepKind.ELIMINATE }
+        val keeps = steps.filter { it.kind == WatchStepKind.KEEP }
+
+        // Four relaxations, and the shape of them is the argument the lesson
+        // makes: the one that refuses a candidate carries the same weight as the
+        // three that accept one, because examining an edge does not mean changing
+        // anything.
+        assertEquals(3, updates.size)
+        assertEquals(1, keeps.size)
+
+        // headline args are `to, existing, candidate`.
+        assertEquals(listOf("B", "D", "F"), updates.map { it.headline.args[0] })
+        assertEquals(listOf(5, 11, 12), updates.map { it.headline.args[1] })
+        assertEquals(listOf(3, 6, 9), updates.map { it.headline.args[2] })
+
+        // D offers E 11 when E already has 7, and E keeps what it had.
+        val keep = keeps.single()
+        assertEquals("E", keep.headline.args[0])
+        assertEquals(7, keep.headline.args[1])
+        assertEquals(11, keep.headline.args[2])
+    }
+
+    @Test
+    fun `every relaxation carries the comparison the learner will be asked to make`() {
+        val relaxations = watchSteps().filter {
+            it.kind == WatchStepKind.ELIMINATE || it.kind == WatchStepKind.KEEP
+        }
+        // The chip reads `candidate ? existing`, in that order, so it matches the
+        // sentence beside it — and the relation is the whole verdict: LESS is a
+        // distance being beaten, GREATER is a claim that survives.
+        assertEquals(
+            listOf(
+                Triple(3, Relation.LESS, 5),
+                Triple(6, Relation.LESS, 11),
+                Triple(11, Relation.GREATER, 7),
+                Triple(9, Relation.LESS, 12),
+            ),
+            relaxations.map {
+                val chip = requireNotNull(it.comparison)
+                Triple(chip.left, chip.relation, chip.right)
+            },
+        )
+    }
+
+    @Test
+    fun `the narrated arithmetic is the arithmetic the graph actually holds`() {
+        // Nine beats say `distance + weight = candidate` out loud, and that
+        // formula is the half of Dijkstra that is either understood or not. If the
+        // copy's arguments ever drift from the graph the lesson teaches a sum that
+        // does not add up, so the numbers are checked here rather than read on a
+        // device.
+        val arithmetic = watchSteps().filter {
+            it.kind == WatchStepKind.EXAMINE ||
+                it.kind == WatchStepKind.ELIMINATE ||
+                it.kind == WatchStepKind.KEEP
+        }
+        assertEquals(9, arithmetic.size)
+
+        for (step in arithmetic) {
+            val to = step.headline.args[0] as String
+            // The support args open `from, distance(from), weight, candidate` for
+            // all three kinds.
+            val args = requireNotNull(step.support).args
+            val from = args[0] as String
+            val distanceOfFrom = args[1] as Int
+            val weight = args[2] as Int
+            val candidate = args[3] as Int
+
+            assertEquals(
+                "$from to $to says $distanceOfFrom + $weight",
+                distanceOfFrom + weight,
+                candidate,
+            )
+            assertEquals("edge $from-$to", weight, requireNotNull(teaching.weightOf(from, to)))
+        }
+    }
+
+    @Test
+    fun `a node reached for the first time is narrated, never asked`() {
+        // Infinity loses to everything, so there is nothing to compare and
+        // nothing to decide (PRODUCT_SPEC.md §3) — but the arithmetic that
+        // produced the distance is still said out loud, once per node.
+        val reaches = watchSteps().filter { it.kind == WatchStepKind.EXAMINE }
+        assertEquals(listOf("C", "B", "D", "E", "F"), reaches.map { it.headline.args[0] })
+        assertEquals(listOf(2, 5, 11, 7, 12), reaches.map { it.headline.args[1] })
+        // No chip: there is no comparison here, and drawing one would imply a
+        // judgement the beat does not contain.
+        assertTrue(reaches.all { it.comparison == null })
+    }
+
+    @Test
+    fun `the selection beat says when a distance had to be beaten down first`() {
+        val selections = watchSteps().filter { it.kind == WatchStepKind.COMPARE }
+
+        // One per node processed, in settle order, each with the distance it was
+        // chosen for — which is the cost order the whole rule rests on.
+        assertEquals(listOf("A", "C", "B", "D", "E", "F"), selections.map { it.headline.args[0] })
+        assertEquals(listOf(0, 2, 3, 6, 7, 9), selections.map { it.headline.args[1] })
+
+        // A is where the run starts, so nothing beat it down.
+        assertEquals(NarrationId.DIJ_WATCH_SELECT_WHY, selections.first().support?.id)
+        assertTrue(
+            selections.drop(1).all { it.support?.id == NarrationId.DIJ_WATCH_SELECT_IMPROVED_WHY },
+        )
+
+        // B is the beat the lesson is built on: it arrived at 5 straight from A,
+        // was beaten down to 3 by way of C, and is chosen *because* of that.
+        val b = selections.single { it.headline.args[0] == "B" }
+        assertEquals("C", requireNotNull(b.support).args[2])
+    }
+
+    @Test
+    fun `nothing is relaxed before the node relaxing it has been chosen`() {
+        // Showing a distance that has already changed beside the reason it should
+        // change is the wrong order to think in, so every reach and every
+        // relaxation belongs to a selection the learner has already watched.
+        val kinds = watchSteps().map { it.kind }
+        assertEquals(WatchStepKind.SETUP, kinds.first())
+        kinds.forEachIndexed { index, kind ->
+            val belongsToASelection = kind == WatchStepKind.EXAMINE ||
+                kind == WatchStepKind.ELIMINATE ||
+                kind == WatchStepKind.KEEP
+            if (belongsToASelection) {
+                assertTrue(
+                    "beat $index has no selection before it",
+                    kinds.take(index).lastIndexOf(WatchStepKind.COMPARE) >= 0,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `every watch step changes something visible - ADR-020`() {
+        // A step where nothing changed is a bug, not a beat.
+        watchSteps().zipWithNext { a, b ->
+            val changed = a.scene != b.scene ||
+                a.headline != b.headline ||
+                a.support != b.support ||
+                a.comparison != b.comparison ||
+                a.bullets != b.bullets
+            assertTrue("steps ${a.index} and ${b.index} are identical", changed)
+        }
+    }
+
+    @Test
+    fun `every node carries a distance from the first beat, and infinity until it is reached`() {
+        val opening = watchSteps().first().scene as GraphScene
+
+        // We know nothing yet except where we are, and the picture says exactly
+        // that. The distance is drawn inside the node rather than beside it, so it
+        // cannot collide with an edge (ADR-039).
+        assertEquals("0", opening.nodes.single { it.label == "A" }.secondaryLabel)
+        val unreached = opening.nodes.filter { it.label != "A" }
+        assertTrue(unreached.all { it.secondaryLabel == "∞" })
+        assertTrue(unreached.all { it.state == CellState.IDLE })
+
+        // Weights are on the edges from the first beat too: without them there is
+        // nothing to add, and the lesson is unteachable.
+        assertTrue(opening.edges.all { it.label != null })
+    }
+
+    @Test
+    fun `the script ends on the insight and then the answer, with the ideas as bullets`() {
+        val steps = watchSteps()
+        assertEquals(WatchStepKind.FOUND, steps[steps.lastIndex - 2].kind)
+        assertEquals(WatchStepKind.INSIGHT, steps[steps.lastIndex - 1].kind)
+
+        val summary = steps.last()
+        assertEquals(WatchStepKind.SUMMARY, summary.kind)
+        // Reconstructed from `predecessors`, so it appears here only because the
+        // run produced it — the path is authored nowhere.
+        assertEquals("A  →  C  →  B  →  E  →  F", summary.headline.args[0])
+        assertEquals(9, summary.headline.args[1])
+        assertEquals(5, summary.bullets.size)
+    }
+
+    @Test
+    fun `the walkthrough is long enough to teach and short enough to finish`() {
+        val steps = watchSteps()
+        // Nineteen. `docs/dijkstra-plan.md` §5 sketched thirteen by folding each
+        // node's first reach into the beat that caused it; the engine gives every
+        // reach its own beat, and each one moves a number on screen.
+        assertTrue("${steps.size} steps", steps.size in 14..22)
+        // WATCH is a walkthrough, not a quiz: the unscored prediction beat went
+        // with autoplay (ADR-020), and every beat here is an observation.
+        assertTrue(steps.all { it.prediction == null })
     }
 }

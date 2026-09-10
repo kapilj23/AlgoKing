@@ -14,14 +14,22 @@ import com.ttele.algoking.engine.walkthrough.WatchStepKind
 /**
  * The Dijkstra walkthrough.
  *
- * Thirteen beats, and the shape of them is the argument: **four are relaxations**,
- * and the one that changes nothing gets the same weight as the three that do.
+ * Nineteen beats on the teaching graph, and the shape of them is the argument:
+ * **four are relaxations**, and the one that changes nothing gets the same weight
+ * as the three that do.
  *
- * The beats that are not narrated matter as much as the ones that are. A neighbour
- * being reached for the first time folds into the beat that reached it — ∞ loses to
- * everything, so there is nothing to compare — and stepping past a settled
- * neighbour is a support line rather than a step of its own. What is left is one
- * beat per *judgement*, which is what the learner is about to be asked for in TRY.
+ * The rhythm is one beat per node chosen, one per node reached for the first time,
+ * and one per distance actually put to the test. A first reach is narrated but
+ * never *asked* — ∞ loses to everything, so there is nothing to compare — which
+ * leaves one **decision** per judgement, which is what TRY then asks for.
+ *
+ * What earns no beat at all: settling an ordinary node, and stepping past a
+ * neighbour that is already settled. Neither changes the picture, and a beat where
+ * nothing changed is a bug rather than a step (ADR-020).
+ *
+ * `docs/dijkstra-plan.md` §5 sketched thirteen by folding each first reach into
+ * the beat that caused it. The sequence that shipped is pinned, beat by beat, by
+ * `DijkstraTest.the walkthrough is exactly the beats the lesson was designed as`.
  */
 class DijkstraWatchNarrator : WatchNarrator<DijkstraState> {
 
