@@ -663,7 +663,13 @@ data class GraphScene(...) : Scene      // nodes at positions, joined by edges
                                         //  because a tree is one of these; ADR-036)
 data class CountingScene(...) : Scene   // an array, a table indexed by VALUE, and
                                         // the answer being rebuilt (ADR-040)
+data class DpTableScene(...) : Scene    // rows × columns with meaningful headers —
+                                        // a DP table (0/1 Knapsack; ADR-044)
 ```
+
+The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
+cell is "the first *i* items, capacity *c*", and it reads the row above at two columns.
+It added no event, no interaction model and no token; four `when` sites gained a branch.
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers

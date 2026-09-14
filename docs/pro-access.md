@@ -10,7 +10,7 @@
 | | Lessons | |
 |---|---|---|
 | **Free — 11** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map | complete: both stages, the full guidance ladder, progress |
-| **Pro — 10** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder | the Advanced shelf |
+| **Pro — 11** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder · 0/1 Knapsack | the Advanced shelf |
 
 **Free means complete, not crippled.** Pro adds lessons; it never removes anything
 from a free one, never gates progress already earned, and never interrupts a free
@@ -151,9 +151,9 @@ No identifiers, no user properties, no free text.
 
 24 JVM unit tests in `:app`, no device needed:
 
-- **`ProAccessTest`** — exactly ten Pro lessons and they are the Advanced shelf, by
+- **`ProAccessTest`** — exactly eleven Pro lessons and they are the Advanced shelf, by
   name and without duplicates · eleven free, Counting Sort among them · the
-  partition is total over all 21 · free opens for any entitlement · Pro opens only
+  partition is total over all 22 · free opens for any entitlement · Pro opens only
   for a verified one · `Unknown` is not entitled · the rule applied to every real
   catalogue entry, locked and unlocked.
 - **`SubscriptionRepositoryTest`** — a store-less build entitles nobody and therefore

@@ -152,6 +152,7 @@ object ChallengeCatalog {
         AlgorithmId.TREE_INORDER -> null
         AlgorithmId.TREE_PREORDER -> null
         AlgorithmId.TREE_POSTORDER -> null
+        AlgorithmId.ZERO_ONE_KNAPSACK -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

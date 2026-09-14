@@ -370,4 +370,10 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
     AlgorithmId.TREE_POSTORDER ->
         "Process both subtrees before visiting the node. Nothing is reached before what it " +
             "depends on — which is why postorder is the order you delete a tree in."
+
+    AlgorithmId.ZERO_ONE_KNAPSACK ->
+        "Every cell asks one question — take this item, or leave it — and answers it by " +
+            "reading two smaller bags that are already solved. That is dynamic programming: " +
+            "each smaller problem is worked out once and reused. The table is (n + 1) × " +
+            "(W + 1), so it costs O(n × W)."
 }

@@ -197,7 +197,7 @@ private fun Hero(triggeringAlgorithm: String?) {
             ProBadge()
             Gap(Spacing.xs)
             Text(
-                text = "It is one of the ten advanced lessons in AlgoKing Pro.",
+                text = "It is one of the eleven advanced lessons in AlgoKing Pro.",
                 style = AlgoType.bodyLarge,
                 color = AlgoColors.textSecondary,
                 textAlign = TextAlign.Center,
@@ -233,7 +233,7 @@ private fun Includes() {
             )
             Gap(Spacing.sm)
             listOf(
-                "10 advanced algorithms",
+                "11 advanced algorithms",
                 "Interactive WATCH and TRY for every one",
                 "Graph and tree algorithms",
                 "Learn by driving the algorithm, not memorising it",

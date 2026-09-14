@@ -47,6 +47,14 @@ data class Dataset(
      * tree, a skewed one or a generated one later is data rather than code.
      */
     val tree: BinaryTree? = null,
+    /**
+     * Items and a bag, for a lesson whose data is a choice rather than a
+     * structure — 0/1 Knapsack decides what to pack.
+     *
+     * Optional and defaulted, the additive move `graph` and `tree` made before it,
+     * so no existing lesson changed when it arrived.
+     */
+    val knapsack: KnapsackProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -86,6 +94,11 @@ enum class AlgorithmId {
     TREE_INORDER,
     TREE_PREORDER,
     TREE_POSTORDER,
+
+    // Advanced: the first dynamic-programming lesson. A table of smaller bags,
+    // each solved once, and every cell asks the same question — take this item,
+    // or leave it?
+    ZERO_ONE_KNAPSACK,
 
     BUBBLE_SORT,
     SELECTION_SORT,

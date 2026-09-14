@@ -130,6 +130,16 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Pink,
         glyph = AlgoIcons.TileNodes,
     ),
+    // The first dynamic-programming lesson. Filed under Advanced, which is what
+    // makes it Pro — there is no flag to set (ADR-041).
+    AlgorithmEntry(
+        id = AlgorithmId.ZERO_ONE_KNAPSACK,
+        title = "0/1 Knapsack",
+        description = "Take it or leave it, and never solve the same bag twice.",
+        category = "Advanced",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileBars,
+    ),
     AlgorithmEntry(
         id = AlgorithmId.BUBBLE_SORT,
         title = "Bubble Sort",

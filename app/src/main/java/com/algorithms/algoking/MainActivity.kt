@@ -414,7 +414,10 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // previous order is still fresh — the same reason Queue follows Stack.
     AlgorithmId.TREE_INORDER -> AlgorithmId.TREE_PREORDER
     AlgorithmId.TREE_PREORDER -> AlgorithmId.TREE_POSTORDER
-    AlgorithmId.TREE_POSTORDER -> AlgorithmId.BINARY_SEARCH
+    // The shelf ends on building answers rather than walking structures: a DP
+    // lesson reads best once Prefix Sum's "build a table once" is behind the learner.
+    AlgorithmId.TREE_POSTORDER -> AlgorithmId.ZERO_ONE_KNAPSACK
+    AlgorithmId.ZERO_ONE_KNAPSACK -> AlgorithmId.BINARY_SEARCH
 }
 
 /**

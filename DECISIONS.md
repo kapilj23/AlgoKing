@@ -2242,6 +2242,54 @@ debug-only; in a release build it would re-ask every learner on every launch.
   duplicate: it arrives with `play-services-ads` 24.7.0 (as 3.2.0), and pinning a second
   version is how the two drift.
 
+---
+
+## ADR-044 — 0/1 Knapsack: a table of smaller bags, and TAKE reads the row above
+
+**Decision.** 0/1 Knapsack ships as an Advanced (so Pro) `LessonPack` with WATCH and
+TRY. `Scene` gains a sixth shape, `DpTableScene`; `Dataset` gains a defaulted
+`knapsack`. The learner answers three questions: **which cell TAKE builds on** (a tap
+on the table), **TAKE or SKIP**, and — walking back up — **was each item taken**.
+Full detail: `docs/zero-one-knapsack.md`; the plan: `docs/zero-one-knapsack-plan.md`.
+
+⚠ **Product-owner decision**, 2026-09-14: approved, with the paywall copy updated from
+"ten" to "eleven" advanced lessons (a copy-only change; no billing logic touched).
+
+### Why a sixth shape
+
+A DP table is indexed by two quantities, and the lesson lives in how a cell reads the
+row above — straight up for SKIP, `weight` columns left for TAKE. A sequence has one
+index; `PrefixScene` and `CountingScene` stack one-dimensional rows; a graph has no
+grid. The same judgement ADR-030, 033, 034 and 040 made. Fields name what is drawn —
+rows, columns, headers, a two-sided choice — not knapsacks.
+
+### Why the source tap
+
+Printing both candidates and asking for the larger tests `max` and nothing else.
+Asking *where TAKE reads from* tests the state's meaning and the 0/1 constraint
+together, and its key wrong answer — the same row — is the Unbounded Knapsack
+recurrence, refused with that reason.
+
+### Why the brief's dataset was replaced
+
+Enumerated: two optimal bags tie at 13, most-valuable-first already finds 13, and two
+cells tie. Any one of those teaches something false. The shipped bags were chosen by
+exhaustive search for a unique optimum both greedy strategies miss, no ties, and a
+last row with every cell kind.
+
+### Why wrong actions are refused, not applied
+
+Counting Sort applies a wrong count. Here a wrong value in one cell would silently
+poison every cell that reads it, so — like Dijkstra, AVL and the traversals — the
+engine accepts only the recurrence's answer.
+
+**Alternatives.** Four items (20 recurrence cells, ~20 TRY decisions) · a numeric
+keypad (a new interaction model) · three value options per cell (tests `max` only) · a
+one-row table (erases what backtracking reads) · the problem beats as captions over one
+unchanging scene (greedy's bag has to be a real, engine-computed state).
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

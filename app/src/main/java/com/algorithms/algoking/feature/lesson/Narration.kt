@@ -931,6 +931,209 @@ object Narration {
                 "DFS goes deep, BFS goes level by level, Dijkstra goes by distance — and " +
                     "where every edge costs 1, that is BFS."
 
+            // ── 0/1 Knapsack ──────────────────────────────────────────────
+            // TAKE and SKIP in capitals, because they are the two words on the
+            // buttons. Every cell is printed as dp[i][c] beside what it means.
+            NarrationId.KN_OPTION_TAKE -> "TAKE"
+            NarrationId.KN_OPTION_SKIP -> "SKIP"
+            NarrationId.KN_OPTION_TAKEN -> "Taken"
+            NarrationId.KN_OPTION_LEFT_OUT -> "Left out"
+            NarrationId.KN_OPTION_CELL -> "dp[${arg(0)}][${arg(1)}]"
+            NarrationId.KN_ASK_SOURCE ->
+                "If you TAKE the ${arg(0)}, which cell holds the best for the room that is left?"
+            NarrationId.KN_ASK_CHOICE -> "SKIP or TAKE the ${arg(0)}?"
+            NarrationId.KN_ASK_TRACE -> "Was the ${arg(0)} taken?"
+            NarrationId.KN_INTRO_RULE -> "Each item goes in once, or not at all."
+            NarrationId.KN_INTRO_GREEDY ->
+                "Greedy takes the ${arg(0)} first: ${arg(1)} in the bag, ${arg(2)} capacity left."
+            NarrationId.KN_INTRO_GREEDY_NONE -> "Nothing fits in this bag at all."
+            NarrationId.KN_INTRO_SUBPROBLEM ->
+                "${arg(0)} possible bags. Ask a smaller question instead."
+            NarrationId.KN_BASE -> "No items, or no room, is worth 0."
+            NarrationId.KN_FOCUS ->
+                "dp[${arg(0)}][${arg(1)}]: the best using ${arg(2)}, with capacity ${arg(1)}."
+            NarrationId.KN_SOURCE ->
+                "TAKE: ${arg(0)} + dp[${arg(1)}][${arg(2)}] = ${arg(0)} + ${arg(3)} = ${arg(4)}. " +
+                    "SKIP keeps ${arg(5)}."
+            NarrationId.KN_TOOK -> "dp[${arg(0)}][${arg(1)}] = ${arg(2)} — the ${arg(3)} goes in."
+            NarrationId.KN_SKIPPED ->
+                "dp[${arg(0)}][${arg(1)}] = ${arg(2)} — the bag is better without the ${arg(3)}."
+            NarrationId.KN_COPIED ->
+                "dp[${arg(0)}][${arg(1)}] = ${arg(2)} — the ${arg(3)} weighs ${arg(4)} and does not fit."
+            NarrationId.KN_TRACE_BEGIN ->
+                "The best bag is worth ${arg(0)}. Now walk back up to find what is in it."
+            NarrationId.KN_MARKED_TAKEN ->
+                "The ${arg(0)} is in. It used ${arg(1)}, so ${arg(2)} capacity is left to explain."
+            NarrationId.KN_MARKED_LEFT_OUT ->
+                "The ${arg(0)} is out. Still ${arg(1)} capacity to explain, one row up."
+            NarrationId.KN_HINT_SOURCE ->
+                "TAKE uses up the item's weight, and builds on a row that has never seen the item."
+            NarrationId.KN_HINT_CHOICE ->
+                "Check the weight against the capacity, then compare what each choice is worth."
+            NarrationId.KN_HINT_TRACE -> "Compare this cell with the one directly above it."
+            NarrationId.KN_RETRY_SOURCE_LOOK ->
+                "The ${arg(0)} weighs ${arg(1)}. Look at the row above."
+            NarrationId.KN_RETRY_SOURCE_ASK ->
+                "Capacity ${arg(0)}, minus ${arg(1)} for the ${arg(2)} — how much room is left, " +
+                    "and which row has not seen the ${arg(2)} yet?"
+            NarrationId.KN_RETRY_SOURCE_EXPLAIN ->
+                "Taking the ${arg(0)} leaves ${arg(1)} − ${arg(2)} = ${arg(3)} capacity. The best " +
+                    "for that, without the ${arg(0)}, is dp[${arg(4)}][${arg(3)}]."
+            NarrationId.KN_RETRY_FIT_LOOK ->
+                "The ${arg(0)} weighs ${arg(1)}. This column's capacity is ${arg(2)}."
+            NarrationId.KN_RETRY_FIT_ASK ->
+                "Can something that weighs ${arg(0)} go in a bag that holds ${arg(1)}?"
+            NarrationId.KN_RETRY_FIT_EXPLAIN ->
+                "${arg(1)} is more than ${arg(2)}, so the ${arg(0)} cannot go in. SKIP, and the " +
+                    "cell copies the ${arg(3)} above."
+            NarrationId.KN_RETRY_CHOICE_LOOK -> "TAKE is worth ${arg(0)}. SKIP keeps ${arg(1)}."
+            NarrationId.KN_RETRY_CHOICE_ASK ->
+                "The cell keeps whichever bag is worth more. Which one is that?"
+            NarrationId.KN_RETRY_CHOICE_EXPLAIN_TAKE ->
+                "${arg(0)} is more than ${arg(1)}, so TAKE the ${arg(2)}."
+            NarrationId.KN_RETRY_CHOICE_EXPLAIN_SKIP ->
+                "${arg(0)} is no more than ${arg(1)}, so SKIP the ${arg(2)} and keep ${arg(1)}."
+            NarrationId.KN_RETRY_TRACE_LOOK ->
+                "dp[${arg(0)}][${arg(1)}] is ${arg(2)}. dp[${arg(3)}][${arg(1)}] is ${arg(4)}."
+            NarrationId.KN_RETRY_TRACE_ASK ->
+                "If the ${arg(0)} row did not change the value, did the ${arg(0)} go in?"
+            NarrationId.KN_RETRY_TRACE_EXPLAIN_TAKEN ->
+                "${arg(0)} is not ${arg(1)} — the ${arg(2)} row raised it, so the ${arg(2)} was taken."
+            NarrationId.KN_RETRY_TRACE_EXPLAIN_LEFT_OUT ->
+                "${arg(0)} is the same as the row above, so the ${arg(2)} was left out."
+            NarrationId.KN_WHY_SAME_ROW ->
+                "Row ${arg(0)} is allowed to use the ${arg(1)} already. Building on it could put " +
+                    "the ${arg(1)} in twice — and 0/1 means once. TAKE builds on the row above."
+            NarrationId.KN_WHY_SKIP_CELL ->
+                "That is SKIP's cell — no room used. Taking the ${arg(0)} uses ${arg(1)}, so TAKE " +
+                    "starts from less room."
+            NarrationId.KN_WHY_WRONG_CAPACITY ->
+                "Taking the ${arg(0)} leaves ${arg(1)} − ${arg(2)} = ${arg(3)} capacity, not ${arg(4)}."
+            NarrationId.KN_WHY_ROW_TOO_HIGH ->
+                "Row ${arg(0)} has never seen the ${arg(1)}. The row directly above holds the best " +
+                    "of everything before this item."
+            NarrationId.KN_WHY_NO_FIT ->
+                "The ${arg(0)} weighs ${arg(1)}, but only ${arg(2)} capacity is available. " +
+                    "It cannot go in."
+            NarrationId.KN_WHY_SKIP_LOSES ->
+                "Skipping keeps ${arg(0)}. Taking gives ${arg(1)} + ${arg(2)} = ${arg(3)}. " +
+                    "Which choice keeps the better bag?"
+            NarrationId.KN_WHY_TAKE_LOSES ->
+                "Taking gives ${arg(0)} + ${arg(1)} = ${arg(2)}, but skipping keeps ${arg(3)} — " +
+                    "a bag at least as good without the ${arg(4)}. The cell keeps the larger."
+            NarrationId.KN_WHY_TRACE_SAME ->
+                "dp[${arg(0)}][${arg(1)}] and dp[${arg(3)}][${arg(1)}] are both ${arg(2)}. The " +
+                    "${arg(5)} row changed nothing, so the ${arg(5)} was left out."
+            NarrationId.KN_WHY_TRACE_CHANGED ->
+                "dp[${arg(0)}][${arg(1)}] is ${arg(2)} but dp[${arg(3)}][${arg(1)}] is ${arg(4)}. " +
+                    "That difference only exists if the ${arg(5)} went in."
+            NarrationId.KN_CORRECT_SOURCE ->
+                "Right: with the ${arg(0)} in, ${arg(1)} capacity is left, and " +
+                    "dp[${arg(2)}][${arg(1)}] = ${arg(3)} is the best for it."
+            NarrationId.KN_CORRECT_NO_FIT ->
+                "The ${arg(0)} doesn't fit in ${arg(1)}, so the best is still the cell above: ${arg(2)}."
+            NarrationId.KN_CORRECT_TAKE ->
+                "${arg(0)} + ${arg(1)} = ${arg(2)} beats ${arg(3)}: the ${arg(4)} goes in."
+            NarrationId.KN_CORRECT_SKIP ->
+                "${arg(0)} doesn't beat ${arg(1)}: the bag is at least as good without the ${arg(2)}."
+            NarrationId.KN_CORRECT_TAKEN ->
+                "The ${arg(0)} was taken: ${arg(1)} − ${arg(2)} = ${arg(3)} capacity left to explain."
+            NarrationId.KN_CORRECT_LEFT_OUT ->
+                "The ${arg(0)} was left out: still ${arg(1)} capacity to explain, one row up."
+            NarrationId.KN_WATCH_SETUP -> "Pack the most value into a bag that holds ${arg(0)}."
+            NarrationId.KN_WATCH_SETUP_SUPPORT ->
+                "${arg(0)} ${plural(0, "item", "items")}, each with a weight and a value."
+            NarrationId.KN_WATCH_RULE -> "Each item goes in once, or not at all."
+            NarrationId.KN_WATCH_RULE_SUPPORT ->
+                "1 means take it, 0 means leave it — that is the 0/1 in the name. No second " +
+                    "copy, and no half an item."
+            NarrationId.KN_WATCH_GREEDY -> "Take the most valuable first? The ${arg(0)}, worth ${arg(1)}."
+            NarrationId.KN_WATCH_GREEDY_SUPPORT ->
+                "That bag is worth ${arg(0)}, with ${arg(1)} capacity it can't use. Is that the " +
+                    "best this bag can do?"
+            NarrationId.KN_WATCH_GREEDY_NONE -> "Nothing fits in this bag at all."
+            NarrationId.KN_WATCH_SUBPROBLEM -> "Ask a smaller question instead."
+            NarrationId.KN_WATCH_SUBPROBLEM_SUPPORT ->
+                "Trying every bag means ${arg(0)} bags here, and twice as many with each new item. " +
+                    "Instead: what is the best value using only the first few items, with less room?"
+            NarrationId.KN_WATCH_DEFINE ->
+                "dp[i][c]: the best value using the first i items, with capacity c."
+            NarrationId.KN_WATCH_DEFINE_SUPPORT ->
+                "No items, or no room, is worth 0 — so row 0 and column 0 are all zeros."
+            NarrationId.KN_WATCH_FIRST_ROW -> "Row 1 — only the ${arg(0)}."
+            NarrationId.KN_WATCH_FIRST_ROW_SUPPORT ->
+                "0 while it doesn't fit, then ${arg(0)} from capacity ${arg(1)} up."
+            NarrationId.KN_WATCH_NO_FIT ->
+                "The ${arg(0)} weighs ${arg(1)}. Up to capacity ${arg(2)}, it can't go in."
+            NarrationId.KN_WATCH_NO_FIT_SUPPORT ->
+                "A cell whose item doesn't fit copies the cell above: the best without it."
+            NarrationId.KN_WATCH_SKIP_SIDE ->
+                "Capacity ${arg(0)}. SKIP the ${arg(1)}: keep dp[${arg(2)}][${arg(0)}] = ${arg(3)}."
+            NarrationId.KN_WATCH_SKIP_SIDE_SUPPORT ->
+                "The best bag without the ${arg(0)}, already worked out one row up."
+            NarrationId.KN_WATCH_TAKE_SIDE ->
+                "TAKE the ${arg(0)}: ${arg(1)} + dp[${arg(2)}][${arg(3)}] = ${arg(4)}."
+            NarrationId.KN_WATCH_TAKE_SIDE_SUPPORT ->
+                "The ${arg(0)}, plus the best of the ${arg(1)} capacity it leaves."
+            NarrationId.KN_WATCH_MAX ->
+                "${arg(0)} beats ${arg(1)}, so dp[${arg(2)}][${arg(3)}] = ${arg(0)}."
+            NarrationId.KN_WATCH_MAX_SUPPORT -> "Every cell keeps the larger of its two choices."
+            NarrationId.KN_WATCH_REUSE ->
+                "Capacity ${arg(0)}. TAKE the ${arg(1)}, and ${arg(2)} capacity is left."
+            NarrationId.KN_WATCH_REUSE_SUPPORT ->
+                "dp[${arg(0)}][${arg(1)}] already knows the best for ${arg(1)}: ${arg(2)}. It was " +
+                    "worked out once, and is simply read back."
+            NarrationId.KN_WATCH_REUSE_RESULT ->
+                "${arg(0)} + ${arg(1)} = ${arg(2)} beats ${arg(3)}. dp[${arg(4)}][${arg(5)}] = ${arg(2)}."
+            NarrationId.KN_WATCH_REUSE_RESULT_SUPPORT -> "That cell means: the ${arg(0)}, together."
+            NarrationId.KN_WATCH_ROW_SUMMARY ->
+                "The ${arg(0)} weighs ${arg(1)}: it copies the row above until it fits, then asks " +
+                    "the same question."
+            NarrationId.KN_WATCH_ROW_SUMMARY_SUPPORT ->
+                "dp[${arg(0)}][${arg(1)}] = ${arg(2)}."
+            NarrationId.KN_WATCH_LAST_CELL ->
+                "The last cell. SKIP keeps ${arg(0)}. TAKE gives ${arg(1)}."
+            NarrationId.KN_WATCH_LAST_CELL_SUPPORT ->
+                "TAKE is ${arg(0)} + dp[${arg(1)}][${arg(2)}] = ${arg(0)} + ${arg(3)}."
+            NarrationId.KN_WATCH_ANSWER_SKIP ->
+                "${arg(1)} doesn't beat ${arg(0)} — leave the ${arg(2)} out."
+            NarrationId.KN_WATCH_ANSWER_TAKE ->
+                "${arg(0)} beats ${arg(1)} — the ${arg(2)} goes in."
+            NarrationId.KN_WATCH_ANSWER_COPY ->
+                "The ${arg(0)} doesn't fit, so the answer is the cell above: ${arg(1)}."
+            NarrationId.KN_WATCH_ANSWER_GREEDY_SUPPORT ->
+                "This is where taking the most valuable item first loses: the ${arg(0)} leaves " +
+                    "room nothing can use."
+            NarrationId.KN_WATCH_ANSWER_SUPPORT ->
+                "The best bag for the whole problem is worth ${arg(0)}."
+            NarrationId.KN_WATCH_TRACE_START -> "The best bag is worth ${arg(0)}. But which items?"
+            NarrationId.KN_WATCH_TRACE_TAKEN -> "The ${arg(0)} made the difference."
+            NarrationId.KN_WATCH_TRACE_LEFT_OUT -> "The ${arg(0)} changed nothing."
+            NarrationId.KN_WATCH_TRACE_TAKEN_SUPPORT ->
+                "dp[${arg(0)}][${arg(1)}] = ${arg(2)}, but dp[${arg(3)}][${arg(1)}] = ${arg(4)}: " +
+                    "the ${arg(5)} is in, and ${arg(6)} capacity is left."
+            NarrationId.KN_WATCH_TRACE_LEFT_OUT_SUPPORT ->
+                "dp[${arg(0)}][${arg(1)}] and dp[${arg(3)}][${arg(1)}] are both ${arg(2)}: the " +
+                    "${arg(5)} was left out."
+            NarrationId.KN_WATCH_TRACE_DONE -> "${arg(0)}: weight ${arg(1)}, value ${arg(2)}."
+            NarrationId.KN_WATCH_INSIGHT -> "Every cell is a smaller bag, solved once."
+            NarrationId.KN_WATCH_INSIGHT_SUPPORT ->
+                "Grabbing the most valuable item first got ${arg(0)}. The table found ${arg(1)}."
+            NarrationId.KN_WATCH_INSIGHT_SUPPORT_PLAIN ->
+                "Each cell reads two cells from the row above — never the whole problem again."
+            NarrationId.KN_WATCH_SUMMARY ->
+                "${arg(0)} items, capacity ${arg(1)}, ${arg(2)} cells."
+            NarrationId.KN_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.KN_IDEA_1 -> "0/1: every item is taken once, or left."
+            NarrationId.KN_IDEA_2 -> "dp[i][c] is the best value using the first i items with capacity c."
+            NarrationId.KN_IDEA_3 ->
+                "SKIP keeps the cell above. TAKE adds the item to the row above, at the capacity " +
+                    "left. Keep the larger."
+            NarrationId.KN_IDEA_4 ->
+                "Walk back up: where a cell differs from the one above, that item was taken."
+            NarrationId.KN_IDEA_5 ->
+                "O(n × W) time and space — one cell per item and capacity, each decided once."
+
             // ── Binary Tree — Inorder: LEFT → NODE → RIGHT ────────────────
             // The learner taps nodes, so an "option" label is just the value.
             NarrationId.INORDER_ASK -> "${arg(0)}"

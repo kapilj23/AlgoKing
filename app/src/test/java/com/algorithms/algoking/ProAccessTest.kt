@@ -18,7 +18,7 @@ import org.junit.Test
  */
 class ProAccessTest {
 
-    /** The ten the paywall sells, by name, in library order. */
+    /** The eleven the paywall sells, by name, in library order. */
     private val expectedPro = listOf(
         "Two Pointers",
         "Prefix Sum",
@@ -30,12 +30,13 @@ class ProAccessTest {
         "Binary Tree — Inorder",
         "Binary Tree — Preorder",
         "Binary Tree — Postorder",
+        "0/1 Knapsack",
     )
 
     @Test
-    fun `exactly ten lessons are Pro, and they are the Advanced shelf`() {
+    fun `exactly eleven lessons are Pro, and they are the Advanced shelf`() {
         val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category) }
-        assertEquals(10, pro.size)
+        assertEquals(11, pro.size)
         assertEquals(expectedPro, pro.map { it.title })
         // No duplicates — the paywall's list is what the learner is buying.
         assertEquals(pro.size, pro.map { it.id }.toSet().size)
@@ -55,9 +56,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 21 lessons, and the partition is total: a lesson that fell out of both
+        // 22 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(21, algorithmLibrary.size)
+        assertEquals(22, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -106,7 +107,7 @@ class ProAccessTest {
 
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
-        // The rule applied to the real catalogue rather than to a string: all ten
+        // The rule applied to the real catalogue rather than to a string: all eleven
         // are locked, and none of the eleven free ones is.
         for (entry in algorithmLibrary) {
             val decision = ProAccess.decide(entry.category, ProEntitlement.Free)

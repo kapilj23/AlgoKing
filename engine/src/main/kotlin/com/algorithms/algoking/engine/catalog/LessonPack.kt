@@ -3,6 +3,10 @@ package com.algorithms.algoking.engine.catalog
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackAlgorithm
+import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackProjector
+import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackWatchNarrator
+import com.algorithms.algoking.engine.dataset.KnapsackDatasets
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraAlgorithm
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraProjector
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraWatchNarrator
@@ -276,6 +280,21 @@ object AlgorithmCatalog {
         tryDataset = DijkstraDatasets.tryIt,
     )
 
+    /**
+     * The first dynamic-programming lesson. Every cell of the table is a smaller
+     * bag, solved once, and asks one question — take this item, or leave it? —
+     * by reading two cells from the row above.
+     */
+    fun zeroOneKnapsack() = LessonPack(
+        id = AlgorithmId.ZERO_ONE_KNAPSACK,
+        displayName = "0/1 Knapsack",
+        algorithm = KnapsackAlgorithm(),
+        projector = KnapsackProjector(),
+        watchNarrator = KnapsackWatchNarrator(),
+        watchDataset = KnapsackDatasets.watch,
+        tryDataset = KnapsackDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -396,6 +415,7 @@ object AlgorithmCatalog {
         AlgorithmId.TREE_INORDER -> inorderTraversal()
         AlgorithmId.TREE_PREORDER -> preorderTraversal()
         AlgorithmId.TREE_POSTORDER -> postorderTraversal()
+        AlgorithmId.ZERO_ONE_KNAPSACK -> zeroOneKnapsack()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

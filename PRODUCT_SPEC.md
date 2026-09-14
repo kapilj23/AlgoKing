@@ -36,7 +36,8 @@ V2:   WATCH → TRY → CHALLENGE → RESULT
 > **AlgoKing Pro**, a Play subscription, and the other eleven stay free. The rest of the
 > Never list stands unchanged. Recorded in full at ADR-041 and `docs/pro-access.md`.
 
-**Monetization:** eleven free lessons, and a **Pro subscription** for the ten Advanced ones.
+**Monetization:** eleven free lessons, and a **Pro subscription** for the eleven Advanced ones
+(the tenth-to-eleventh change is 0/1 Knapsack, ADR-044).
 Ads remain unbuilt and are now unlikely — §9 stands as written but is no longer the plan.
 
 **Free means complete, not crippled.** A free lesson has both stages, the whole guidance
@@ -97,6 +98,7 @@ advancement is performed by the app, never by the user.
 | Binary Tree — Inorder | returns to the parent once a node is finished | **which node the traversal touches next** — LEFT → NODE → RIGHT |
 | Binary Tree — Preorder | the same | the same question, NODE → LEFT → RIGHT |
 | Binary Tree — Postorder | the same | the same question, LEFT → RIGHT → NODE |
+| 0/1 Knapsack | fills row 1 and the zeros, adds `value + dp`, moves between cells | **which cell TAKE builds on**, **TAKE or SKIP?**, then **was each item taken?** |
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
 | Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |
@@ -170,6 +172,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Binary Tree — Inorder | "Every node waits for its whole left subtree." |
 | Binary Tree — Preorder | "The node is emitted on the way down." |
 | Binary Tree — Postorder | "A node waits for everything beneath it." |
+| 0/1 Knapsack | "Every cell is a smaller bag, solved once." |
 | Sliding Window | "The window never re-reads what it already counted." |
 | Stack or Queue | "Last in, first out. First in, first out." |
 

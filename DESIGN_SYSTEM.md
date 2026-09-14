@@ -669,6 +669,38 @@ asked which bucket takes a 3 would answer the question in the act of posing it, 
 the strip shows the change that *just happened* and there is none at all before the
 first tap — the same rule the hash flow follows (§6.16e).
 
+### 6.16i A table with two axes — `DpTable`
+
+The sixth scene shape (ADR-044), for 0/1 Knapsack. Rows are items allowed, columns are
+capacity, and a cell reads the row above it. What is new is **layout only**: every cell
+is the shared `SceneCell`, every strip is the `surfaceVariant` card `PrefixTable` uses.
+
+```
+CAPACITY    0   1   2   3   4   5
+No items   [0] [0] [0] [0] [0] [0]
+Book       [0] [0] [3] [3] [3] [3]
+ w2 · v3
+Camera     [0] [0] [3] [ ] [ ] [ ]      ← [ ] is the cell being decided
+ w3 · v5
+```
+
+| Element | Treatment |
+|---|---|
+| row name | `Dimens.compareLabelWidth` gutter: name in `labelMedium`, `w3 · v5` in `labelSmall` / `textMuted`; the active row in `primary` |
+| column header | `labelMedium`, the active column in `primary`; `CAPACITY` in `labelSmall` over the gutter |
+| not computed | an empty `hairline` slot in `border` — a zero would claim a value exists |
+| the cell being decided | `GHOST` |
+| SKIP's cell | `CANDIDATE` amber |
+| TAKE's cell | `COMPARING` violet |
+| computed | `IDLE` |
+| the answer and the walk back | `FINALIZED` |
+| choice strip | two cards: **TAKE** in `DecisionTone.First`, **SKIP** in `DecisionTone.Second` — the order and tones of the buttons beneath. `?` until known; the winner takes a `outlineStrong` border in its tone, the loser fades to 50 % |
+| item cards | `surface` / `Radius.cell`; taken `successSoft` + `success` outline, being read `primarySoft` + `primary`, left out faded to 55 %; a `0` / `1` pill |
+| bag meter | `surfaceMuted` track filling `success`, `used / capacity` in `titleSmall` |
+
+**Fit a phone by the gutter, never the cell.** Six capacity columns get about 35dp each
+at 360dp — wider than Counting Sort's buckets — at `sceneCellHeight`. Nothing scrolls.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.
