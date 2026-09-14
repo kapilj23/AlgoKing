@@ -21,8 +21,46 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    /**
+     * Release signing.
+     *
+     * Every value is read from **machine-local** Gradle properties — normally
+     * `~/.gradle/gradle.properties`, which is outside this repository and outside
+     * version control. Nothing here contains a password, a path to a key, or any
+     * other secret, and `keystore/` is git-ignored.
+     *
+     * On a machine without those properties (a fresh clone, CI without secrets)
+     * `signingConfigs` is simply absent and `assembleDebug`/`test` still work —
+     * only `bundleRelease` needs the key, and it fails loudly rather than
+     * silently producing an unsigned or debug-signed artifact.
+     */
+    val releaseStore = providers.gradleProperty("ALGOKING_KEYSTORE").orNull
+    val releaseAlias = providers.gradleProperty("ALGOKING_KEY_ALIAS").orNull
+    val releaseStorePassword = providers.gradleProperty("ALGOKING_STORE_PASSWORD").orNull
+    val releaseKeyPassword = providers.gradleProperty("ALGOKING_KEY_PASSWORD").orNull
+    val canSignRelease = releaseStore != null && file(releaseStore).exists() &&
+        releaseAlias != null && releaseStorePassword != null && releaseKeyPassword != null
+
+    if (canSignRelease) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseStore!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseAlias
+                keyPassword = releaseKeyPassword
+                // Both schemes: v1 for older devices, v2 for the ones that verify
+                // the whole APK. Play re-signs for v3/v4 where it applies.
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (canSignRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                 enable = false
             }
