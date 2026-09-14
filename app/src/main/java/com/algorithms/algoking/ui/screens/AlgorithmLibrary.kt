@@ -1,0 +1,228 @@
+package com.algorithms.algoking.ui.screens
+
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.algorithms.algoking.engine.core.AlgorithmId
+import com.algorithms.algoking.engine.progress.AlgorithmProgress
+import com.algorithms.algoking.ui.components.AlgorithmStatus
+import com.algorithms.algoking.ui.icons.AlgoIcons
+import com.algorithms.algoking.ui.theme.AlgoAccent
+
+/**
+ * The Home library content — PRODUCT_SPEC.md §10 and §15.
+ *
+ * Each entry owns one accent hue, and that hue is the only colour that varies
+ * between rows: the tile gradient, the badge and the ring all read from it.
+ *
+ * An entry carries **no progress**. Progress belongs to the learner, not to the
+ * catalogue, and it is read from `ProgressRepository` at render time — see
+ * [statusFor].
+ */
+data class AlgorithmEntry(
+    val id: AlgorithmId,
+    val title: String,
+    val description: String,
+    val category: String,
+    val accent: AlgoAccent,
+    val glyph: ImageVector,
+)
+
+/**
+ * Only categories that actually contain a lesson. A chip that filters to an empty
+ * list is a dead end the learner has no way to recover from.
+ */
+val algorithmCategories = listOf(
+    "All",
+    "Searching",
+    "Sorting",
+    "Structures",
+    // Techniques rather than named routines, and the first place the library
+    // gets harder. It is a category like any other so the chip row, the card
+    // badge and the filter all work with no new mechanism — PRODUCT_SPEC.md §12.
+    "Advanced",
+)
+
+val algorithmLibrary = listOf(
+    AlgorithmEntry(
+        id = AlgorithmId.BINARY_SEARCH,
+        title = "Binary Search",
+        description = "Divide and conquer to find the target in a sorted array.",
+        category = "Searching",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileSearch,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.TWO_POINTERS,
+        title = "Two Pointers",
+        description = "Walk in from both ends of a sorted array.",
+        category = "Advanced",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.PREFIX_SUM,
+        title = "Prefix Sum",
+        description = "Precompute running totals, then answer any range instantly.",
+        category = "Advanced",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.GRAPH_DFS,
+        title = "Graph DFS",
+        description = "Go as deep as you can, then back up and take the next branch.",
+        category = "Advanced",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.GRAPH_BFS,
+        title = "Graph BFS",
+        description = "Explore level by level, driven by a queue.",
+        category = "Advanced",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.DIJKSTRA,
+        title = "Dijkstra",
+        description = "Cheapest route first, one distance at a time.",
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.BINARY_SEARCH_TREE,
+        title = "Binary Search Tree",
+        description = "One comparison per node, and a whole subtree drops out.",
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.AVL_TREE,
+        title = "AVL Tree",
+        description = "A search tree that rotates itself back into shape.",
+        category = "Advanced",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.TREE_INORDER,
+        title = "Binary Tree — Inorder",
+        description = "Left subtree, then the node, then the right.",
+        category = "Advanced",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.TREE_PREORDER,
+        title = "Binary Tree — Preorder",
+        description = "The node first, then its left and right subtrees.",
+        category = "Advanced",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.TREE_POSTORDER,
+        title = "Binary Tree — Postorder",
+        description = "Both subtrees first. The node comes last.",
+        category = "Advanced",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.BUBBLE_SORT,
+        title = "Bubble Sort",
+        description = "Compare neighbours and swap the ones out of order.",
+        category = "Sorting",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileDots,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.SELECTION_SORT,
+        title = "Selection Sort",
+        description = "Find the smallest value left and place it at the front.",
+        category = "Sorting",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileDots,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.INSERTION_SORT,
+        title = "Insertion Sort",
+        description = "Shift larger values right and drop each value into place.",
+        category = "Sorting",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.MERGE_SORT,
+        title = "Merge Sort",
+        description = "Divide the array, then merge the sorted pieces back together.",
+        category = "Sorting",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.QUICK_SORT,
+        title = "Quick Sort",
+        description = "Pick a pivot, partition around it, repeat on each side.",
+        category = "Sorting",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.COUNTING_SORT,
+        title = "Counting Sort",
+        description = "Count each value, then rebuild the array in order.",
+        category = "Sorting",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.STACK,
+        title = "Stack",
+        description = "A pile you can only touch from the top. Last in, first out.",
+        category = "Structures",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.QUEUE,
+        title = "Queue",
+        description = "A line you join at the back and leave from the front.",
+        category = "Structures",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileDots,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.LINKED_LIST,
+        title = "Linked List",
+        description = "A chain of nodes. Each one points to the next.",
+        category = "Structures",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.HASH_MAP,
+        title = "Hash Map",
+        description = "The key calculates where its value lives.",
+        category = "Structures",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileBars,
+    ),
+)
+
+/**
+ * Turns learning progress into the card's right-hand slot.
+ *
+ * The label names the *stage boundary* the learner is standing on, so the ring and
+ * the words say the same thing: 50 % reads as "Watch done", not as a number with no
+ * meaning attached to it. The MVP has two stages, so the boundary is 50 %.
+ */
+fun statusFor(progress: AlgorithmProgress): AlgorithmStatus = when {
+    progress.finished -> AlgorithmStatus.Completed()
+    progress.tryCompleted -> AlgorithmStatus.InProgress(progress.percent, "Try done")
+    progress.watchCompleted -> AlgorithmStatus.InProgress(progress.percent, "Watch done")
+    progress.started -> AlgorithmStatus.InProgress(progress.percent)
+    else -> AlgorithmStatus.InProgress(0, "Not started")
+}

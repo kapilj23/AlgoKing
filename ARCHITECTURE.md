@@ -131,7 +131,7 @@ add build configuration without buying anything; features are packages inside `:
 ### Package layout
 
 ```
-engine/src/main/kotlin/com/ttele/algoking/engine/
+engine/src/main/kotlin/com/algorithms/algoking/engine/
 ├── core/          Algorithm, Probe, Transition, Frame, Trace, AlgorithmRunner
 ├── event/         VizEvent, Metrics, MetricsFolder
 ├── narration/     NarrationKey, NarrationArg     (keys only — no strings)
@@ -159,14 +159,14 @@ engine/src/main/kotlin/com/ttele/algoking/engine/
 ├── scoring/       StarFamily, ScoreInput, ScoreResult, Scorer, VerdictBuilder
 └── catalog/       AlgorithmId, LessonPack, AlgorithmCatalog (id → everything one lesson needs)
 
-design/src/main/kotlin/com/ttele/algoking/design/
+design/src/main/kotlin/com/algorithms/algoking/design/
 ├── theme/         AlgoTheme, AlgoColors, AlgoTypography, AlgoShapes, AlgoSpacing, LocalAlgo*
 ├── motion/        Durations, Easings, MotionScale, LocalReducedMotion
 ├── renderer/      SequenceRenderer, CellView, PointerView, RegionView, BadgeView, SwapArc
 └── component/     AlgoButton, DecisionChip, MetricTile, NarrationStrip, StageSpine,
                    StarRow, MasteryBadge, TransportBar, AlgoScaffold
 
-app/src/main/kotlin/com/ttele/algoking/
+app/src/main/kotlin/com/algorithms/algoking/
 ├── AlgoKingApplication.kt, MainActivity.kt, AppContainer.kt
 ├── nav/           Route (@Serializable), AlgoNavHost, BottomBar
 ├── feature/

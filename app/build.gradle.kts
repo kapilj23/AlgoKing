@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.ttele.algoking"
+    namespace = "com.algorithms.algoking"
     compileSdk {
         version = release(37) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ttele.algoking"
+        applicationId = "com.algorithms.algoking"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
