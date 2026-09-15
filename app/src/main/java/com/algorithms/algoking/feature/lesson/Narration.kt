@@ -2434,6 +2434,93 @@ object Narration {
                     "O(n) time, O(n) space."
             NarrationId.FIB_IDEA_5 ->
                 "Either way the rule is the same — never solve the same subproblem twice."
+
+            // ── Caesar Cipher ─────────────────────────────────────────────
+            // "Shift" and "wrap" throughout — the two words every description of
+            // this cipher uses. A letter's alphabet position is only ever named
+            // beside the letter itself, so the learner never has to hold a number
+            // they cannot see on screen.
+            NarrationId.CC_OPTION_LETTER -> arg(0)
+            NarrationId.CC_ASK_LETTER ->
+                "${arg(0)} shifted by ${arg(1)} — what does it become?"
+            NarrationId.CC_ENCRYPTED -> "${arg(0)} + ${arg(1)} → ${arg(2)}"
+            NarrationId.CC_COPIED -> "\"${arg(0)}\" is not a letter, so it stays as it is."
+
+            NarrationId.CC_HINT_COUNT ->
+                "Find ${arg(0)} in the alphabet and count ${arg(1)} places forward."
+
+            NarrationId.CC_RETRY_LOOK ->
+                "Look at the alphabet again — ${arg(0)}, then ${arg(1)} places forward."
+            NarrationId.CC_RETRY_ASK ->
+                "${arg(0)} is lit in the mapping row. Which letter is printed under it?"
+            NarrationId.CC_RETRY_EXPLAIN ->
+                "${arg(0)} is position ${arg(1)}. ${arg(1)} + ${arg(2)} = ${arg(3)}, " +
+                    "which is ${arg(4)}."
+            NarrationId.CC_RETRY_EXPLAIN_WRAP ->
+                "${arg(0)} is position ${arg(1)}. ${arg(1)} + ${arg(2)} = ${arg(3)}, " +
+                    "which runs off the end — so subtract 26 and carry on from A. " +
+                    "That lands on ${arg(4)}."
+
+            NarrationId.CC_WHY_BACKWARDS ->
+                "That is ${arg(0)} shifted ${arg(1)} places *backwards*. Encrypting " +
+                    "moves forwards — decrypting is the one that goes back."
+            NarrationId.CC_WHY_OFF_BY_ONE ->
+                "One place out. Count the letters you move *past*, not the one you " +
+                    "start on: ${arg(0)} plus ${arg(1)} is ${arg(2)}."
+            NarrationId.CC_WHY_NO_SHIFT ->
+                "That is ${arg(0)} unchanged. Every letter moves ${arg(1)} places."
+            NarrationId.CC_WHY_WRONG_DISTANCE ->
+                "That is the wrong distance from ${arg(0)}. The shift is ${arg(1)}, " +
+                    "so ${arg(0)} becomes ${arg(2)}."
+
+            NarrationId.CC_CORRECT ->
+                "${arg(0)} plus ${arg(1)} is ${arg(2)}."
+            NarrationId.CC_CORRECT_WRAP ->
+                "${arg(0)} plus ${arg(1)} runs past Z — ${arg(3)} wraps round to " +
+                    "${arg(2)}. The alphabet is a ring."
+
+            NarrationId.CC_WATCH_SETUP -> "Hide \"${arg(0)}\" by shifting every letter."
+            NarrationId.CC_WATCH_SETUP_SUPPORT ->
+                "Each letter moves a fixed number of places along the alphabet."
+            NarrationId.CC_WATCH_RULE -> "The shift is ${arg(0)}."
+            NarrationId.CC_WATCH_RULE_SUPPORT ->
+                "The mapping row shows every letter and what it becomes — " +
+                    "${arg(1)} becomes ${arg(2)}, and so on all the way to Z."
+
+            NarrationId.CC_WATCH_LETTER -> "${arg(0)} + ${arg(1)} → ${arg(2)}"
+            NarrationId.CC_WATCH_LETTER_SUPPORT ->
+                "Position ${arg(0)}, plus ${arg(1)}. The ciphertext reads ${arg(2)}."
+            NarrationId.CC_WATCH_COLLAPSED ->
+                "\"${arg(0)}\" follows the same rule, giving ${arg(1)}."
+            NarrationId.CC_WATCH_COLLAPSED_SUPPORT ->
+                "The same letter always encrypts to the same letter — which is " +
+                    "what makes this cipher easy to use, and easy to break."
+            NarrationId.CC_WATCH_COPIED -> "\"${arg(0)}\" is not a letter."
+            NarrationId.CC_WATCH_COPIED_SUPPORT ->
+                "The cipher shifts letters, so everything else passes through untouched."
+            NarrationId.CC_WATCH_DONE -> "\"${arg(0)}\" encrypts to \"${arg(1)}\"."
+
+            NarrationId.CC_WATCH_WRAP -> "And past the end: ${arg(0)} + ${arg(1)} → ${arg(2)}."
+            NarrationId.CC_WATCH_WRAP_SUPPORT ->
+                "${arg(0)} is past Z, so subtract 26 and carry on from A — that is " +
+                    "${arg(1)}. Look at the end of the mapping row: X Y Z sit above " +
+                    "A B C."
+
+            NarrationId.CC_WATCH_INSIGHT -> "The alphabet is a ring, not a line."
+            NarrationId.CC_WATCH_INSIGHT_SUPPORT ->
+                "That is all `mod 26` means: add ${arg(0)}, and if you run off the " +
+                    "end, come back round to the start."
+            NarrationId.CC_WATCH_SUMMARY -> "\"${arg(0)}\" → \"${arg(1)}\"."
+            NarrationId.CC_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.CC_IDEA_1 -> "Every letter moves the same number of places."
+            NarrationId.CC_IDEA_2 ->
+                "encrypted = (position + shift) mod 26 — the mod is the wrap."
+            NarrationId.CC_IDEA_3 ->
+                "To decrypt, shift back by the same amount: (position − shift + 26) mod 26."
+            NarrationId.CC_IDEA_4 ->
+                "There are only 25 useful shifts, so anyone can try all of them. " +
+                    "This hides a message; it does not secure one."
         }
     }
 }

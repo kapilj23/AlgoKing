@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.algorithms.algoking.engine.event.PointerId
 import com.algorithms.algoking.engine.scene.Cell
+import com.algorithms.algoking.engine.scene.CipherScene
 import com.algorithms.algoking.engine.scene.CountingScene
 import com.algorithms.algoking.engine.scene.DpTableScene
 import com.algorithms.algoking.engine.scene.CellState
@@ -90,6 +91,7 @@ fun SceneRenderer(
         is PrefixScene -> PrefixTable(scene, modifier)
         is GraphScene -> GraphStage(scene, modifier, selectableSlots, onSelectSlot)
         is CountingScene -> CountingTable(scene, modifier, selectableSlots, onSelectSlot)
+        is CipherScene -> CipherTable(scene, modifier)
         is DpTableScene -> DpTable(scene, modifier, selectableSlots, onSelectSlot)
     }
 }
@@ -640,6 +642,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
         // A graph carries its counts in the traversal strip instead.
         is GraphScene -> emptyList()
         is CountingScene -> scene.meters
+        is CipherScene -> scene.meters
         is DpTableScene -> scene.meters
     }
     if (meters.isEmpty()) return
@@ -685,6 +688,7 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         // Three rows, one legend: the input, the table and the answer all use the
         // same states and must be described by the same words.
         is CountingScene -> scene.legendStates
+        is CipherScene -> scene.plaintext.map { it.state } + scene.ciphertext.map { it.state }
         // A table still being posed has nothing to describe yet.
         is DpTableScene -> if (!scene.tableVisible) return else scene.cells.flatten().mapNotNull { it?.state }
         is BucketScene -> return
@@ -694,6 +698,7 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is PrefixScene -> scene.legendLabels
         is GraphScene -> scene.legendLabels
         is CountingScene -> scene.legendLabels
+        is CipherScene -> scene.legendLabels
         is DpTableScene -> scene.legendLabels
         is BucketScene -> return
     }

@@ -154,6 +154,9 @@ object ChallengeCatalog {
         AlgorithmId.TREE_POSTORDER -> null
         AlgorithmId.ZERO_ONE_KNAPSACK -> null
         AlgorithmId.FIBONACCI -> null
+        // Not authored: a generated cipher challenge needs a constraint keeping the
+        // message short and the shift non-trivial, and that has not been written.
+        AlgorithmId.CAESAR_CIPHER -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

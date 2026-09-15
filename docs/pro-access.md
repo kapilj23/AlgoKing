@@ -9,7 +9,7 @@
 
 | | Lessons | |
 |---|---|---|
-| **Free — 11** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map | complete: both stages, the full guidance ladder, progress |
+| **Free — 12** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map · **Caesar Cipher** | complete: both stages, the full guidance ladder, progress |
 | **Pro — 12** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder · **Fibonacci** · 0/1 Knapsack | the Advanced shelf |
 
 **Free means complete, not crippled.** Pro adds lessons; it never removes anything
@@ -149,13 +149,17 @@ No identifiers, no user properties, no free text.
 
 ## Tests
 
-26 JVM unit tests in `:app`, no device needed:
+28 JVM unit tests in `:app`, no device needed:
 
 - **`ProAccessTest`** — exactly twelve Pro lessons and they are the Advanced shelf, by
   name and without duplicates · eleven free, Counting Sort among them · the
-  partition is total over all 23 · free opens for any entitlement · Pro opens only
+  partition is total over all 24 · free opens for any entitlement · Pro opens only
   for a verified one · `Unknown` is not entitled · the rule applied to every real
   catalogue entry, locked and unlocked.
+- **Caesar Cipher access** — it is filed under Encryption, so it opens for every
+  entitlement and the paywall is never reached · the Encryption category contains
+  no locked lesson. The first time the category rule was exercised in the *free*
+  direction, and it cost nothing (ADR-046).
 - **Fibonacci access** — it is Advanced, so a free learner and an `Unknown`
   entitlement both resolve to the existing paywall and a subscriber opens the
   lesson · and a companion test asserts **every other lesson stayed exactly where

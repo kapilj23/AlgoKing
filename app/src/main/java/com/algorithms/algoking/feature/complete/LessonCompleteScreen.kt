@@ -326,6 +326,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "The key calculates where its value lives, so lookup does not have to walk the " +
             "data. A collision is normal, not an error."
 
+    AlgorithmId.CAESAR_CIPHER ->
+        "Every letter moves the same number of places, and the alphabet is a ring — which " +
+            "is all `mod 26` means. Decrypting is the same walk backwards. One pass over " +
+            "the message, so O(n) time and O(n) space. It also means there are only 25 " +
+            "shifts to try, which is why this hides a message rather than securing one."
+
     AlgorithmId.TWO_POINTERS ->
         "Every move ruled out a whole row of pairs, not just one — and that only works " +
             "because the array is sorted."

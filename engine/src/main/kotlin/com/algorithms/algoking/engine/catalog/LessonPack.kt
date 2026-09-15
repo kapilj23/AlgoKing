@@ -3,6 +3,10 @@ package com.algorithms.algoking.engine.catalog
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.algorithms.algoking.engine.algorithms.caesar.CaesarCipherAlgorithm
+import com.algorithms.algoking.engine.algorithms.caesar.CaesarProjector
+import com.algorithms.algoking.engine.algorithms.caesar.CaesarWatchNarrator
+import com.algorithms.algoking.engine.dataset.CaesarDatasets
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciAlgorithm
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciProjector
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciWatchNarrator
@@ -315,6 +319,21 @@ object AlgorithmCatalog {
         tryDataset = FibonacciDatasets.tryIt,
     )
 
+    /**
+     * The first lesson whose data is text rather than numbers, and the app's
+     * smallest complete idea: every letter moves a fixed number of places along an
+     * alphabet that is a ring rather than a line.
+     */
+    fun caesarCipher() = LessonPack(
+        id = AlgorithmId.CAESAR_CIPHER,
+        displayName = "Caesar Cipher",
+        algorithm = CaesarCipherAlgorithm(),
+        projector = CaesarProjector(),
+        watchNarrator = CaesarWatchNarrator(),
+        watchDataset = CaesarDatasets.watch,
+        tryDataset = CaesarDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -437,6 +456,7 @@ object AlgorithmCatalog {
         AlgorithmId.TREE_POSTORDER -> postorderTraversal()
         AlgorithmId.ZERO_ONE_KNAPSACK -> zeroOneKnapsack()
         AlgorithmId.FIBONACCI -> fibonacci()
+        AlgorithmId.CAESAR_CIPHER -> caesarCipher()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

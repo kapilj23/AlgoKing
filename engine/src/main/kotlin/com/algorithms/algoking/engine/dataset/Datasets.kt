@@ -3,6 +3,7 @@ package com.algorithms.algoking.engine.dataset
 import com.algorithms.algoking.engine.core.Algorithm
 import com.algorithms.algoking.engine.core.AlgorithmRunner
 import com.algorithms.algoking.engine.core.BinaryTree
+import com.algorithms.algoking.engine.core.CipherProblem
 import com.algorithms.algoking.engine.core.Dataset
 import com.algorithms.algoking.engine.core.Graph
 import com.algorithms.algoking.engine.core.GraphNode
@@ -1024,4 +1025,61 @@ object FibonacciDatasets {
      * is. TRY asks all seven entries, `dp[2]` through `dp[8]`.
      */
     val tryIt = Dataset(values = emptyList(), label = "try", target = 8)
+}
+
+/**
+ * Caesar Cipher — ADR-046, `docs/caesar-cipher.md`.
+ *
+ * Both messages are short, uppercase and letters-only. The lesson's content is the
+ * *ring*, not the length: a longer word would add taps without adding a judgement,
+ * and the collapse rule (ADR-025) would eat the extra beats anyway.
+ */
+object CaesarDatasets {
+
+    /**
+     * `HELLO` shifted by 3 — the example every description of this cipher uses,
+     * and the one it is worth meeting first for exactly that reason.
+     *
+     * ```
+     * H E L L O   +3
+     * K H O O R
+     * ```
+     *
+     * Three properties earn it its place:
+     *
+     *  - **`L` appears twice, adjacently.** Identical letters always encrypt to the
+     *    same letter, which is both why the cipher is easy to apply and why it is
+     *    trivial to break. The walkthrough collapses the pair into one beat and
+     *    says so.
+     *  - **nothing wraps.** `H E L L O` all sit comfortably inside the alphabet, so
+     *    the wrap can be taught as its own beat against `Z` rather than arriving
+     *    mid-word as a surprise.
+     *  - **shift 3 is small enough to count on screen.** A learner checking the
+     *    mapping row by eye can verify every step, which is what makes the picture
+     *    evidence rather than decoration.
+     */
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        cipher = CipherProblem("HELLO", 3),
+    )
+
+    /**
+     * `ALGO` shifted by 2 — a different word and a different shift, so TRY is
+     * application rather than recall (ADR-014).
+     *
+     * ```
+     * A L G O   +2
+     * C N I Q
+     * ```
+     *
+     * `A` opens it deliberately: it is the letter learners are most confident
+     * about and most often get wrong, because shifting it *backwards* lands on `Y`
+     * and looks plausible. That distractor is on the table at every beat.
+     */
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        cipher = CipherProblem("ALGO", 2),
+    )
 }

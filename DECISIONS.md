@@ -2437,6 +2437,126 @@ word, because the shelf it counts is now twelve.
 
 ---
 
+## ADR-046 — Caesar Cipher: a seventh shape, and a category that is not a price
+
+**Decision.** Caesar Cipher ships **free** as a `LessonPack` with WATCH and TRY, in
+a new **Encryption** category. `Scene` gains a seventh shape, `CipherScene`;
+`Dataset` gains a defaulted `cipher`. The learner answers one question per letter:
+**what does this become?** Full detail: `docs/caesar-cipher.md`.
+
+⚠ **Product-owner request**, 2026-09-15: a small free MVP lesson, encryption
+category, tabulated against the alphabet.
+
+### The lesson is the ring, not the addition
+
+`A + 3 = D` is arithmetic a learner can do before the lesson starts. `Z + 3 = C` is
+the whole content: it is where the alphabet stops being a line and becomes a
+circle, and it is what `mod 26` means.
+
+Everything in the lesson follows from taking that seriously. The mapping row is
+drawn **in full, all 26 tiles**, including letters the message never uses — a
+mapping showing only the letters in play would be tidier and would delete the
+lesson. `HELLO` is chosen partly *because nothing in it wraps*, so the wrap can be
+taught as its own beat against `Z` rather than arriving mid-word as a surprise. And
+that beat lights `Z`'s tile and prints `25 + 3 = 28 − 26 = 2`, because a beat that
+says "look at the end of the row" while highlighting a letter in the middle of it
+is asking the learner to find its own evidence.
+
+### Why a seventh shape
+
+ADR-036 and ADR-045 both refused one, so this needs to clear the same bar: a shape
+is for a new *kind* of data.
+
+A Caesar cipher is a **mapping** — 26 from/to pairs — sitting between two aligned
+messages of the same length. None of the six existing shapes says that. A
+`SequenceScene` is one row of positions and there are three rows here.
+`PrefixScene` has two rows but lays them over shared slots **offset by one**,
+because `array[i]` produced `prefix[i + 1]`; plaintext and ciphertext line up
+exactly and the alphabet aligns with neither. A `CountBucket` carries one value and
+one count, and this carries two letters — the same argument `CountingScene` made
+for not being a sequence. `DpTableScene` has two axes; this has one, twice.
+
+What it did **not** need: no new event, no new interaction model, no new cell state,
+no new token, and no change to any existing lesson. Five `when` sites over `Scene`
+gained a branch, which is the compiler doing the job the sealed union is for. The
+message rows are drawn by `SceneCell` unchanged, because it already renders
+`cell.label ?: cell.value` — the field missions added for book titles turns out to
+be exactly what a letter needs.
+
+### The alphabet wraps onto rows; it never shrinks
+
+Twenty-six tiles in one row is about 7dp each at 360dp, which is not a letter, it
+is a smudge. Two rows of thirteen give each tile a legible width.
+
+That is ADR-039's rule applied again — **the layout gives way, never the thing the
+learner has to read** — and it is also why the answer is three buttons rather than a
+tap on the mapping row, which the brief suggested. Twenty-six tap targets at 22dp
+are less than half the 48dp minimum the design system holds every interactive
+element to. The alphabet is therefore *evidence the learner reads*, and the answer
+is a 56dp button: the pattern Prefix Sum, Dijkstra and Fibonacci already use
+wherever the answer is a value, with the wrong options carrying the misconceptions.
+
+Here those are unusually good. Shifting **backwards** is the commonest Caesar error
+and the one decryption depends on understanding, so `A → Y` is on the table at every
+beat and answered by name.
+
+### Encryption is a category, and a category is not a price
+
+The new shelf is one string in `algorithmCategories`, and the lesson is free
+because **it is not filed under Advanced**. ADR-032 established that Advanced is a
+category rather than a second taxonomy and ADR-041 made that shelf the Pro shelf,
+so "free" needed nothing said about it — no flag, no exclusion list, no billing
+change. `ProAccess`, `SubscriptionRepository`, `PlayBillingGateway` and
+`PaywallScreen` were not touched, and a test pins that the Encryption category
+contains no locked lesson.
+
+This is the first time that rule has been exercised in the *free* direction, and it
+is worth recording that it cost nothing, because the tempting alternative — an
+`isFree` flag, or an allow-list beside the Pro one — is exactly the parallel axis
+ADR-032 refused.
+
+### A space is not a letter
+
+Non-alphabetic characters are passed through untouched, by the app, as
+`Probe.Mechanical`. Shifting a space would invent a rule the cipher does not have,
+and asking the learner to press a button to copy one is the gesture-teaching trap
+PRODUCT_SPEC.md §3 warns about. Neither teaching dataset contains one, so the beat
+never fires in the lessons — but it is implemented, narrated and tested, because
+"what happens to the space?" is the first question anyone asks.
+
+### Shift normalisation lives at construction
+
+`CipherProblem` reduces its shift into `0..25` when it is built, which is the whole
+reason it is a type rather than two loose fields on `Dataset`: 29 and 3 are the same
+shift, and an engine that has to remember to reduce one is an engine that will
+eventually forget. `-1` normalises to 25, so a backwards shift is expressible and
+still lands inside the alphabet.
+
+The `+ 26` before the second `mod` in `shiftLetter` is not decoration: Kotlin's `%`
+keeps the sign of its left operand, so a negative shift without it produces a
+negative index and an exception two lines later. A test drives every shift from
+−30 to 30 over seven messages against an independently written alphabet walk.
+
+**Alternatives considered.**
+- *Force it into `SequenceScene` with `groups` separating the rows.* Rejected:
+  groups divide **one** sequence, and these are three rows with three meanings —
+  the same judgement ADR-033 and ADR-040 each made.
+- *Tap the mapping row to answer.* Rejected above, on the touch minimum.
+- *Show a seven-letter window of the alphabet instead of all 26.* Rejected: it
+  fits comfortably and it deletes the wrap, which is the lesson.
+- *Ask the learner to compute the alphabet position.* Rejected: it is arithmetic
+  with one legal answer, and PRODUCT_SPEC.md §3 rejects exactly this. The position
+  is printed beside the letter in the strip instead.
+- *Teach encryption and decryption as two halves.* Rejected as scope: decryption is
+  this run backwards, it is named in the recap and in the wrong-answer copy, and a
+  lesson that does both teaches neither twice as well.
+- *A longer message.* Rejected: five letters and four letters are already enough
+  beats for the collapse rule to be eating some, and the content is the ring.
+- *Put it under "Advanced" so the category list does not grow.* Rejected: it would
+  make a beginner lesson cost money, which is the opposite of what it is for.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

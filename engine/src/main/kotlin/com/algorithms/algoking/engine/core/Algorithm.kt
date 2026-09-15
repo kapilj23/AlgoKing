@@ -55,6 +55,14 @@ data class Dataset(
      * so no existing lesson changed when it arrived.
      */
     val knapsack: KnapsackProblem? = null,
+    /**
+     * A message and a shift, for a lesson whose data is text rather than numbers —
+     * the Caesar cipher encrypts one.
+     *
+     * Optional and defaulted, the additive move `graph`, `tree` and `knapsack` made
+     * before it, so no existing lesson changed when it arrived.
+     */
+    val cipher: CipherProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -99,6 +107,11 @@ enum class AlgorithmId {
     // each solved once, and every cell asks the same question — take this item,
     // or leave it?
     ZERO_ONE_KNAPSACK,
+
+    // Encryption: the first lesson whose data is text. Every letter moves a fixed
+    // number of places along an alphabet that is a ring rather than a line — and
+    // the ring, not the addition, is the whole of it.
+    CAESAR_CIPHER,
 
     // Advanced: the second dynamic-programming lesson, and the one that shows why
     // DP exists at all. The recurrence is two lines; run it as written and it

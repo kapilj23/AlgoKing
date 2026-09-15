@@ -651,8 +651,8 @@ different set of live ends (ADR-027).
 
 `Scene` is a sealed union of **shapes**, and the app dispatches on the shape — never on which
 algorithm produced it. Nine lessons are sequences and share one renderer — the eight array and
-structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map is not a
-sequence and has its own (ADR-030).
+structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map, a cipher
+and the rest are not sequences and have their own (ADR-030).
 
 ```kotlin
 sealed interface Scene
@@ -666,6 +666,8 @@ data class CountingScene(...) : Scene   // an array, a table indexed by VALUE, a
                                         // the answer being rebuilt (ADR-040)
 data class DpTableScene(...) : Scene    // rows × columns with meaningful headers —
                                         // a DP table (0/1 Knapsack; ADR-044)
+data class CipherScene(...) : Scene     // two aligned messages and the 26-letter
+                                        // mapping between them (Caesar; ADR-046)
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
@@ -679,6 +681,14 @@ into that and is drawn by the sequence renderer, adding one defaulted field —
 `SequenceScene.equation`, the working under the cells it names — and nothing else (ADR-045).
 The union grows for a new *kind* of data, never for a new lesson: ADR-036 refused a shape for
 the Binary Search Tree on the same grounds.
+
+The seventh, `CipherScene`, earns one the way the first six did. A Caesar cipher is a
+**mapping** — 26 from-letter/to-letter pairs — between two aligned messages of the same
+length, and no existing shape says that: `PrefixScene`'s two rows are offset by one because
+`array[i]` produced `prefix[i + 1]`, and a `CountBucket` holds one value and one count where
+this needs two letters. It added no event, no interaction model and no cell state; five `when`
+sites gained a branch, and `SceneCell` drew the letters unchanged because it already renders
+`cell.label ?: cell.value` (ADR-046).
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers

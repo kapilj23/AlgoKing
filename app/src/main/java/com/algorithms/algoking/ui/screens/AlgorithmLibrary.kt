@@ -35,6 +35,11 @@ val algorithmCategories = listOf(
     "Searching",
     "Sorting",
     "Structures",
+    // Hiding a message rather than finding or ordering one. A category like any
+    // other, so the chip row, the card badge and the filter all work with no new
+    // mechanism — and free, because access follows the category and only the
+    // Advanced shelf is Pro (ADR-041).
+    "Encryption",
     // Techniques rather than named routines, and the first place the library
     // gets harder. It is a category like any other so the chip row, the card
     // badge and the filter all work with no new mechanism — PRODUCT_SPEC.md §12.
@@ -232,6 +237,17 @@ val algorithmLibrary = listOf(
         category = "Structures",
         accent = AlgoAccent.Pink,
         glyph = AlgoIcons.TileBars,
+    ),
+    // The first lesson whose data is text. Free, like everything outside the
+    // Advanced shelf — the category *is* the access rule, so there is no flag
+    // here saying so (ADR-032, ADR-041).
+    AlgorithmEntry(
+        id = AlgorithmId.CAESAR_CIPHER,
+        title = "Caesar Cipher",
+        description = "Shift every letter, and let the alphabet wrap around.",
+        category = "Encryption",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileDots,
     ),
 )
 
