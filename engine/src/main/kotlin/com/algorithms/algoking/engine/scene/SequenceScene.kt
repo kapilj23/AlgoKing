@@ -71,6 +71,22 @@ data class SequenceScene(
      * ask for the indices to be visible, and this is how it asks.
      */
     val showIndices: Boolean = false,
+    /**
+     * The working behind the current step, as data rather than a sentence:
+     * `dp[1] + dp[0] = 1`.
+     *
+     * A sequence lesson whose beat *is* an arithmetic statement needs the working
+     * on screen next to the cells it names, or the numbers in the narration are
+     * ones the learner has no way to find. Defaulted to null, so every lesson that
+     * came before this draws exactly as it did.
+     *
+     * [PrefixEquation] is the type Prefix Sum introduced, and it is reused here
+     * unchanged — it is a labelled two-operand line and nothing about it is
+     * specific to prefix sums. One equation strip in the design system beats two
+     * that drift (DESIGN_SYSTEM.md §6.16f). The name is historical; the shape is
+     * general.
+     */
+    val equation: PrefixEquation? = null,
 ) : Scene
 
 /**

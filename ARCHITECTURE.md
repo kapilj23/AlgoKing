@@ -650,7 +650,8 @@ different set of live ends (ADR-027).
 ### 7.1 The contract
 
 `Scene` is a sealed union of **shapes**, and the app dispatches on the shape — never on which
-algorithm produced it. Eight lessons are sequences and share one renderer; a hash map is not a
+algorithm produced it. Nine lessons are sequences and share one renderer — the eight array and
+structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map is not a
 sequence and has its own (ADR-030).
 
 ```kotlin
@@ -670,6 +671,14 @@ data class DpTableScene(...) : Scene    // rows × columns with meaningful heade
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
 cell is "the first *i* items, capacity *c*", and it reads the row above at two columns.
 It added no event, no interaction model and no token; four `when` sites gained a branch.
+
+**There is no seventh, and Fibonacci is why that is worth saying.** It is the second DP
+lesson, and it went the other way: a DP table indexed by *one* quantity is a row of cells
+whose slots are positions, which is exactly what `SequenceScene` already is. So it projects
+into that and is drawn by the sequence renderer, adding one defaulted field —
+`SequenceScene.equation`, the working under the cells it names — and nothing else (ADR-045).
+The union grows for a new *kind* of data, never for a new lesson: ADR-036 refused a shape for
+the Binary Search Tree on the same grounds.
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers
@@ -693,6 +702,7 @@ data class SequenceScene(
     val links: ImmutableList<Link>,        // CHAIN only: one arrow per gap, 0..n
     val detached: DetachedNode?,           // CHAIN only: a node made but not linked in yet
     val legendLabels: Map<CellState, String>,  // CANDIDATE is not always "smallest so far"
+    val equation: PrefixEquation?,         // the working, under the cells it names
 )
 
 @Immutable

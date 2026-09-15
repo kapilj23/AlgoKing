@@ -416,7 +416,12 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     AlgorithmId.TREE_PREORDER -> AlgorithmId.TREE_POSTORDER
     // The shelf ends on building answers rather than walking structures: a DP
     // lesson reads best once Prefix Sum's "build a table once" is behind the learner.
-    AlgorithmId.TREE_POSTORDER -> AlgorithmId.ZERO_ONE_KNAPSACK
+    //
+    // Fibonacci first of the two, because it is the one that argues DP is worth
+    // having — one rule, one row, and a naive recursion whose cost is watched
+    // rather than asserted. Knapsack then spends that argument on a real choice.
+    AlgorithmId.TREE_POSTORDER -> AlgorithmId.FIBONACCI
+    AlgorithmId.FIBONACCI -> AlgorithmId.ZERO_ONE_KNAPSACK
     AlgorithmId.ZERO_ONE_KNAPSACK -> AlgorithmId.BINARY_SEARCH
 }
 

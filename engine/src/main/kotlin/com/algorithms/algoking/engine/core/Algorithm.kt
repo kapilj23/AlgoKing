@@ -100,6 +100,12 @@ enum class AlgorithmId {
     // or leave it?
     ZERO_ONE_KNAPSACK,
 
+    // Advanced: the second dynamic-programming lesson, and the one that shows why
+    // DP exists at all. The recurrence is two lines; run it as written and it
+    // costs O(2^n), because the same subproblems are solved over and over. The
+    // table is the fix, and it is the whole picture.
+    FIBONACCI,
+
     BUBBLE_SORT,
     SELECTION_SORT,
     INSERTION_SORT,

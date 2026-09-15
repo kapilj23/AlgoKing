@@ -3,6 +3,10 @@ package com.algorithms.algoking.engine.catalog
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciAlgorithm
+import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciProjector
+import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciWatchNarrator
+import com.algorithms.algoking.engine.dataset.FibonacciDatasets
 import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackAlgorithm
 import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackProjector
 import com.algorithms.algoking.engine.algorithms.knapsack.KnapsackWatchNarrator
@@ -295,6 +299,22 @@ object AlgorithmCatalog {
         tryDataset = KnapsackDatasets.tryIt,
     )
 
+    /**
+     * The second dynamic-programming lesson, and the one that says why DP exists.
+     * Knapsack shows a table being *used*; this one shows what it costs not to
+     * have one — the same recurrence run naively makes 67 calls to produce nine
+     * numbers, and the table makes nine.
+     */
+    fun fibonacci() = LessonPack(
+        id = AlgorithmId.FIBONACCI,
+        displayName = "Fibonacci",
+        algorithm = FibonacciAlgorithm(),
+        projector = FibonacciProjector(),
+        watchNarrator = FibonacciWatchNarrator(),
+        watchDataset = FibonacciDatasets.watch,
+        tryDataset = FibonacciDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -416,6 +436,7 @@ object AlgorithmCatalog {
         AlgorithmId.TREE_PREORDER -> preorderTraversal()
         AlgorithmId.TREE_POSTORDER -> postorderTraversal()
         AlgorithmId.ZERO_ONE_KNAPSACK -> zeroOneKnapsack()
+        AlgorithmId.FIBONACCI -> fibonacci()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

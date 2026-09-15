@@ -130,8 +130,21 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Pink,
         glyph = AlgoIcons.TileNodes,
     ),
-    // The first dynamic-programming lesson. Filed under Advanced, which is what
-    // makes it Pro — there is no flag to set (ADR-041).
+    // The two dynamic-programming lessons, gentlest first. Fibonacci is the one
+    // that argues DP is worth having at all — one axis, one rule, and a naive
+    // recursion whose cost the learner watches — so it comes before the knapsack
+    // table, which assumes that argument is already won.
+    //
+    // Both are filed under Advanced, which is what makes them Pro: there is no
+    // flag to set, and nothing in the billing layer changed to add one (ADR-041).
+    AlgorithmEntry(
+        id = AlgorithmId.FIBONACCI,
+        title = "Fibonacci",
+        description = "Solve each smaller problem once, and never again.",
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileBars,
+    ),
     AlgorithmEntry(
         id = AlgorithmId.ZERO_ONE_KNAPSACK,
         title = "0/1 Knapsack",

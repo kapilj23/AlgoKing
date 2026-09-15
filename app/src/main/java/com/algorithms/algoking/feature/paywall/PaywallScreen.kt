@@ -197,7 +197,7 @@ private fun Hero(triggeringAlgorithm: String?) {
             ProBadge()
             Gap(Spacing.xs)
             Text(
-                text = "It is one of the eleven advanced lessons in AlgoKing Pro.",
+                text = "It is one of the twelve advanced lessons in AlgoKing Pro.",
                 style = AlgoType.bodyLarge,
                 color = AlgoColors.textSecondary,
                 textAlign = TextAlign.Center,

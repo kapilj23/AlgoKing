@@ -972,3 +972,56 @@ object TreeDatasets {
     val watch = Dataset(values = emptyList(), label = "watch", tree = teachingTree)
     val tryIt = Dataset(values = emptyList(), label = "try", tree = tryTree)
 }
+
+/**
+ * Fibonacci by tabulation — ADR-045, `docs/fibonacci-dp.md`.
+ *
+ * ### One sequence, and why WATCH and TRY share it
+ *
+ * Every other lesson gives TRY fresh data so it tests application rather than
+ * recall (ADR-014). Fibonacci cannot: there is exactly one Fibonacci sequence, so
+ * a "different dataset" would only be a different *place to stop* in the same one,
+ * and the numbers a learner might remember would be the same numbers.
+ *
+ * What separates the two stages here is the **walkthrough**, not the data. WATCH
+ * narrates `dp[2] dp[3] dp[4]` in full, collapses `dp[5] dp[6] dp[7]` into a
+ * single beat and finishes on `dp[8]` — so four of TRY's seven questions are about
+ * entries the learner has never been walked through, and none of them is answerable
+ * by repeating a sentence they were just shown. The same call DFS, BFS and the BST
+ * made about sharing one graph or one tree (ADR-034, ADR-036), reached from a
+ * different direction.
+ */
+object FibonacciDatasets {
+
+    /**
+     * `n = 8`.
+     *
+     * ```
+     * index   0   1   2   3   4   5   6   7   8
+     * dp      0   1   1   2   3   5   8  13  21
+     * ```
+     *
+     * Four properties earn it its place:
+     *
+     *  - **it is long enough for the repeated work to be damning.** Naive
+     *    recursion makes 67 calls to produce these nine numbers, and computes
+     *    `F(3)` eight separate times. At `n = 5` it is 15 calls, which reads as
+     *    untidy rather than as a problem worth solving.
+     *  - **it is short enough to draw.** Nine cells fit one row on a phone without
+     *    scrolling or shrinking, so the table stays the hero visual.
+     *  - **the values stay two digits.** `F(8) = 21` is the largest number on
+     *    screen, so no cell has to hold a numeral the row cannot fit.
+     *  - **`dp[2] = 1` is not `dp[1] = 1` by coincidence.** The first entry the
+     *    learner builds is `1 + 0 = 1`, which looks like nothing happened — so the
+     *    second, `1 + 1 = 2`, arrives immediately and settles it. Starting anywhere
+     *    later would skip the one step where the rule looks like it does not work.
+     */
+    val watch = Dataset(values = emptyList(), label = "watch", target = 8)
+
+    /**
+     * The same `n`, for the reason the object's own note gives: the difference
+     * between the stages is how much of the table was narrated, not which table it
+     * is. TRY asks all seven entries, `dp[2]` through `dp[8]`.
+     */
+    val tryIt = Dataset(values = emptyList(), label = "try", target = 8)
+}

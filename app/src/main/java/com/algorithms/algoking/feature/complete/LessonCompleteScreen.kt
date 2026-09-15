@@ -371,6 +371,13 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "Process both subtrees before visiting the node. Nothing is reached before what it " +
             "depends on — which is why postorder is the order you delete a tree in."
 
+    AlgorithmId.FIBONACCI ->
+        "The rule is two lines, and running it as written costs about O(2ⁿ) because the same " +
+            "subproblems come back over and over. Writing each answer down once — memoized " +
+            "top-down, or tabulated bottom-up as you just did — makes it O(n) time and O(n) " +
+            "space. That trade is dynamic programming, and this is the smallest problem that " +
+            "shows it."
+
     AlgorithmId.ZERO_ONE_KNAPSACK ->
         "Every cell asks one question — take this item, or leave it — and answers it by " +
             "reading two smaller bags that are already solved. That is dynamic programming: " +

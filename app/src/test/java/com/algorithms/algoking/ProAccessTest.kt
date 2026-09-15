@@ -18,7 +18,7 @@ import org.junit.Test
  */
 class ProAccessTest {
 
-    /** The eleven the paywall sells, by name, in library order. */
+    /** The twelve the paywall sells, by name, in library order. */
     private val expectedPro = listOf(
         "Two Pointers",
         "Prefix Sum",
@@ -30,13 +30,14 @@ class ProAccessTest {
         "Binary Tree — Inorder",
         "Binary Tree — Preorder",
         "Binary Tree — Postorder",
+        "Fibonacci",
         "0/1 Knapsack",
     )
 
     @Test
-    fun `exactly eleven lessons are Pro, and they are the Advanced shelf`() {
+    fun `exactly twelve lessons are Pro, and they are the Advanced shelf`() {
         val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category) }
-        assertEquals(11, pro.size)
+        assertEquals(12, pro.size)
         assertEquals(expectedPro, pro.map { it.title })
         // No duplicates — the paywall's list is what the learner is buying.
         assertEquals(pro.size, pro.map { it.id }.toSet().size)
@@ -56,9 +57,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 22 lessons, and the partition is total: a lesson that fell out of both
+        // 23 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(22, algorithmLibrary.size)
+        assertEquals(23, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -107,7 +108,7 @@ class ProAccessTest {
 
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
-        // The rule applied to the real catalogue rather than to a string: all eleven
+        // The rule applied to the real catalogue rather than to a string: all twelve
         // are locked, and none of the eleven free ones is.
         for (entry in algorithmLibrary) {
             val decision = ProAccess.decide(entry.category, ProEntitlement.Free)
@@ -118,6 +119,65 @@ class ProAccessTest {
             }
             assertEquals(entry.title, expected, decision)
         }
+    }
+
+    @Test
+    fun `Fibonacci is Pro, and the tap resolves both ways`() {
+        val fibonacci = algorithmLibrary.single { it.id == AlgorithmId.FIBONACCI }
+
+        // Filed under Advanced, which is the whole of the registration: no flag,
+        // no billing change, no second taxonomy (ADR-032, ADR-041).
+        assertEquals(ProAccess.PRO_CATEGORY, fibonacci.category)
+        assertTrue(ProAccess.requiresPro(fibonacci.category))
+
+        // A free learner is sent to the existing paywall...
+        assertEquals(
+            AccessDecision.ShowPaywall,
+            ProAccess.decide(fibonacci.category, ProEntitlement.Free),
+        )
+        // ...as is one whose entitlement has not come back from the store yet.
+        assertEquals(
+            AccessDecision.ShowPaywall,
+            ProAccess.decide(fibonacci.category, ProEntitlement.Unknown),
+        )
+        // ...and a subscriber goes straight into the lesson.
+        assertEquals(
+            AccessDecision.OpenLesson,
+            ProAccess.decide(fibonacci.category, ProEntitlement.Pro),
+        )
+    }
+
+    @Test
+    fun `adding Fibonacci left every other lesson exactly where it was`() {
+        // The safety claim, as a test: the eleven free lessons are still free and
+        // the eleven that were already Pro are still Pro.
+        val free = algorithmLibrary
+            .filterNot { ProAccess.requiresPro(it.category) }
+            .map { it.title }
+        assertEquals(
+            listOf(
+                "Binary Search",
+                "Bubble Sort",
+                "Selection Sort",
+                "Insertion Sort",
+                "Merge Sort",
+                "Quick Sort",
+                "Counting Sort",
+                "Stack",
+                "Queue",
+                "Linked List",
+                "Hash Map",
+            ).sorted(),
+            free.sorted(),
+        )
+        assertEquals(
+            (expectedPro - "Fibonacci").sorted(),
+            algorithmLibrary
+                .filter { ProAccess.requiresPro(it.category) }
+                .map { it.title }
+                .minus("Fibonacci")
+                .sorted(),
+        )
     }
 
     @Test

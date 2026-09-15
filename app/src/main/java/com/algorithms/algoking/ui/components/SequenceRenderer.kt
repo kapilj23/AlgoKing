@@ -167,6 +167,15 @@ private fun HorizontalScene(
                 EndCapLabel(it)
             }
         }
+
+        // 5 — The working, when the beat *is* an arithmetic statement. It sits
+        //     under the cells it names, so the numbers in the narration are ones
+        //     the learner can find on screen. The same strip Prefix Sum draws —
+        //     one equation component in the system, not two that drift.
+        scene.equation?.let {
+            Gap(Spacing.md)
+            EquationStrip(it)
+        }
     }
 }
 

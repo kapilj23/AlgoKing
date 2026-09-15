@@ -2326,6 +2326,114 @@ object Narration {
             NarrationId.HASH_IDEA_1 -> "Hash the key to get a bucket."
             NarrationId.HASH_IDEA_2 -> "Look only inside that bucket."
             NarrationId.HASH_IDEA_3 -> "Two keys may share one bucket. That is fine."
+
+            // ── Fibonacci ─────────────────────────────────────────────────
+            // `dp[i]` throughout, because that is the notation the learner will
+            // meet everywhere else. The copy never says "the cell before this
+            // one": naming the index is what makes the rule portable to a table
+            // they have not seen.
+            //
+            // The feedback always names the two actual numbers on screen. "That
+            // is not right" teaches nothing; "3 + 5 = 8, not 6" teaches the rule
+            // in the act of correcting it (PRODUCT_SPEC.md §5).
+            NarrationId.FIB_OPTION_VALUE -> arg(0)
+            NarrationId.FIB_ASK_NEXT -> "What is dp[${arg(0)}]?"
+            NarrationId.FIB_BUILT ->
+                "dp[${arg(0)}] = ${arg(1)} + ${arg(2)} = ${arg(3)}"
+
+            NarrationId.FIB_HINT_RULE ->
+                "dp[${arg(0)}] is the two cells before it added together: " +
+                    "dp[${arg(1)}] + dp[${arg(2)}]."
+
+            NarrationId.FIB_RETRY_LOOK ->
+                "Look at the two lit cells again — dp[${arg(0)}] and dp[${arg(1)}]."
+            NarrationId.FIB_RETRY_ASK ->
+                "Fibonacci adds the previous two values. What is ${arg(0)} + ${arg(1)}?"
+            NarrationId.FIB_RETRY_EXPLAIN ->
+                "dp[${arg(0)}] = ${arg(1)} + ${arg(2)} = ${arg(3)}. Choose ${arg(3)}."
+
+            NarrationId.FIB_WHY_ONLY_PREVIOUS ->
+                "That is only the previous value. Fibonacci adds the previous " +
+                    "*two*: ${arg(0)} + ${arg(1)} = ${arg(2)}."
+            NarrationId.FIB_WHY_DOUBLED_PREVIOUS ->
+                "That doubles the previous value. The two cells are " +
+                    "${arg(0)} and ${arg(1)}, not ${arg(0)} and ${arg(0)}."
+            NarrationId.FIB_WHY_SUBTRACTED ->
+                "That subtracts. The rule adds: ${arg(0)} + ${arg(1)} = ${arg(2)}."
+            NarrationId.FIB_WHY_REACHED_TOO_FAR ->
+                "That is one place further along — it would be dp[${count(3) + 1}], " +
+                    "not dp[${arg(3)}]. Add ${arg(0)} and ${arg(1)}."
+            NarrationId.FIB_WHY_NOT_THE_TWO ->
+                "The two cells to add are ${arg(0)} and ${arg(1)}, and they make ${arg(2)}."
+
+            NarrationId.FIB_CORRECT ->
+                "${arg(0)} + ${arg(1)} = ${arg(2)}. dp[${arg(3)}] is worked out once " +
+                    "and never again."
+            NarrationId.FIB_CORRECT_LAST ->
+                "${arg(0)} + ${arg(1)} = ${arg(2)}. The table is full, and " +
+                    "dp[${arg(3)}] is the answer."
+
+            NarrationId.FIB_WATCH_SETUP -> "Find F(${arg(0)}) in the Fibonacci sequence."
+            NarrationId.FIB_WATCH_SETUP_SUPPORT ->
+                "Every number is the sum of the two before it."
+            NarrationId.FIB_WATCH_BASE ->
+                "F(0) = 0, F(1) = 1, and after that F(n) = F(n−1) + F(n−2)."
+            NarrationId.FIB_WATCH_BASE_SUPPORT ->
+                "The first two are the definition — nothing produces them, so they " +
+                    "are given. Everything else follows from that one rule."
+
+            // The trap, and the reason the rest of the lesson exists. Both
+            // numbers come out of the engine, so the argument is checkable.
+            NarrationId.FIB_WATCH_NAIVE ->
+                "Run that rule as written and F(${arg(0)}) takes ${arg(1)} calls."
+            NarrationId.FIB_WATCH_NAIVE_SUPPORT ->
+                "It splits in two every time, so the same work repeats: " +
+                    "F(${arg(0)}) alone is worked out ${arg(1)} separate times."
+
+            NarrationId.FIB_WATCH_TWO_FIXES ->
+                "Dynamic programming: solve each one once, then reuse it."
+            NarrationId.FIB_WATCH_TWO_FIXES_SUPPORT ->
+                "Memoization keeps the recursion and writes each answer down. " +
+                    "Tabulation builds up from the base cases instead — one row, " +
+                    "${arg(0)} cells, left to right. That is what happens next."
+
+            NarrationId.FIB_WATCH_BUILD ->
+                "dp[${arg(0)}] = ${arg(1)} + ${arg(2)} = ${arg(3)}"
+            NarrationId.FIB_WATCH_BUILD_SUPPORT ->
+                "dp[${arg(0)}] reads dp[${arg(1)}] and dp[${arg(2)}]. No recursion, " +
+                    "no repeats."
+
+            NarrationId.FIB_WATCH_COLLAPSED ->
+                "dp[${arg(0)}] to dp[${arg(1)}] follow the same rule: ${arg(2)}."
+            NarrationId.FIB_WATCH_COLLAPSED_SUPPORT ->
+                "Every one of them is two cells added together, and each takes one step."
+
+            NarrationId.FIB_WATCH_FINAL ->
+                "dp[${arg(0)}] = ${arg(1)} + ${arg(2)} = ${arg(3)}"
+            NarrationId.FIB_WATCH_FINAL_SUPPORT ->
+                "F(${arg(0)}) = ${arg(1)}, in ${arg(2)} steps and no repeated work."
+
+            NarrationId.FIB_WATCH_INSIGHT ->
+                "Solve each smaller problem once, and write the answer down."
+            NarrationId.FIB_WATCH_INSIGHT_SUPPORT ->
+                "${arg(0)} calls became ${arg(1)} — and the saving grows with n. " +
+                    "That is the whole of dynamic programming, on the smallest " +
+                    "problem that shows it."
+            NarrationId.FIB_WATCH_SUMMARY -> "F(${arg(0)}) = ${arg(1)}."
+            NarrationId.FIB_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.FIB_IDEA_1 -> "F(0) = 0, F(1) = 1, F(n) = F(n−1) + F(n−2)."
+            NarrationId.FIB_IDEA_2 ->
+                "Run it as plain recursion and it is about O(2ⁿ) — the same " +
+                    "subproblems, over and over."
+            NarrationId.FIB_IDEA_3 ->
+                "Memoization: keep the recursion, store each answer the first time. " +
+                    "O(n) time, O(n) space."
+            NarrationId.FIB_IDEA_4 ->
+                "Tabulation: start at the base cases and build upward. " +
+                    "O(n) time, O(n) space."
+            NarrationId.FIB_IDEA_5 ->
+                "Either way the rule is the same — never solve the same subproblem twice."
         }
     }
 }

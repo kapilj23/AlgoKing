@@ -2290,6 +2290,153 @@ unchanging scene (greedy's bag has to be a real, engine-computed state).
 
 ---
 
+## ADR-045 — Fibonacci teaches why DP exists, and adds no scene shape
+
+**Decision.** Fibonacci ships as an Advanced (so Pro) `LessonPack` with WATCH and
+TRY, over `n = 8`. Its picture is an ordinary **`SequenceScene`** — no seventh
+shape. `SequenceScene` gains one defaulted field, `equation`. The learner answers
+one question seven times: **what is `dp[i]`?** Full detail:
+`docs/fibonacci-dp.md`.
+
+⚠ **Product-owner request**, 2026-09-15: Fibonacci as a paywalled Advanced
+lesson, tabulation as the interactive experience.
+
+### Why it belongs before Knapsack
+
+0/1 Knapsack (ADR-044) is the app's first DP lesson and it starts from a table
+already assumed to be worth building. Fibonacci is the argument for the table:
+the recurrence is two lines, running it as written costs about O(2ⁿ), and the
+learner watches the cost rather than being told it. So it sits ahead of Knapsack
+in the library and in the `Next algorithm` chain — the gentler lesson, and the one
+that earns the harder one's premise.
+
+That reordering moved one existing card and one existing chain arm. Nothing else
+about Knapsack changed.
+
+### The repeated work is computed, not claimed
+
+The opening beat says *"F(8) takes 67 calls, and F(3) alone is worked out 8
+times."* Both numbers come out of the engine — `naiveCallCount(n)` and
+`naiveCallsTo(n, k)` — and both are checked by test against recursions that
+literally count themselves, for every `(n, k)` pair up to 16.
+
+This is the same rule ADR-034 applied to DFS's traversal and ADR-038 to the three
+traversal orders: **the lesson's central claim is generated, never authored.** An
+argument a learner is invited to distrust has to be one they can check, and a
+hardcoded 67 is a number that quietly goes wrong the first time the dataset moves.
+
+Writing the closed form for `naiveCallsTo` was the one place this bit. The count
+looks like Fibonacci — `T(k+2,k) = 2`, `T(k+3,k) = 3` — and it is, for `k ≥ 1`.
+For `k = 0` it is not, because naive `fib(1)` returns without recursing and so
+never calls `fib(0)` at all. The test caught it; the fix was to stop being clever
+and build the counts bottom-up from the actual recurrence, which is also, neatly,
+the technique the lesson teaches.
+
+### No seventh scene shape
+
+ADR-030, ADR-033, ADR-034, ADR-040 and ADR-044 each added a `Scene` shape because
+the data was a different *kind*. ADR-036 refused one for the same reason, and this
+is that refusal again: a DP table indexed by **one** quantity is a row of cells
+whose slots are positions, which is exactly what `SequenceScene` is.
+
+Knapsack earned `DpTableScene` because a knapsack cell is *"the first i items,
+capacity c"* — two axes, and a cell that reads the row above. Fibonacci has one
+axis and reads two cells to its left. Giving it a shape of its own would have been
+a second name for a picture the renderer already draws, and the two would then
+have had to be kept looking alike by discipline rather than by construction.
+
+What it did add is **one defaulted field**: `SequenceScene.equation`, carrying the
+`PrefixEquation` Prefix Sum introduced and drawn by the same `EquationStrip`
+composable, made `internal` for the purpose. A sequence lesson whose beat *is* an
+arithmetic statement needs the working beside the cells it names, or the numbers
+in the narration are ones the learner cannot find. Defaulted, so the twelve
+lessons already projecting into `SequenceScene` draw exactly as they did — the
+same additive move `groups`, `endCaps`, `links`, `legendLabels` and `showIndices`
+all made before it.
+
+The type's name is now historical: it is a labelled two-operand line and nothing
+about it is specific to prefix sums. Renaming it would have touched Prefix Sum for
+no behavioural gain, so it keeps its name and the field documents why.
+
+### The picture is read from the events, not the cursor
+
+After a value is written, the state's cursor has already moved on. Lighting the
+cells the cursor points at would show the learner the *next* pair beside the
+sentence explaining the last one — the wrong order to think in, and the thing
+ADR-032 split Two Pointers' comparison from its move to avoid.
+
+So the projector reads `VizEvent.Insert` out of `activeEvents` and lights the
+operands that actually produced the value being described. Two violet cells and an
+amber one, at every beat, and the amber one is always the cell the sentence is
+about.
+
+### WATCH and TRY share `n`, and the walkthrough is what differs
+
+Every other lesson gives TRY fresh data (ADR-014). Fibonacci cannot: there is
+exactly one Fibonacci sequence, so a second dataset would be a different place to
+stop in the same one, and the numbers a learner might have memorised would be the
+same numbers.
+
+What makes TRY application rather than recall is the **narration budget**. WATCH
+narrates `dp[2] dp[3] dp[4]` in full, collapses `dp[5] dp[6] dp[7]` into one beat
+and finishes on `dp[8]`; TRY asks all seven. Four of TRY's seven questions are
+about entries the learner was never walked through, and a test pins that.
+
+The collapse is ADR-025's rule — narrate the smallest prefix that builds the
+model, then stop. Three entries establish the rhythm: the base cases combining,
+the window sliding, and confirmation it was not a coincidence.
+
+### Four opening beats, because six showed the same picture
+
+The conceptual run-up — what the sequence is, the base cases and the rule, the
+repeated work, the two fixes — all happens while the table is still empty, so the
+copy is the only thing that changes between those beats. ADR-020 says a step where
+nothing changed is a bug, and a first draft with six of them was one.
+
+Folding the recurrence into the base-case beat and the table's shape into the fix
+that builds it got it to four, each a genuinely separate idea. A test now caps the
+run of identical pictures at four, so a future beat cannot quietly rejoin it.
+
+### Every beat is a decision
+
+There is no `Probe.Mechanical` anywhere in this lesson, which makes it the first
+one where that is true. Elsewhere the app owns the arithmetic and the learner owns
+the judgement (PRODUCT_SPEC.md §3) — but here the addition **is** the recurrence,
+so handing it over would leave the learner tapping through a table that fills
+itself. What the app owns instead is the two base cases, which are the definition
+of the sequence and have no reasoning in them, and the cursor.
+
+### Pro is the category, and nothing else moved
+
+`category = "Advanced"` on the library entry is the entire registration. No
+`isPro` flag (ADR-032), no billing change (ADR-041), no second paywall, no new ad
+placement (ADR-042). `ProAccess`, `SubscriptionRepository`, `PlayBillingGateway`,
+`ConsentManager` and `AdPolicy` were not touched; `PaywallScreen` changed by one
+word, because the shelf it counts is now twelve.
+
+**Alternatives considered.**
+- *A seventh `Scene` shape for a DP row.* Rejected above.
+- *`DpTableScene` with one row.* Rejected: its axes are items and capacity, its
+  gutter prints an item's weight and value, and its choice strip weighs TAKE
+  against SKIP. Every one of those would be dead or lying here.
+- *Ask the learner for `F(0)` and `F(1)`.* Rejected: they are the definition, and
+  tapping the only legal answer teaches a gesture (PRODUCT_SPEC.md §3). The same
+  call ADR-033 made about `prefix[0] = 0`.
+- *Let the app perform the addition and ask only "is this right?".* Rejected: it
+  is the whole recurrence, and a lesson where the table fills itself is the thing
+  PRODUCT_SPEC.md §1 exists to prevent.
+- *A numeric keypad instead of three options.* Rejected for ADR-033's reason: a
+  new interaction model for one lesson, and the distractors are where the
+  misconceptions get named.
+- *Making memoization interactive too.* Rejected as scope: it needs a call tree
+  collapsing as subproblems get cached, which is a scene shape this app does not
+  have and should not add for one lesson. It is named and explained in the copy.
+- *Teaching the O(1)-space variant.* Rejected: it discards the row, and the row is
+  the lesson.
+- *A different `n` for TRY.* Rejected above.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

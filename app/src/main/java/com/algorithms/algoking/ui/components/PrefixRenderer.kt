@@ -158,9 +158,14 @@ private fun RowCaption(text: String) {
  *
  * The result reads `?` until it is known — an answer already on screen is not a
  * question, the same rule the hash flow follows (ADR-030).
+ *
+ * `internal` rather than private because [SequenceRenderer] draws it too: a
+ * sequence lesson whose beat *is* an arithmetic statement needs the same strip,
+ * and duplicating it is how a design system forks (the same call `SceneCell` and
+ * `SlotRow` made when this shape arrived).
  */
 @Composable
-private fun EquationStrip(equation: PrefixEquation) {
+internal fun EquationStrip(equation: PrefixEquation) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
