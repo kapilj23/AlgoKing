@@ -36,9 +36,9 @@ V2:   WATCH → TRY → CHALLENGE → RESULT
 > **AlgoKing Pro**, a Play subscription, and the other eleven stay free. The rest of the
 > Never list stands unchanged. Recorded in full at ADR-041 and `docs/pro-access.md`.
 
-**Monetization:** twelve free lessons, and a **Pro subscription** for the twelve Advanced ones
+**Monetization:** thirteen free lessons, and a **Pro subscription** for the twelve Advanced ones
 (0/1 Knapsack made it eleven, ADR-044; Fibonacci twelve, ADR-045; Caesar Cipher is
-free, under Encryption, ADR-046).
+free, under Encryption, ADR-046, and XOR Cipher joins it, ADR-047).
 Ads remain unbuilt and are now unlikely — §9 stands as written but is no longer the plan.
 
 **Free means complete, not crippled.** A free lesson has both stages, the whole guidance
@@ -110,6 +110,7 @@ advancement is performed by the app, never by the user.
 | Linked List | — | **Is this the node?** then **which link changes, and where should it point?** |
 | Hash Map | stores and removes, once the judgements are made | **Which bucket does `key % 5` land in?** then, when the bucket is not empty, **what happens?** |
 | Caesar Cipher | copies anything that is not a letter, and prints each letter's alphabet position | **what does this letter become?** — every letter, all the way through the message |
+| XOR Cipher | nothing — every column is the learner's | **what is `a ⊕ b`?** — every bit, and then every bit again on the way back |
 
 > **Explicitly rejected:** "Which pair should we compare?" in Bubble Sort. The next pair is
 > always the next pair — there is no decision, and tapping the only legal target teaches a
@@ -176,6 +177,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Binary Tree — Preorder | "The node is emitted on the way down." |
 | Binary Tree — Postorder | "A node waits for everything beneath it." |
 | Caesar Cipher | "The alphabet is a ring, not a line." |
+| XOR Cipher | "The same key, applied twice, gives the original back." |
 | Fibonacci | "Solve each smaller problem once, and write the answer down." |
 | 0/1 Knapsack | "Every cell is a smaller bag, solved once." |
 | Sliding Window | "The window never re-reads what it already counted." |

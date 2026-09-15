@@ -390,12 +390,16 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     AlgorithmId.STACK -> AlgorithmId.QUEUE
     AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
     AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP
-    // The structures hand over to the one free lesson that is not about finding or
-    // ordering anything — a short, self-contained idea before the Advanced shelf.
+    // The structures hand over to the two free lessons that are not about finding
+    // or ordering anything — short, self-contained ideas before the Advanced shelf.
     AlgorithmId.HASH_MAP -> AlgorithmId.CAESAR_CIPHER
+    // Caesar first: it hides a message with arithmetic a learner can do in their
+    // head. XOR then does the same job with one bitwise operation, and adds the
+    // thing Caesar has no equivalent of — the key that undoes itself.
+    AlgorithmId.CAESAR_CIPHER -> AlgorithmId.XOR_CIPHER
     // ...and then to the Advanced shelf, which is where the library stops teaching
     // named routines and starts teaching techniques.
-    AlgorithmId.CAESAR_CIPHER -> AlgorithmId.TWO_POINTERS
+    AlgorithmId.XOR_CIPHER -> AlgorithmId.TWO_POINTERS
     AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
     AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
     // BFS immediately after DFS, so the contrast lands while DFS is still fresh —

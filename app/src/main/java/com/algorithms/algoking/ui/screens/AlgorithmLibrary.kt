@@ -238,9 +238,9 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Pink,
         glyph = AlgoIcons.TileBars,
     ),
-    // The first lesson whose data is text. Free, like everything outside the
-    // Advanced shelf — the category *is* the access rule, so there is no flag
-    // here saying so (ADR-032, ADR-041).
+    // The two Encryption lessons, gentlest first. Both free, like everything
+    // outside the Advanced shelf — the category *is* the access rule, so there is
+    // no flag here saying so (ADR-032, ADR-041).
     AlgorithmEntry(
         id = AlgorithmId.CAESAR_CIPHER,
         title = "Caesar Cipher",
@@ -248,6 +248,14 @@ val algorithmLibrary = listOf(
         category = "Encryption",
         accent = AlgoAccent.Orange,
         glyph = AlgoIcons.TileDots,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.XOR_CIPHER,
+        title = "XOR Cipher",
+        description = "One bitwise rule — and the same key undoes it.",
+        category = "Encryption",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileBars,
     ),
 )
 

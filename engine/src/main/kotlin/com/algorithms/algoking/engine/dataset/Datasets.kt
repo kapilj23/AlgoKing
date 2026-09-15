@@ -3,6 +3,7 @@ package com.algorithms.algoking.engine.dataset
 import com.algorithms.algoking.engine.core.Algorithm
 import com.algorithms.algoking.engine.core.AlgorithmRunner
 import com.algorithms.algoking.engine.core.BinaryTree
+import com.algorithms.algoking.engine.core.XorProblem
 import com.algorithms.algoking.engine.core.CipherProblem
 import com.algorithms.algoking.engine.core.Dataset
 import com.algorithms.algoking.engine.core.Graph
@@ -1081,5 +1082,66 @@ object CaesarDatasets {
         values = emptyList(),
         label = "try",
         cipher = CipherProblem("ALGO", 2),
+    )
+}
+
+/**
+ * XOR Cipher — ADR-047, `docs/xor-cipher.md`.
+ *
+ * Four bits each. The lesson is one operation and one consequence of it, and a
+ * longer word would repeat the same judgement rather than add one — the reasoning
+ * ADR-026 used for Merge Sort's deeper splits.
+ */
+object XorDatasets {
+
+    /**
+     * `1010 XOR 1100 = 0110`, and then back again.
+     *
+     * ```
+     * 1010      plaintext
+     * 1100      key
+     * ----
+     * 0110      ciphertext
+     *
+     * 0110      ciphertext
+     * 1100      the same key
+     * ----
+     * 1010      the plaintext, recovered
+     * ```
+     *
+     * Two properties earn it its place:
+     *
+     *  - **the four columns are all four rows of the truth table.** `1 XOR 1`,
+     *    `0 XOR 1`, `1 XOR 0`, `0 XOR 0` — so a learner who watches this once has
+     *    watched the whole rule being used, in order, with nothing left over.
+     *  - **it goes back.** `roundTrip` is on, so the second pass is a real run over
+     *    the ciphertext the first pass actually produced. The reversal is the point
+     *    of the lesson, and watching it is stronger than the sentence claiming it.
+     */
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        xor = XorProblem(plaintext = "1010", key = "1100", roundTrip = true),
+    )
+
+    /**
+     * `1011 XOR 1101 = 0110` — encryption only.
+     *
+     * TRY stops at the ciphertext: four columns is the judgement, and a second
+     * identical pass would be patience rather than understanding. The reversal is
+     * what WATCH is for.
+     *
+     * **Known weakness, recorded rather than hidden.** This is the dataset the
+     * brief specified, and its ciphertext is the same `0110` WATCH produces, from
+     * bit pairs that differ from WATCH's in only the last column. So a learner who
+     * memorised the answer could produce it without applying the rule — which is
+     * the thing ADR-014 says a TRY dataset must not allow. `1011 XOR 0110 = 1101`
+     * would fix it by changing three of the four columns and the answer; it is one
+     * line here and nothing else. See `docs/xor-cipher.md`.
+     */
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        xor = XorProblem(plaintext = "1011", key = "1101", roundTrip = false),
     )
 }

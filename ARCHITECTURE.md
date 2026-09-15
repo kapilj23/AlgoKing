@@ -651,8 +651,8 @@ different set of live ends (ADR-027).
 
 `Scene` is a sealed union of **shapes**, and the app dispatches on the shape — never on which
 algorithm produced it. Nine lessons are sequences and share one renderer — the eight array and
-structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map, a cipher
-and the rest are not sequences and have their own (ADR-030).
+structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map, the two
+ciphers and the rest are not sequences and have their own (ADR-030).
 
 ```kotlin
 sealed interface Scene
@@ -668,6 +668,8 @@ data class DpTableScene(...) : Scene    // rows × columns with meaningful heade
                                         // a DP table (0/1 Knapsack; ADR-044)
 data class CipherScene(...) : Scene     // two aligned messages and the 26-letter
                                         // mapping between them (Caesar; ADR-046)
+data class BitwiseScene(...) : Scene    // three rows sharing one set of columns,
+                                        // and a truth table (XOR; ADR-047)
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
@@ -689,6 +691,13 @@ length, and no existing shape says that: `PrefixScene`'s two rows are offset by 
 this needs two letters. It added no event, no interaction model and no cell state; five `when`
 sites gained a branch, and `SceneCell` drew the letters unchanged because it already renders
 `cell.label ?: cell.value` (ADR-046).
+
+The eighth, `BitwiseScene`, is three rows sharing **one set of columns** where the third is
+computed from the two above it. `CountingScene` also has three rows and deliberately does not
+share columns; `PrefixScene` shares them offset by one. `DpTableScene` is the near miss — but
+its two axes are two *quantities* and a cell is a point in that space, while these rows are
+three different things that line up, and it carries item cards and a bag meter a bitwise lesson
+would null out. Again no event, no interaction model, no cell state (ADR-047).
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers

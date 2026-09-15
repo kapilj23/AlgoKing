@@ -27,7 +27,7 @@ existed to leave behind. No stars — Try is never scored.
 
 ---
 
-## The twenty-four lessons
+## The twenty-five lessons
 
 | | Lessons | The learner decides |
 |---|---|---|
@@ -37,6 +37,7 @@ existed to leave behind. No stars — Try is never scored.
 | Divide & conquer | Merge · Quick | where it splits, which front value · which side of the pivot |
 | Structures | Stack · Queue · Linked List · Hash Map | which end · which link changes · which bucket |
 | Encryption | **Caesar Cipher** | what each letter becomes — and the alphabet wraps round at Z |
+| Encryption | **XOR Cipher** | what each pair of bits makes — and the same key undoes it |
 | **Advanced** | **Two Pointers** | which pointer can still improve the sum |
 | **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 | **Advanced** | **Graph DFS** | which node DFS moves to next — deeper, or back |
@@ -81,11 +82,11 @@ Everything else falls out of it:
   caller *could* apply. The rule is structural, not a convention each new algorithm must
   remember.
 - **The renderer cannot name an algorithm.** It receives a `Scene` and branches only on the
-  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, or a DP table). Twenty-four lessons, one
+  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, or a DP table). Twenty-five lessons, one
   renderer entry point, zero `when (algorithm)` in `:app`.
 - **Adding a lesson adds a `LessonPack`** — an algorithm, a projector, a narrator and two
   authored datasets. Never a screen, never a renderer.
-- **13 events cover all twenty-four lessons.** None was added after the first — Two Pointers,
+- **13 events cover all twenty-five lessons.** None was added after the first — Two Pointers,
   written long after the event model was fixed, needed none (ADR-032), and the Binary Search
   Tree added no renderer either: a tree is a graph, so it draws itself with the one the
   graph lessons already use (ADR-036).
@@ -94,7 +95,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 761 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 807 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -106,7 +107,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 761 unit tests, no device needed
+./gradlew :engine:test        # 807 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -127,19 +128,19 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-046 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-047 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
 inherits — and the Advanced lessons
 [`two-pointers.md`](docs/two-pointers.md) [`prefix-sum.md`](docs/prefix-sum.md) [`graph-dfs.md`](docs/graph-dfs.md) [`graph-bfs.md`](docs/graph-bfs.md) [`dijkstra.md`](docs/dijkstra.md) [`binary-search-tree.md`](docs/binary-search-tree.md) [`avl-tree.md`](docs/avl-tree.md) and [`tree-traversals.md`](docs/tree-traversals.md) — the Sorting lesson [`counting-sort.md`](docs/counting-sort.md), and the two
 dynamic-programming lessons [`fibonacci-dp.md`](docs/fibonacci-dp.md) and
-[`zero-one-knapsack.md`](docs/zero-one-knapsack.md), and the Encryption lesson
-[`caesar-cipher.md`](docs/caesar-cipher.md).
+[`zero-one-knapsack.md`](docs/zero-one-knapsack.md), and the Encryption lessons
+[`caesar-cipher.md`](docs/caesar-cipher.md) and [`xor-cipher.md`](docs/xor-cipher.md).
 
 ## Access
 
-Twelve lessons are free and complete — both stages, the full guidance ladder, progress.
+Thirteen lessons are free and complete — both stages, the full guidance ladder, progress.
 The twelve **Advanced** lessons are **AlgoKing Pro**, a Play subscription: tapping one opens a
 paywall rather than the lesson. Pro adds lessons and never takes anything away from a free
 one.
@@ -157,8 +158,8 @@ and ADR-041.
 
 ## Status
 
-**Built:** the engine and all twenty-four lessons · Watch · Try · Complete · Home · eight renderers ·
-the full light design-system token layer · progress persistence · 761 passing engine tests.
+**Built:** the engine and all twenty-five lessons · Watch · Try · Complete · Home · nine renderers ·
+the full light design-system token layer · progress persistence · 807 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

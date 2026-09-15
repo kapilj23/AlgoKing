@@ -326,6 +326,14 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
         "The key calculates where its value lives, so lookup does not have to walk the " +
             "data. A collision is normal, not an error."
 
+    AlgorithmId.XOR_CIPHER ->
+        "XOR gives 1 when two bits differ and 0 when they match — and because it undoes " +
+            "itself, the same key that encrypted the message decrypts it. One pass over n " +
+            "bits, so O(n) time and O(n) space. XOR is a building block of real " +
+            "cryptography, but a XOR cipher with a short or reused key is not secure on " +
+            "its own: this is a demonstration of the operation, not a way to protect " +
+            "anything."
+
     AlgorithmId.CAESAR_CIPHER ->
         "Every letter moves the same number of places, and the alphabet is a ring — which " +
             "is all `mod 26` means. Decrypting is the same walk backwards. One pass over " +

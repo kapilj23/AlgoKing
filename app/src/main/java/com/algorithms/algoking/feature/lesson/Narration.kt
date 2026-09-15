@@ -2521,6 +2521,82 @@ object Narration {
             NarrationId.CC_IDEA_4 ->
                 "There are only 25 useful shifts, so anyone can try all of them. " +
                     "This hides a message; it does not secure one."
+
+            // ── XOR Cipher ────────────────────────────────────────────────
+            // "The same" and "different" throughout, because that is the rule.
+            // The copy never asks the learner to recall a row of a table that is
+            // on screen — it asks them to read it.
+            NarrationId.XOR_OPTION_BIT -> arg(0)
+            NarrationId.XOR_ASK_BIT -> "What is ${arg(0)} ⊕ ${arg(1)}?"
+            NarrationId.XOR_SET -> "${arg(0)} ⊕ ${arg(1)} = ${arg(2)}"
+
+            NarrationId.XOR_HINT_RULE ->
+                "XOR gives 1 when the two bits are different, and 0 when they are the same."
+
+            NarrationId.XOR_RETRY_LOOK ->
+                "Look at the two bits again — ${arg(0)} and ${arg(1)}."
+            NarrationId.XOR_RETRY_ASK_SAME -> "Both bits are ${arg(0)}. Are they different?"
+            NarrationId.XOR_RETRY_ASK_DIFFERENT ->
+                "One bit is ${arg(0)} and the other is ${arg(1)}. Are they different?"
+            NarrationId.XOR_RETRY_EXPLAIN_SAME ->
+                "${arg(0)} and ${arg(1)} are the same, so XOR gives ${arg(2)}."
+            NarrationId.XOR_RETRY_EXPLAIN_DIFFERENT ->
+                "${arg(0)} and ${arg(1)} are different, so XOR gives ${arg(2)}."
+
+            // One wrong answer, and which half of the rule it misses depends only
+            // on whether the bits match — so the feedback names that half.
+            NarrationId.XOR_WHY_SAME_IS_ZERO ->
+                "Not quite. XOR gives 0 when both bits are the same, and these are " +
+                    "both ${arg(0)}."
+            NarrationId.XOR_WHY_DIFFERENT_IS_ONE ->
+                "Not quite. XOR gives 1 when the bits are different, and ${arg(0)} " +
+                    "and ${arg(1)} are different."
+
+            NarrationId.XOR_CORRECT_SAME ->
+                "Both ${arg(0)} — the same, so the result is 0."
+            NarrationId.XOR_CORRECT_DIFFERENT ->
+                "${arg(0)} and ${arg(1)} are different, so the result is 1."
+
+            NarrationId.XOR_WATCH_SETUP ->
+                "XOR compares two bits. The result is 1 when they are different."
+            NarrationId.XOR_WATCH_SETUP_SUPPORT ->
+                "Hide ${arg(0)} by XORing it with the key ${arg(1)}, one column at a time."
+            NarrationId.XOR_WATCH_TABLE -> "That is the whole rule, in four lines."
+            NarrationId.XOR_WATCH_TABLE_SUPPORT ->
+                "Same bits give 0. Different bits give 1. Nothing else to remember."
+
+            NarrationId.XOR_WATCH_BIT -> "${arg(0)} ⊕ ${arg(1)} = ${arg(2)}"
+            NarrationId.XOR_WATCH_BIT_SUPPORT ->
+                "The bits are ${arg(0)}. The result so far is ${arg(1)}."
+            NarrationId.XOR_WATCH_ENCRYPTED -> "${arg(0)} ⊕ ${arg(1)} = ${arg(2)}"
+
+            NarrationId.XOR_WATCH_REVERSE ->
+                "Now XOR the ciphertext ${arg(0)} with the same key ${arg(1)}."
+            NarrationId.XOR_WATCH_REVERSE_SUPPORT ->
+                "${arg(0)} ⊕ ${arg(1)} = ${arg(2)} — and that is the first bit of the " +
+                    "original back."
+            NarrationId.XOR_WATCH_RECOVERED -> "The rest come back the same way: ${arg(0)}."
+            NarrationId.XOR_WATCH_RECOVERED_SUPPORT ->
+                "Which is exactly the ${arg(0)} we started with."
+
+            NarrationId.XOR_WATCH_INSIGHT -> "The same key, applied twice, gives the original back."
+            NarrationId.XOR_WATCH_INSIGHT_SUPPORT ->
+                "XOR undoes itself, so encrypting and decrypting are not two " +
+                    "procedures — ${arg(0)} became ${arg(1)}, and the same pass " +
+                    "turned it back."
+            NarrationId.XOR_WATCH_SUMMARY -> "${arg(0)} ⊕ key = ${arg(1)}, and back again."
+            NarrationId.XOR_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.XOR_IDEA_1 -> "XOR gives 1 when two bits differ, 0 when they match."
+            NarrationId.XOR_IDEA_2 ->
+                "plaintext ⊕ key = ciphertext, and ciphertext ⊕ key = plaintext."
+            NarrationId.XOR_IDEA_3 ->
+                "One pass over n bits, so O(n) time and O(n) space."
+            // The caveat, last, where a recap bullet is read rather than skipped.
+            NarrationId.XOR_IDEA_4 ->
+                "XOR is a building block of real cryptography, but a XOR cipher with " +
+                    "a short or reused key is not secure on its own. This is a " +
+                    "demonstration of the operation, not a way to protect anything."
         }
     }
 }

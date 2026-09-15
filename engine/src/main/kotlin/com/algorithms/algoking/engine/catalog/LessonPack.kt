@@ -3,6 +3,10 @@ package com.algorithms.algoking.engine.catalog
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
+import com.algorithms.algoking.engine.algorithms.xor.XorCipherAlgorithm
+import com.algorithms.algoking.engine.algorithms.xor.XorProjector
+import com.algorithms.algoking.engine.algorithms.xor.XorWatchNarrator
+import com.algorithms.algoking.engine.dataset.XorDatasets
 import com.algorithms.algoking.engine.algorithms.caesar.CaesarCipherAlgorithm
 import com.algorithms.algoking.engine.algorithms.caesar.CaesarProjector
 import com.algorithms.algoking.engine.algorithms.caesar.CaesarWatchNarrator
@@ -320,6 +324,20 @@ object AlgorithmCatalog {
     )
 
     /**
+     * One operation, and the fact that applying it twice undoes it. The smallest
+     * complete idea in the library, and the only lesson whose data is bits.
+     */
+    fun xorCipher() = LessonPack(
+        id = AlgorithmId.XOR_CIPHER,
+        displayName = "XOR Cipher",
+        algorithm = XorCipherAlgorithm(),
+        projector = XorProjector(),
+        watchNarrator = XorWatchNarrator(),
+        watchDataset = XorDatasets.watch,
+        tryDataset = XorDatasets.tryIt,
+    )
+
+    /**
      * The first lesson whose data is text rather than numbers, and the app's
      * smallest complete idea: every letter moves a fixed number of places along an
      * alphabet that is a ring rather than a line.
@@ -456,6 +474,7 @@ object AlgorithmCatalog {
         AlgorithmId.TREE_POSTORDER -> postorderTraversal()
         AlgorithmId.ZERO_ONE_KNAPSACK -> zeroOneKnapsack()
         AlgorithmId.FIBONACCI -> fibonacci()
+        AlgorithmId.XOR_CIPHER -> xorCipher()
         AlgorithmId.CAESAR_CIPHER -> caesarCipher()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()

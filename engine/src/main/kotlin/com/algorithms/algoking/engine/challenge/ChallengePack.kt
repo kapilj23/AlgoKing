@@ -154,6 +154,9 @@ object ChallengeCatalog {
         AlgorithmId.TREE_POSTORDER -> null
         AlgorithmId.ZERO_ONE_KNAPSACK -> null
         AlgorithmId.FIBONACCI -> null
+        // Not authored: a generated bitwise challenge needs a constraint keeping the
+        // key off all-zeros and all-ones, neither of which teaches anything.
+        AlgorithmId.XOR_CIPHER -> null
         // Not authored: a generated cipher challenge needs a constraint keeping the
         // message short and the shift non-trivial, and that has not been written.
         AlgorithmId.CAESAR_CIPHER -> null

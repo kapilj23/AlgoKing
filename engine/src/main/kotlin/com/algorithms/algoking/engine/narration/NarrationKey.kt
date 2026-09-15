@@ -1395,4 +1395,43 @@ enum class NarrationId {
     CC_IDEA_2,
     CC_IDEA_3,
     CC_IDEA_4,
+
+    // ── XOR Cipher ────────────────────────────────────────────────────────────
+    // "Different" and "the same" throughout, because that is the rule — the copy
+    // never asks the learner to recall a row of a table they can see on screen.
+    // The security caveat is a recap bullet rather than a footnote: a lesson that
+    // leaves a learner thinking they have seen encryption has taught them
+    // something worse than nothing.
+    XOR_OPTION_BIT,
+    XOR_ASK_BIT,
+    XOR_SET,
+    XOR_HINT_RULE,
+    XOR_RETRY_LOOK,
+    XOR_RETRY_ASK_SAME,
+    XOR_RETRY_ASK_DIFFERENT,
+    XOR_RETRY_EXPLAIN_SAME,
+    XOR_RETRY_EXPLAIN_DIFFERENT,
+    XOR_WHY_SAME_IS_ZERO,
+    XOR_WHY_DIFFERENT_IS_ONE,
+    XOR_CORRECT_SAME,
+    XOR_CORRECT_DIFFERENT,
+    XOR_WATCH_SETUP,
+    XOR_WATCH_SETUP_SUPPORT,
+    XOR_WATCH_TABLE,
+    XOR_WATCH_TABLE_SUPPORT,
+    XOR_WATCH_BIT,
+    XOR_WATCH_BIT_SUPPORT,
+    XOR_WATCH_ENCRYPTED,
+    XOR_WATCH_REVERSE,
+    XOR_WATCH_REVERSE_SUPPORT,
+    XOR_WATCH_RECOVERED,
+    XOR_WATCH_RECOVERED_SUPPORT,
+    XOR_WATCH_INSIGHT,
+    XOR_WATCH_INSIGHT_SUPPORT,
+    XOR_WATCH_SUMMARY,
+    XOR_WATCH_SUMMARY_SUPPORT,
+    XOR_IDEA_1,
+    XOR_IDEA_2,
+    XOR_IDEA_3,
+    XOR_IDEA_4,
 }

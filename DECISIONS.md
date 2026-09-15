@@ -2557,6 +2557,130 @@ negative index and an exception two lines later. A test drives every shift from
 
 ---
 
+## ADR-047 — XOR Cipher: the phase is derived, and the caveat is a recap bullet
+
+**Decision.** XOR Cipher ships **free** as a `LessonPack` with WATCH and TRY, in the
+**Encryption** category ADR-046 opened. `Scene` gains an eighth shape,
+`BitwiseScene`; `Dataset` gains a defaulted `xor`. The learner answers one question
+per column: **what is `a ⊕ b`?** Full detail: `docs/xor-cipher.md`.
+
+⚠ **Product-owner request**, 2026-09-15: a small free MVP lesson teaching bitwise
+XOR and the same-key reversal, explicitly labelled as not secure encryption.
+
+### The lesson is the reversal, not the operation
+
+The truth table takes one screen and one sentence — *the result is 1 when the bits
+are different*. What is worth a lesson is what falls out of it: XOR is its own
+inverse, so encrypting and decrypting are not two procedures but one procedure run
+twice.
+
+So WATCH does the second pass, over the ciphertext the first pass actually
+produced, and `XorState.recovered` is read out of the run rather than copied from
+the problem — if applying the key twice did not give the plaintext back, the
+lesson would say so. A test proves the property over all 256 four-bit pairs.
+
+### The phase is derived, and that was found by drawing it
+
+The obvious build stores `phase` and rolls it over in `apply` when the first pass
+finishes. It passed every test I had written, and it was wrong.
+
+Dumping the walkthrough showed it: the frame that writes the last encrypted bit
+leaves a state already in the second phase, so the beat explaining that bit was
+drawn with the rows relabelled *Ciphertext / Recovered* and the result row blanked.
+The learner would read *"1010 ⊕ 1100 = 0110"* beside an empty row. It is the
+failure ADR-032 split Two Pointers' comparison from its move to avoid, arriving
+through a different door.
+
+The fix has two halves, and both are worth stating:
+
+1. **`XorState` stores `encrypted` and `decrypted` and derives the phase.** Two
+   strings that cannot disagree with a third field, because there is no third
+   field.
+2. **`XorProjector` decides which pass a *frame* belongs to** from the events it
+   carries — *a bit was written into the second pass exactly when the second pass
+   has something in it* — rather than reading the state's current phase.
+
+Deriving the phase then exposed a second bug the first arrangement had hidden: a
+lesson that never goes back derived its way into a second pass that never runs, so
+`produced` came back empty at completion. `phase` now answers ENCRYPT for the whole
+life of a non-round-trip lesson. Two regression tests pin both.
+
+The general lesson, which is not new but keeps being true: **a walkthrough dump is
+a test the test suite cannot write.** Caesar's wrap beat lighting the wrong letter
+(ADR-046) and Fibonacci's six identical opening screens (ADR-045) were both found
+the same way.
+
+### Why an eighth shape
+
+A bitwise operation is **three rows sharing one set of columns**, where the third
+is computed from the two above it. `CountingScene` also has three rows and its own
+documentation says they deliberately *do not* share columns; `PrefixScene` shares
+columns between two rows but offset by one; `CipherScene` has two aligned messages
+plus a lookup, and a `CipherPair` holds two letters where a truth-table row holds
+three bits.
+
+`DpTableScene` is the near miss and the instructive one. It is `rows × columns` and
+this could be squeezed into it — but its two axes are two *quantities* and a cell
+is a point in that space, while these rows are three different *things* that happen
+to line up. "The key's bit 2" is not a coordinate. It also carries `ItemCard`,
+`BagMeter` and a two-sided `ChoiceStrip` that a bitwise lesson would null out,
+which is a union pretending to be a record — and the brief was explicit that the
+two encryption lessons must not be forced into an abstraction that makes the
+architecture worse.
+
+It added no event, no interaction model and no cell state; five `when` sites gained
+a branch, and the compiler found the three call sites in `:app` that needed copy.
+
+### The security caveat is a recap bullet, not a footnote
+
+A lesson that leaves a learner thinking they have seen encryption has taught them
+something worse than nothing. So the sentence — *XOR is a building block of real
+cryptography, but a XOR cipher with a short or reused key is not secure on its
+own* — is the **last recap bullet**, where a bullet is read rather than skipped,
+and it is repeated on the Complete screen. A test asserts it is present in the
+walkthrough.
+
+### Two options, so the budget goes on the feedback
+
+Every other lesson with a value answer offers three options and rotates the correct
+one's seat. A bit has two values, so there is no seat to rotate and a guess is a
+coin flip — which means the only thing separating a learner who knows the rule from
+one who does not is what happens when they are wrong.
+
+There is exactly one wrong answer per column, and which half of the rule it misses
+is decided entirely by whether the two bits match. So the feedback names that half:
+*"XOR gives 0 when both bits are the same, and these are both 1."* That is the most
+useful sentence available at that moment, and it is the whole reason the lesson
+works with two buttons.
+
+### The TRY dataset is the brief's, and it is weak
+
+Recorded because it is a real cost, not because it is settled. `1011 ⊕ 1101 = 0110`
+produces the **same ciphertext WATCH produces**, from bit pairs differing in only
+the last column. A learner who memorised `0110` could produce it without applying
+the rule, which is what ADR-014 says a TRY dataset must not allow.
+
+`1011 ⊕ 0110 = 1101` would fix it — three columns change and so does the answer —
+and it is one line in `XorDatasets`. It was left as specified because the brief gave
+the expected output explicitly, and flagged in `docs/xor-cipher.md`, the dataset's
+own KDoc and this ADR so the choice is visible rather than silent.
+
+**Alternatives considered.**
+- *Reuse `DpTableScene`.* Rejected above.
+- *Extend `CipherScene` with a key row and a truth table.* Rejected: Caesar would
+  null both and XOR would null the alphabet, which is two lessons sharing a type
+  and no behaviour.
+- *Let the app compute some columns.* Rejected: the XOR is the lesson, and there is
+  nothing else in it to hand over.
+- *Three options per column, for consistency with every other value lesson.*
+  Rejected: a bit has two values, and a third option would have to be a non-bit.
+- *Teach text-to-binary first, so the message is a word.* Rejected as scope by the
+  brief, and rightly: it is a second encoding idea stacked on the operation.
+- *Drop the second pass from WATCH to keep it short.* Rejected: the reversal is the
+  lesson, and asserting it is weaker than watching it.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

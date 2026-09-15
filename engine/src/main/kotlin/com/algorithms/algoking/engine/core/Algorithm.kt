@@ -63,6 +63,14 @@ data class Dataset(
      * before it, so no existing lesson changed when it arrived.
      */
     val cipher: CipherProblem? = null,
+    /**
+     * A binary message and the key it is XORed with, for the lesson whose data is
+     * bits rather than letters or numbers.
+     *
+     * Optional and defaulted, the additive move `graph`, `tree`, `knapsack` and
+     * `cipher` made before it.
+     */
+    val xor: XorProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -107,6 +115,10 @@ enum class AlgorithmId {
     // each solved once, and every cell asks the same question — take this item,
     // or leave it?
     ZERO_ONE_KNAPSACK,
+
+    // Encryption: one operation, and the fact that applying it twice undoes it.
+    // The bits are the lesson, so the truth table is on screen throughout.
+    XOR_CIPHER,
 
     // Encryption: the first lesson whose data is text. Every letter moves a fixed
     // number of places along an alphabet that is a ring rather than a line — and
