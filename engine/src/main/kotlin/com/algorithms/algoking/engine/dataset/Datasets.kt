@@ -1125,23 +1125,42 @@ object XorDatasets {
     )
 
     /**
-     * `1011 XOR 1101 = 0110` — encryption only.
+     * `1011 XOR 0110 = 1101` — encryption only.
+     *
+     * ```
+     * 1011      plaintext
+     * 0110      key
+     * ----
+     * 1101      ciphertext
+     * ```
      *
      * TRY stops at the ciphertext: four columns is the judgement, and a second
      * identical pass would be patience rather than understanding. The reversal is
      * what WATCH is for.
      *
-     * **Known weakness, recorded rather than hidden.** This is the dataset the
-     * brief specified, and its ciphertext is the same `0110` WATCH produces, from
-     * bit pairs that differ from WATCH's in only the last column. So a learner who
-     * memorised the answer could produce it without applying the rule — which is
-     * the thing ADR-014 says a TRY dataset must not allow. `1011 XOR 0110 = 1101`
-     * would fix it by changing three of the four columns and the answer; it is one
-     * line here and nothing else. See `docs/xor-cipher.md`.
+     * **The key is `0110`, not the brief's `1101`, and the difference is the
+     * point.** `1011 XOR 1101` also gives a valid lesson, but it produces the same
+     * `0110` WATCH produces from bit pairs differing in only the last column — so a
+     * learner who memorised the answer could reproduce it without applying the rule
+     * once, which is exactly what ADR-014 says a TRY dataset must not allow.
+     *
+     * This key shares **one** column with WATCH instead of three, and gives a
+     * different answer:
+     *
+     * ```
+     * WATCH   (1,1) (0,1) (1,0) (0,0)  ->  0110
+     * TRY     (1,0) (0,1) (1,1) (1,0)  ->  1101
+     *                ^^^^^ the only column in common
+     * ```
+     *
+     * The same call ADR-044 made when 0/1 Knapsack's brief supplied a bag whose
+     * optimum was reachable by a greedy strategy: the numbers are the lesson, so a
+     * dataset that teaches the wrong thing gets replaced and the replacement is
+     * written down. `XorCipherTest` asserts the divergence rather than trusting it.
      */
     val tryIt = Dataset(
         values = emptyList(),
         label = "try",
-        xor = XorProblem(plaintext = "1011", key = "1101", roundTrip = false),
+        xor = XorProblem(plaintext = "1011", key = "0110", roundTrip = false),
     )
 }

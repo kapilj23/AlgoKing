@@ -173,7 +173,7 @@ class XorCipherTest {
     // -- 3. TRY: correct answers advance --------------------------------------
 
     @Test
-    fun `the authored TRY message encrypts to 0110, one bit at a time`() {
+    fun `the authored TRY message encrypts to 1101, one bit at a time`() {
         val r = AlgorithmRunner(algorithm, XorDatasets.tryIt)
         val asked = mutableListOf<Pair<Int, Int>>()
         var guard = 0
@@ -187,9 +187,34 @@ class XorCipherTest {
             // A correct selection advances the state by exactly one bit.
             assertEquals(before + 1, r.current.state.produced.length)
         }
-        assertEquals(listOf(1 to 1, 0 to 1, 1 to 0, 1 to 1), asked)
-        assertEquals("0110", r.current.state.produced)
-        assertEquals("0110", referenceXor("1011", "1101"))
+        assertEquals(listOf(1 to 0, 0 to 1, 1 to 1, 1 to 0), asked)
+        assertEquals("1101", r.current.state.produced)
+        assertEquals("1101", referenceXor("1011", "0110"))
+    }
+
+    @Test
+    fun `TRY cannot be answered from memory of WATCH`() {
+        // ADR-014's rule, asserted rather than assumed. The brief's suggested key
+        // gave TRY the same answer as WATCH from bit pairs differing in one column
+        // out of four, so a learner who remembered `0110` could produce it without
+        // applying the rule once. This pins the replacement.
+        fun columns(dataset: Dataset): List<Pair<Int, Int>> {
+            val p = requireNotNull(dataset.xor)
+            return p.plaintextBits.zip(p.keyBits)
+        }
+
+        val watch = columns(XorDatasets.watch)
+        val tryIt = columns(XorDatasets.tryIt)
+        assertEquals(watch.size, tryIt.size)
+
+        // The answers differ...
+        assertEquals("0110", requireNotNull(XorDatasets.watch.xor).ciphertext)
+        assertEquals("1101", requireNotNull(XorDatasets.tryIt.xor).ciphertext)
+
+        // ...and so does most of the work. One column in common is coincidence;
+        // three would be a dataset the learner can skip thinking about.
+        val shared = watch.zip(tryIt).count { (a, b) -> a == b }
+        assertTrue("$shared of ${watch.size} columns are identical", shared <= 1)
     }
 
     @Test
@@ -271,7 +296,7 @@ class XorCipherTest {
 
     @Test
     fun `guidance escalates and then holds, so a learner is never dead-ended`() {
-        val decision = (runner("1011", "1101").probe() as Probe.Decide).decision
+        val decision = (runner("1011", "0110").probe() as Probe.Decide).decision
         val wrong = decision.options.map { it.action }.first { it != decision.correct }
         val rungs = (0..3).map {
             (DecisionValidation.validate(decision, wrong, it) as Validation.Retry).guidance
@@ -282,7 +307,7 @@ class XorCipherTest {
 
     @Test
     fun `a correct selection is accepted and carries an action`() {
-        val decision = (runner("1011", "1101").probe() as Probe.Decide).decision
+        val decision = (runner("1011", "0110").probe() as Probe.Decide).decision
         val result = DecisionValidation.validate(decision, decision.correct, 0)
         assertTrue(result is Validation.Accept)
         assertEquals(decision.correct, (result as Validation.Accept).action)
@@ -301,7 +326,7 @@ class XorCipherTest {
             assertTrue(DecisionValidation.validate(decision, wrong, 0) is Validation.Retry)
             r.apply(decision.correct)
         }
-        assertEquals("0110", r.current.state.produced)
+        assertEquals("1101", r.current.state.produced)
         assertEquals(0, r.current.metrics.wrongDecisions)
     }
 
@@ -309,9 +334,13 @@ class XorCipherTest {
     fun `applying a wrong bit directly still leaves a legal state that terminates`() {
         // `apply` is total (ADR-001) — it takes any action, which is what makes
         // `validate` a pure comparison. In TRY nothing ever calls it this way.
-        val start = state("1011", "1101")
-        val diverged = algorithm.apply(start, XorAction.SetBit(1))
-        assertEquals("1", diverged.next.produced)
+        val start = state("1011", "0110")
+        // Derived, not hardcoded: whichever bit is right for this column, take the
+        // other one. A literal here silently becomes a *correct* answer the moment
+        // the dataset changes, and then this test asserts nothing.
+        val wrongBit = 1 - requireNotNull(start.expectedBit)
+        val diverged = algorithm.apply(start, XorAction.SetBit(wrongBit))
+        assertEquals(wrongBit.toString(), diverged.next.produced)
         assertFalse(diverged.correct)
 
         var s = diverged.next
@@ -329,7 +358,7 @@ class XorCipherTest {
 
     @Test
     fun `a value that is not a bit is a no-op`() {
-        val start = state("1011", "1101")
+        val start = state("1011", "0110")
         for (bad in listOf(-1, 2, 7)) {
             val after = algorithm.apply(start, XorAction.SetBit(bad))
             assertSame("bit $bad", start, after.next)
@@ -340,7 +369,7 @@ class XorCipherTest {
 
     @Test
     fun `setting a bit past the end is a no-op`() {
-        val end = driveCorrectly("1011", "1101")
+        val end = driveCorrectly("1011", "0110")
         val after = algorithm.apply(end, XorAction.SetBit(1))
         assertSame(end, after.next)
         assertFalse(after.correct)
@@ -404,7 +433,7 @@ class XorCipherTest {
 
     @Test
     fun `rewind returns the exact previous state`() {
-        val r = runner("1011", "1101")
+        val r = runner("1011", "0110")
         val before = r.current.state
         r.apply((r.probe() as Probe.Decide).decision.correct)
         assertEquals(before, r.rewind().state)
@@ -545,16 +574,16 @@ class XorCipherTest {
         // The second bug the restructure exposed: deriving the phase purely from
         // the encrypted length put a non-round-trip lesson into a second pass that
         // never runs, so `produced` came back empty at completion.
-        val end = driveCorrectly("1011", "1101", roundTrip = false)
+        val end = driveCorrectly("1011", "0110", roundTrip = false)
         assertTrue(end.finished)
         assertEquals(XorPhase.ENCRYPT, end.phase)
-        assertEquals("0110", end.produced)
-        assertEquals("0110", end.ciphertext)
+        assertEquals("1101", end.produced)
+        assertEquals("1101", end.ciphertext)
         // Nothing was recovered, because nothing was asked to be.
         assertNull(end.recovered)
 
         val scene = projector.project(end, emptyList()) as BitwiseScene
-        assertEquals(listOf("0", "1", "1", "0"), scene.rows.last().bits.map { it.label })
+        assertEquals(listOf("1", "1", "0", "1"), scene.rows.last().bits.map { it.label })
     }
 
     @Test

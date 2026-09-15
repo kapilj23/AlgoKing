@@ -73,22 +73,35 @@ Two properties earn it its place:
 - **it goes back.** `roundTrip` is on, so the second pass is a real run over real
   output. The reversal is the point of the lesson.
 
-### TRY — `1011 ⊕ 1101 = 0110`, encryption only
+### TRY — `1011 ⊕ 0110 = 1101`, encryption only
+
+```
+1011      plaintext
+0110      key
+----
+1101      ciphertext
+```
 
 Four columns, no second pass: the judgement is the XOR, and an identical second
 pass would be patience rather than understanding.
 
-> **⚠ Known weakness, recorded rather than hidden.** This is the dataset the brief
-> specified, and its ciphertext is the **same `0110` WATCH produces**, from bit
-> pairs that differ from WATCH's in only the last column (`1⊕1, 0⊕1, 1⊕0, 1⊕1`
-> against `1⊕1, 0⊕1, 1⊕0, 0⊕0`). A learner who memorised the answer could produce
-> it without applying the rule — which is the thing ADR-014 says a TRY dataset must
-> not allow.
->
-> **`1011 ⊕ 0110 = 1101`** would fix it: three of the four columns change and so
-> does the answer. It is one line in `XorDatasets` and nothing else. Left as
-> specified because the brief gave the expected output explicitly; flagged here so
-> the choice is visible rather than silent.
+**The key is `0110`, not the brief's `1101`, and the difference is the point.**
+`1011 ⊕ 1101` is also a valid lesson, but it produces the **same `0110` WATCH
+produces**, from bit pairs differing in only the last column — so a learner who
+memorised the answer could reproduce it without applying the rule once, which is
+exactly what ADR-014 says a TRY dataset must not allow.
+
+```
+WATCH        (1,1) (0,1) (1,0) (0,0)  ->  0110
+brief's TRY  (1,1) (0,1) (1,0) (1,1)  ->  0110    three columns shared, same answer
+shipped TRY  (1,0) (0,1) (1,1) (1,0)  ->  1101    one column shared, different answer
+```
+
+The same call ADR-044 made when 0/1 Knapsack's brief supplied a bag whose optimum
+both greedy strategies already found: the numbers *are* the lesson, so a dataset
+that teaches the wrong thing gets replaced and the replacement is written down.
+`XorCipherTest` asserts the divergence — same width, different ciphertext, at most
+one shared column — rather than trusting it.
 
 ## WATCH — 10 beats
 
@@ -256,22 +269,22 @@ adds the thing Caesar has no equivalent of — a key that undoes itself.
 
 ## Testing
 
-**46 tests** in `engine/src/test/.../XorCipherTest.kt`, plus 1 in the app's
-`ProAccessTest`. Engine total: **807**.
+**47 tests** in `engine/src/test/.../XorCipherTest.kt`, plus 1 in the app's
+`ProAccessTest`. Engine total: **808**.
 
 | Group | Covers |
 |---|---|
 | The operation | all five documented examples; the four truth-table rows; **every 4-bit pair** against an independent character comparison |
 | The reversal | `p ⊕ k ⊕ k == p` over all 256 combinations |
 | Validation | unequal lengths, invalid characters, empty input, out-of-range bit index — all refused |
-| TRY advance | correct selections advance one bit; `1011 ⊕ 1101 → 0110`; the round trip recovers `1010` |
+| TRY advance | correct selections advance one bit; `1011 ⊕ 0110 → 1101`; the round trip recovers `1010` |
 | TRY refusal | five wrong in a row leave the state byte-for-byte identical; guidance escalates then holds; the feedback names the right half of the rule |
 | Invalid actions | non-bit values and past-the-end writes are no-ops; a wrong bit applied directly still terminates; 40 adversarial sequences |
 | Completion | only after every bit; a round trip is not finished when the first pass ends; terminal outcome and event; rewind |
 | Regression | the frame finishing encryption still draws the encrypting pass; a non-round-trip lesson reports its answer at completion |
 | The picture | three rows sharing columns, holes are holes, the truth table is four rows with one lit, the strip hides its result, labels change with the phase |
 | The walkthrough | opens on the rule, closes on the idea; the security caveat is present; four encrypt beats and two for the way back; all four truth-table rows covered; length 8–14; no two adjacent steps identical; identical-picture runs capped at 3 |
-| Registration | in the catalog with its own datasets; WATCH round-trips and TRY does not; no challenge; progress 0/50/100 latched |
+| Registration | in the catalog with its own datasets; WATCH round-trips and TRY does not; **TRY cannot be answered from memory of WATCH**; no challenge; progress 0/50/100 latched |
 | Access (`:app`) | Encryption is not Pro; opens for every entitlement; the category holds exactly two free lessons |
 
 ## Quality check
@@ -279,7 +292,7 @@ adds the thing Caesar has no equivalent of — a key that undoes itself.
 | | |
 |---|---|
 | ✓ | Project builds — `:app:assembleDebug` succeeds |
-| ✓ | Engine 807 tests, app 46, **0 failures** |
+| ✓ | Engine 808 tests, app 46, **0 failures** |
 | ✓ | Registered FREE, under Encryption |
 | ✓ | WATCH is Next-driven — no autoplay, no Play button |
 | ✓ | TRY requires a selection at every bit |

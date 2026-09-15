@@ -95,7 +95,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 807 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 808 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -107,7 +107,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 807 unit tests, no device needed
+./gradlew :engine:test        # 808 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -159,7 +159,7 @@ and ADR-041.
 ## Status
 
 **Built:** the engine and all twenty-five lessons · Watch · Try · Complete · Home · nine renderers ·
-the full light design-system token layer · progress persistence · 807 passing engine tests.
+the full light design-system token layer · progress persistence · 808 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

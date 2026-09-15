@@ -2653,17 +2653,31 @@ is decided entirely by whether the two bits match. So the feedback names that ha
 useful sentence available at that moment, and it is the whole reason the lesson
 works with two buttons.
 
-### The TRY dataset is the brief's, and it is weak
+### The brief's TRY dataset was replaced, and the replacement is asserted
 
-Recorded because it is a real cost, not because it is settled. `1011 ⊕ 1101 = 0110`
-produces the **same ciphertext WATCH produces**, from bit pairs differing in only
-the last column. A learner who memorised `0110` could produce it without applying
-the rule, which is what ADR-014 says a TRY dataset must not allow.
+`1011 ⊕ 1101 = 0110` is a correct lesson and a weak one: it produces the **same
+ciphertext WATCH produces**, from bit pairs differing in only the last column. A
+learner who remembered `0110` could reproduce it without applying the rule once,
+which is what ADR-014 says a TRY dataset must not allow.
 
-`1011 ⊕ 0110 = 1101` would fix it — three columns change and so does the answer —
-and it is one line in `XorDatasets`. It was left as specified because the brief gave
-the expected output explicitly, and flagged in `docs/xor-cipher.md`, the dataset's
-own KDoc and this ADR so the choice is visible rather than silent.
+```
+WATCH        (1,1) (0,1) (1,0) (0,0)  ->  0110
+brief's TRY  (1,1) (0,1) (1,0) (1,1)  ->  0110    three columns shared, same answer
+shipped TRY  (1,0) (0,1) (1,1) (1,0)  ->  1101    one column shared, different answer
+```
+
+So the key is **`0110`**, keeping the brief's plaintext. That is the same call
+ADR-044 made when 0/1 Knapsack's brief supplied a bag whose optimum both greedy
+strategies already found: the numbers *are* the lesson, so a dataset that teaches
+the wrong thing gets replaced and the replacement is written down.
+
+The guard is a test rather than a comment — `TRY cannot be answered from memory of
+WATCH` asserts the two datasets have the same width, different ciphertexts, and at
+most one column in common. A future dataset change that reintroduces the overlap
+fails the build.
+
+It was shipped weak first, flagged, and fixed on request. Worth recording that way
+round: the flag was what made the fix a one-line decision rather than a discovery.
 
 **Alternatives considered.**
 - *Reuse `DpTableScene`.* Rejected above.
