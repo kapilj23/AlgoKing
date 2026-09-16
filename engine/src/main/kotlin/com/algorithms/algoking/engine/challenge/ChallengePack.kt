@@ -160,6 +160,12 @@ object ChallengeCatalog {
         // Not authored: a generated cipher challenge needs a constraint keeping the
         // message short and the shift non-trivial, and that has not been written.
         AlgorithmId.CAESAR_CIPHER -> null
+        // Not authored, and this one may never be: the lesson's judgements are
+        // about what hashing *guarantees* rather than about a step to execute, so
+        // there is no run to generate a fresh dataset for. A V2 challenge here
+        // would be a different kind of assessment, not a seeded variant of this
+        // one — which is a design decision rather than a missing constraint.
+        AlgorithmId.SHA_256 -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

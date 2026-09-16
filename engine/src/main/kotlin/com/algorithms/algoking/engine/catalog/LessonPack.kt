@@ -11,6 +11,10 @@ import com.algorithms.algoking.engine.algorithms.caesar.CaesarCipherAlgorithm
 import com.algorithms.algoking.engine.algorithms.caesar.CaesarProjector
 import com.algorithms.algoking.engine.algorithms.caesar.CaesarWatchNarrator
 import com.algorithms.algoking.engine.dataset.CaesarDatasets
+import com.algorithms.algoking.engine.algorithms.sha256.Sha256HashingAlgorithm
+import com.algorithms.algoking.engine.algorithms.sha256.Sha256Projector
+import com.algorithms.algoking.engine.algorithms.sha256.Sha256WatchNarrator
+import com.algorithms.algoking.engine.dataset.Sha256Datasets
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciAlgorithm
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciProjector
 import com.algorithms.algoking.engine.algorithms.fibonacci.FibonacciWatchNarrator
@@ -352,6 +356,25 @@ object AlgorithmCatalog {
         tryDataset = CaesarDatasets.tryIt,
     )
 
+    /**
+     * The third Cryptography lesson, and the one that is **not a cipher**.
+     *
+     * Caesar and XOR both hide a message and both give it back; this one gives
+     * nothing back, and making that difference land is half of why it exists. The
+     * app owns the hashing — nobody runs 64 compression rounds by hand — and the
+     * learner owns the five judgements about what a hash guarantees, each asked
+     * with the digests that answer it already on screen.
+     */
+    fun sha256() = LessonPack(
+        id = AlgorithmId.SHA_256,
+        displayName = "SHA-256 Hashing",
+        algorithm = Sha256HashingAlgorithm(),
+        projector = Sha256Projector(),
+        watchNarrator = Sha256WatchNarrator(),
+        watchDataset = Sha256Datasets.watch,
+        tryDataset = Sha256Datasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -476,6 +499,7 @@ object AlgorithmCatalog {
         AlgorithmId.FIBONACCI -> fibonacci()
         AlgorithmId.XOR_CIPHER -> xorCipher()
         AlgorithmId.CAESAR_CIPHER -> caesarCipher()
+        AlgorithmId.SHA_256 -> sha256()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

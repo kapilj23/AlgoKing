@@ -35,11 +35,17 @@ val algorithmCategories = listOf(
     "Searching",
     "Sorting",
     "Structures",
-    // Hiding a message rather than finding or ordering one. A category like any
-    // other, so the chip row, the card badge and the filter all work with no new
-    // mechanism — and free, because access follows the category and only the
-    // Advanced shelf is Pro (ADR-041).
-    "Encryption",
+    // Protecting or fingerprinting a message rather than finding or ordering one.
+    // A category like any other, so the chip row, the card badge and the filter all
+    // work with no new mechanism — and free, because access follows the category
+    // and only the Advanced shelf is Pro (ADR-041).
+    //
+    // **It is "Cryptography" rather than "Encryption" because SHA-256 is not
+    // encryption** (ADR-048). The shelf holds two ciphers and one hash function,
+    // and a chip reading "Encryption" would file the hash lesson under the exact
+    // word that lesson exists to correct — the app contradicting itself on the
+    // Home screen, in a badge, before the learner has opened anything.
+    "Cryptography",
     // Techniques rather than named routines, and the first place the library
     // gets harder. It is a category like any other so the chip row, the card
     // badge and the filter all work with no new mechanism — PRODUCT_SPEC.md §12.
@@ -238,14 +244,14 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Pink,
         glyph = AlgoIcons.TileBars,
     ),
-    // The two Encryption lessons, gentlest first. Both free, like everything
+    // The three Cryptography lessons, gentlest first. All free, like everything
     // outside the Advanced shelf — the category *is* the access rule, so there is
     // no flag here saying so (ADR-032, ADR-041).
     AlgorithmEntry(
         id = AlgorithmId.CAESAR_CIPHER,
         title = "Caesar Cipher",
         description = "Shift every letter, and let the alphabet wrap around.",
-        category = "Encryption",
+        category = "Cryptography",
         accent = AlgoAccent.Orange,
         glyph = AlgoIcons.TileDots,
     ),
@@ -253,8 +259,20 @@ val algorithmLibrary = listOf(
         id = AlgorithmId.XOR_CIPHER,
         title = "XOR Cipher",
         description = "One bitwise rule — and the same key undoes it.",
-        category = "Encryption",
+        category = "Cryptography",
         accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileBars,
+    ),
+    // Third on the shelf and the one that is **not a cipher**. It comes after both
+    // of them on purpose: "there is no way back" only lands as a distinction once
+    // the learner has watched two messages be turned into something else and then
+    // turned back again (ADR-048).
+    AlgorithmEntry(
+        id = AlgorithmId.SHA_256,
+        title = "SHA-256 Hashing",
+        description = "Any input, a 256-bit fingerprint — and no way back.",
+        category = "Cryptography",
+        accent = AlgoAccent.Green,
         glyph = AlgoIcons.TileBars,
     ),
 )

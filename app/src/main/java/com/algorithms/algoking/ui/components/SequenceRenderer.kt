@@ -52,6 +52,7 @@ import com.algorithms.algoking.engine.scene.BucketScene
 import com.algorithms.algoking.engine.scene.Scene
 import com.algorithms.algoking.engine.scene.SceneLayout
 import com.algorithms.algoking.engine.scene.GraphScene
+import com.algorithms.algoking.engine.scene.HashScene
 import com.algorithms.algoking.engine.scene.PrefixScene
 import com.algorithms.algoking.engine.scene.SequenceScene
 import com.algorithms.algoking.ui.theme.AlgoColors
@@ -94,6 +95,7 @@ fun SceneRenderer(
         is CountingScene -> CountingTable(scene, modifier, selectableSlots, onSelectSlot)
         is CipherScene -> CipherTable(scene, modifier)
         is BitwiseScene -> BitwiseTable(scene, modifier)
+        is HashScene -> HashTable(scene, modifier)
         is DpTableScene -> DpTable(scene, modifier, selectableSlots, onSelectSlot)
     }
 }
@@ -646,6 +648,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
         is CountingScene -> scene.meters
         is CipherScene -> scene.meters
         is BitwiseScene -> scene.meters
+        is HashScene -> scene.meters
         is DpTableScene -> scene.meters
     }
     if (meters.isEmpty()) return
@@ -693,6 +696,8 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is CountingScene -> scene.legendStates
         is CipherScene -> scene.plaintext.map { it.state } + scene.ciphertext.map { it.state }
         is BitwiseScene -> scene.rows.flatMap { row -> row.bits.map { it.state } }
+        // A pipeline and the rows being compared, both carrying the same states.
+        is HashScene -> scene.legendStates.toList()
         // A table still being posed has nothing to describe yet.
         is DpTableScene -> if (!scene.tableVisible) return else scene.cells.flatten().mapNotNull { it?.state }
         is BucketScene -> return
@@ -704,6 +709,7 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is CountingScene -> scene.legendLabels
         is CipherScene -> scene.legendLabels
         is BitwiseScene -> scene.legendLabels
+        is HashScene -> scene.legendLabels
         is DpTableScene -> scene.legendLabels
         is BucketScene -> return
     }

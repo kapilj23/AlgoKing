@@ -397,9 +397,14 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // head. XOR then does the same job with one bitwise operation, and adds the
     // thing Caesar has no equivalent of — the key that undoes itself.
     AlgorithmId.CAESAR_CIPHER -> AlgorithmId.XOR_CIPHER
+    // The two ciphers hand over to the lesson that is not one. Both of them turn a
+    // message into something else and then turn it back; SHA-256 does not go back,
+    // and that difference only reads as a difference once the learner has watched
+    // the other two do it (ADR-048).
+    AlgorithmId.XOR_CIPHER -> AlgorithmId.SHA_256
     // ...and then to the Advanced shelf, which is where the library stops teaching
     // named routines and starts teaching techniques.
-    AlgorithmId.XOR_CIPHER -> AlgorithmId.TWO_POINTERS
+    AlgorithmId.SHA_256 -> AlgorithmId.TWO_POINTERS
     AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
     AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
     // BFS immediately after DFS, so the contrast lands while DFS is still fresh —

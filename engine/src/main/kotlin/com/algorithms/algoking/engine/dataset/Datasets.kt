@@ -8,6 +8,8 @@ import com.algorithms.algoking.engine.core.CipherProblem
 import com.algorithms.algoking.engine.core.Dataset
 import com.algorithms.algoking.engine.core.Graph
 import com.algorithms.algoking.engine.core.GraphNode
+import com.algorithms.algoking.engine.core.HashProblem
+import com.algorithms.algoking.engine.core.HashQuestion
 import com.algorithms.algoking.engine.core.TreeNode
 import com.algorithms.algoking.engine.core.Trace
 import com.algorithms.algoking.engine.decision.Action
@@ -1163,4 +1165,118 @@ object XorDatasets {
         label = "try",
         xor = XorProblem(plaintext = "1011", key = "0110", roundTrip = false),
     )
+}
+
+/**
+ * SHA-256 — the messages the lesson hashes, and the judgements it asks about them.
+ *
+ * **Not one digest is authored here.** Every value the learner sees is produced by
+ * `Sha256.hex` at run time from the strings below, which is the rule ADR-045 set
+ * for Fibonacci's call counts: the lesson's central claim is generated, never
+ * written down. A hardcoded digest is a number that goes quietly wrong the first
+ * time a message is edited, and in a lesson whose whole subject is *this input
+ * gives exactly this output* that is the one mistake that cannot be tolerated.
+ *
+ * `Sha256HashingTest` then pins the six digests against values verified
+ * independently with `sha256sum` and `openssl dgst -sha256`, so the engine's
+ * output is checked against the outside world rather than against itself.
+ */
+object Sha256Datasets {
+
+    /**
+     * Six messages, chosen so that every property the lesson teaches has evidence
+     * on screen rather than a sentence asserting it.
+     *
+     * ```
+     * hello                  the example every write-up of SHA-256 opens with
+     * Hello                  one character different — the avalanche partner
+     * hi                     shorter                \
+     * hello world            longer                  >  the fixed-length ladder
+     * a much longer message  longer still           /
+     * hello                  hashed a second time — determinism, as two real runs
+     * ```
+     *
+     * Three of those choices are load-bearing:
+     *
+     *  - **`hello` opens it** because its digest is the one a curious learner will
+     *    check against any other tool, and the lesson has to be the thing that
+     *    agrees with the world.
+     *  - **`Hello` differs by exactly one character**, and by a *case* change
+     *    rather than a different letter — the smallest edit there is, which is what
+     *    makes 61 of 64 digest characters changing worth watching. The engine finds
+     *    this pair by looking for it (`HashProblem.avalanchePair`), so it cannot
+     *    end up pointing at two messages that no longer differ by one.
+     *  - **`hello` appears twice**, and that is the only honest way to show
+     *    determinism. Saying "the same input always gives the same hash" over a
+     *    single row asks the learner to take it on trust; hashing it again, as a
+     *    separate run through the same pipeline, puts two independently produced
+     *    digests side by side and lets them check.
+     */
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        hash = HashProblem(
+            messages = listOf(
+                "hello",
+                "Hello",
+                "hi",
+                "hello world",
+                "a much longer message",
+                "hello",
+            ),
+            questions = QUESTION_ORDER,
+        ),
+    )
+
+    /**
+     * The brief's two inputs — `hello` and `Hello` — plus the lengths the
+     * fixed-length judgement needs, and the repeat determinism needs.
+     *
+     * **TRY cannot drop `hi` and `a much longer message` even though WATCH already
+     * showed them.** Question 1 asks whether the output length depends on the
+     * input, and `hello` and `Hello` are both five characters — so without a length
+     * ladder the learner would be asked to read evidence the picture does not
+     * contain, which is the one thing this lesson's design turns on.
+     *
+     * **What makes TRY application rather than recall is the narration budget, not
+     * the data.** There is exactly one SHA-256, so a different dataset would be a
+     * different place to stand inside the same function rather than a new problem —
+     * the position ADR-045 reached for Fibonacci. WATCH *states* each property as
+     * the frame lands; TRY *asks* all five, with the evidence on screen and nothing
+     * saying which way it points. `Sha256HashingTest` pins that: every question
+     * WATCH answers is a question TRY puts to the learner.
+     */
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        hash = HashProblem(
+            messages = listOf(
+                "hello",
+                "Hello",
+                "hi",
+                "a much longer message",
+                "hello",
+            ),
+            questions = QUESTION_ORDER,
+        ),
+    )
+
+    /**
+     * The order both stages ask in, declared once.
+     *
+     * Determinism comes **before** the avalanche deliberately: "the same input
+     * always gives the same hash" is the stable half, and "one character changes
+     * almost all of it" only reads as surprising once the learner has established
+     * that a digest is not simply random. Two lists would be two things to keep in
+     * step, and a WATCH that rehearsed the properties in a different order from the
+     * one TRY asks would make the stage transition feel like a different lesson.
+     */
+    private val QUESTION_ORDER: List<HashQuestion>
+        get() = listOf(
+            HashQuestion.FIXED_LENGTH,
+            HashQuestion.DETERMINISTIC,
+            HashQuestion.AVALANCHE,
+            HashQuestion.ONE_WAY,
+            HashQuestion.OUTPUT_SIZE,
+        )
 }

@@ -334,6 +334,19 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "its own: this is a demonstration of the operation, not a way to protect " +
             "anything."
 
+    AlgorithmId.SHA_256 ->
+        "Hashing turns any input into a fixed-size fingerprint: SHA-256 always gives 256 " +
+            "bits — 32 bytes, written as 64 hexadecimal characters — whether the input was " +
+            "two characters or a whole file. The same input always gives the same hash, and " +
+            "changing one character changes almost all of it. One pass over the message, so " +
+            "O(n) in its length at a high level; inside, it is padded into 512-bit blocks " +
+            "and each block runs 64 compression rounds, which this lesson deliberately does " +
+            "not draw. Hashing is not encryption: there is no key and no decrypt step, and " +
+            "SHA-256 is designed to be computationally infeasible to reverse from the hash " +
+            "alone. It is used for checking that data arrived intact and as part of digital " +
+            "signatures — but on its own it is not how passwords should be stored, because " +
+            "it is built to be fast. Password systems use Argon2, bcrypt or scrypt."
+
     AlgorithmId.CAESAR_CIPHER ->
         "Every letter moves the same number of places, and the alphabet is a ring — which " +
             "is all `mod 26` means. Decrypting is the same walk backwards. One pass over " +

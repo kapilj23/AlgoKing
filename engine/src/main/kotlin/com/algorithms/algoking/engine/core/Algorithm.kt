@@ -71,6 +71,14 @@ data class Dataset(
      * `cipher` made before it.
      */
     val xor: XorProblem? = null,
+    /**
+     * Messages to hash and the judgements to ask about them, for the lesson whose
+     * data is neither an array, a structure, a cipher nor a bit pattern.
+     *
+     * Optional and defaulted, the additive move `graph`, `tree`, `knapsack`,
+     * `cipher` and `xor` each made before it.
+     */
+    val hash: HashProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -116,11 +124,16 @@ enum class AlgorithmId {
     // or leave it?
     ZERO_ONE_KNAPSACK,
 
-    // Encryption: one operation, and the fact that applying it twice undoes it.
+    // Cryptography: one operation, and the fact that applying it twice undoes it.
     // The bits are the lesson, so the truth table is on screen throughout.
     XOR_CIPHER,
 
-    // Encryption: the first lesson whose data is text. Every letter moves a fixed
+    // Cryptography: a hash function rather than a cipher, and the lesson exists
+    // partly to make that distinction. Any input, a 256-bit output, and no way
+    // back — so there is nothing here to decrypt and no key to decrypt it with.
+    SHA_256,
+
+    // Cryptography: the first lesson whose data is text. Every letter moves a fixed
     // number of places along an alphabet that is a ring rather than a line — and
     // the ring, not the addition, is the whole of it.
     CAESAR_CIPHER,

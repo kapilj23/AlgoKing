@@ -171,6 +171,16 @@ Weights used: **500 (Medium) · 600 (SemiBold) · 700 (Bold) · 800 (ExtraBold)*
 | `numeralLarge` | 22sp | 800 | 26sp | −0.5 | array-bar and array-cell values |
 | `numeralMedium` | 20sp | 800 | 24sp | −0.5 | metric values |
 | `numeralSmall` | 14sp | 800 | 16sp | −0.3 | percentage inside a progress ring |
+| `digest` | 12sp | 500 | 18sp | −0.2 | **monospace** — a SHA-256 hash, and nothing else |
+
+**`digest` is the one exception to "never name a family anywhere else", and it is
+functional rather than stylistic.** The SHA-256 lesson (§6.16l) puts two 64-character
+digests one above the other and marks the characters that differ; in a proportional
+face the columns do not line up, so "these two characters are in the same position and
+one changed" stops being a picture and becomes a claim. It is `FontFamily.Monospace`
+rather than a bundled face, for the reason ADR-010 cut the third family: a fourth font
+file to ship, for one lesson, where the platform's own is already metrically correct.
+Nothing else in the app may use it.
 
 Rules:
 - **Headings never sit above 800 or below 700.** The weight contrast between 800 headings and 500
@@ -700,6 +710,65 @@ Camera     [0] [0] [3] [ ] [ ] [ ]      ← [ ] is the cell being decided
 
 **Fit a phone by the gutter, never the cell.** Six capacity columns get about 35dp each
 at 360dp — wider than Counting Sort's buckets — at `sceneCellHeight`. Nothing scrolls.
+
+### 6.16l A pipeline and a fingerprint — `HashTable`
+
+The ninth scene shape (ADR-048), for SHA-256. It is the first stage whose subject is a
+**string** rather than a row of cells, and the first where the *absence* of a
+relationship between two things on screen is the point.
+
+```
+Input → Preprocess → SHA-256 → Hash → Hex          the concept, as a flow
+
+┌──────────────────────────────┐
+│ INPUT              5 chars   │
+│ "hello"                      │                   the demonstration:
+└──────────────┬───────────────┘                   one arrow, one way
+            SHA-256
+┌──────────────┴───────────────┐
+│ HASH   256 bits · 64 chars   │
+│ 2cf24dba 5fb0a30e 26e83b2a … │
+└──────────────────────────────┘
+```
+
+| Element | Treatment |
+|---|---|
+| pipeline stage | `labelMedium` pill on `surfaceVariant`, wrapping with `→` between. Live takes `primarySoft`/`primary`; done takes `successSoft`/`onSuccessSoft` |
+| the SHA-256 stage | **one pill, never sixty-four.** It stands for real padding, a real message schedule and 64 real compression rounds, and the lesson says so rather than drawing them or inventing them |
+| input / hash card | `surfaceVariant`, `Radius.card`, a `labelSmall` caption left and the size right |
+| the arrow | `↓ SHA-256 ↓` in `primary`. **One arrow, pointing one way** — the whole distinction from the two ciphers on the same shelf, which both draw a message and the message it becomes and both go back |
+| the digest | `AlgoType.digest` — the app's one monospace style — in **eight groups of eight**, wrapping through a `FlowRow` |
+| a changed character | `next` amber, bold, marked **per character position** |
+| comparison row | `surfaceVariant` card; the reference row takes a `comparing` outline and the row read against it a `next` one, with `N in · 64 out` in the corner |
+| claim card | `surface` + hairline `border`, the button's short word in that button's own tone above the full statement in `bodyMedium` |
+
+**The one monospace in the app.** `AlgoType.digest` is a functional exception to the
+single-family rule, not a stylistic one: two 64-character digests sit one above the
+other with the differing characters marked, and in a proportional face the columns do
+not line up — so "these two characters are in the same position and one changed" stops
+being a picture and becomes a claim. Lining the columns up *is* the evidence.
+
+**Nothing scrolls sideways.** Sixty-four characters is wider than a phone, so the digest
+wraps into groups and the pipeline wraps its stages; neither ever shrinks a glyph. That
+is ADR-039's rule from Dijkstra's graph and ADR-046's from Caesar's alphabet — *the
+layout gives way, never the thing the learner has to read.* Grouping is a reading aid
+only: the characters and their order are untouched, so the exact value is always on
+screen, and a test asserts the groups rejoin to the digest.
+
+**At most three comparison rows.** The fixed-length claim is made as completely by
+shortest/middle/longest as by six rows, and three leaves the statement cards and the
+buttons above the fold. A row the learner has to scroll past to reach the question is
+not evidence.
+
+**The statement goes on the card, the word goes on the button.** A `DecisionButton` is
+one line at `labelLarge`, so a claim long enough to be unambiguous cannot live on it —
+the wall Two Pointers hit (ADR-032), solved with `DpTableScene`'s choice strip (§6.16i).
+Both cards are identical in every state: the scene does not carry which claim is true,
+so the renderer cannot style the right answer differently even by accident.
+
+**The bright language, not a dark one.** Same cards, same 20dp radii, same violet, same
+`surfaceVariant` grounds as every other lesson. A cryptography lesson is not a licence
+for a terminal aesthetic.
 
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white

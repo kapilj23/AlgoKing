@@ -86,6 +86,32 @@ object AlgoType {
 
     /** The AlgoKing wordmark. */
     val wordmark = style(26, FontWeight.ExtraBold, 30, -0.6f)
+
+    /**
+     * A hash digest — the one place in the app set in a monospace face.
+     *
+     * This is a **functional** exception to the single-family rule, not a stylistic
+     * one. The SHA-256 lesson puts two 64-character digests one above the other and
+     * marks the characters that differ; in a proportional face the columns do not
+     * line up, so "these two characters are in the same position and one changed"
+     * stops being a picture and becomes a claim. Lining the columns up is the
+     * evidence (ADR-048).
+     *
+     * `FontFamily.Monospace` rather than a bundled face, for the reason ADR-010
+     * gave for cutting the third family: a fourth font file to ship, for one
+     * lesson, where the platform's own is already metrically correct and always
+     * present.
+     */
+    val digest = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
+        // Monospace at 12sp is wide; the tracking comes back out so eight
+        // characters stay inside a group on a 320dp screen.
+        letterSpacing = (-0.2f).sp,
+        lineHeightStyle = trim,
+    )
 }
 
 /** Material3 mapping, so stock M3 components inherit the system too. */

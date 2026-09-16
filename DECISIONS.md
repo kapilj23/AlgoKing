@@ -2695,6 +2695,183 @@ round: the flag was what made the fix a one-line decision rather than a discover
 
 ---
 
+## ADR-048 — SHA-256 is a hash, so the shelf is renamed and the picture has no way back
+
+**Decision.** SHA-256 Hashing ships **free** as a `LessonPack` with WATCH and TRY.
+`Scene` gains a ninth shape, `HashScene`; `Dataset` gains a defaulted `hash`. The
+**Encryption category is renamed Cryptography**. The app hashes; the learner makes
+five judgements about what hashing guarantees. Full detail: `docs/sha256-hashing.md`.
+
+⚠ **Product-owner request**, 2026-09-16: a free beginner lesson teaching hashing,
+explicitly not described as encryption, and explicitly not teaching the 64
+compression rounds.
+
+### The category is renamed, because the old name was about to become a lie
+
+`Encryption` held two ciphers and was accurate. Adding a hash function to it would
+have put SHA-256 under a chip, a card badge and a filter reading *Encryption* — the
+app asserting on the Home screen the exact thing the lesson exists to correct,
+before the learner has opened anything.
+
+The brief offered *"Encryption / Cryptography"*, and Cryptography is the name that
+is true of all three. It cost one string in `algorithmCategories`, three entries and
+four test assertions; access is unchanged, because access derives from *not being
+Advanced* (ADR-032, ADR-041) and the new name is not the Pro one either. This is the
+second time that rule has been exercised in the free direction and it again cost
+nothing — no flag, no exclusion list, no billing change.
+
+### Why a ninth shape
+
+ADR-036 and ADR-045 each refused one, so this has to clear the same bar: a shape is
+for a new *kind* of data.
+
+A hash is an input of any size, a fixed-size output, and **no positional
+relationship whatsoever between them** — and that last clause is the lesson, so a
+shape that implies one is disqualified rather than merely imperfect:
+
+- `CipherScene` is the near miss by subject and the furthest by shape. Its two
+  messages are the same length and aligned position by position, because Caesar
+  letter 3 became ciphertext letter 3. Hashing `hi` gives 64 characters, and digest
+  character 3 came from the whole message;
+- `BitwiseScene` shares one set of columns across its rows, which is the same
+  assertion in stronger form;
+- `SequenceScene` is one row whose slots are positions — digest position 7 is not a
+  concept this lesson has;
+- `BucketScene` is the interesting one, because it already carries a *hash flow*:
+  `GET 12 → HASH 12 % 5 → BUCKET ?`. But its flow ends in an index into a five-row
+  table, and the table is that lesson. There is no bucket, no key and no value here;
+- `CountingScene`, `PrefixScene` and `DpTableScene` are grids of `Cell`s. A
+  64-character digest chopped into cells would be sixty-four boxes asserting
+  sixty-four meanings.
+
+What the shape actually holds is a labelled pipeline, a digest as *text*, and rows
+to compare — because comparison is the only way the properties can be shown at all.
+Fixed length is two inputs of different lengths with the same output length;
+determinism is one message hashed twice; the avalanche is one character changed.
+Each is a *relationship between rows*, so the rows are scene data rather than
+something the copy describes.
+
+It added no event, no interaction model and no cell state; five `when` sites gained
+a branch, and the compiler found all five.
+
+### The middle box stays a box, and that is the lesson's honesty
+
+Real SHA-256 pads the message, builds a 64-entry schedule and runs 64 compression
+rounds over eight working variables. **None of it is drawn and none of it is
+faked.** Animating sixty-four rounds would bury a beginner; animating invented ones
+would teach something false about a real algorithm, which is worse than teaching
+less. The box is labelled `64 compression rounds` and the copy says the lesson is
+not about them.
+
+The same honesty governs the complexity claim: O(n) is stated as a *high-level*
+figure, with the 512-bit blocking that produces it and the fixed per-block work
+named rather than hidden behind it.
+
+### The decisions are concept judgements, and that is new
+
+Every other lesson asks the learner to execute a step of the algorithm. Nobody
+executes a step of SHA-256 by hand, and the brief rightly forbade pretending
+otherwise — so the five judgements are about the *properties*.
+
+The risk in that is obvious and is the one ADR-034 named when it refused a row of
+neighbour buttons: **TRY must not become a multiple-choice quiz.** What keeps it
+from being one is *where the answer comes from*. Every message is hashed first, by
+the app, as `Probe.Mechanical` — computing a digest is arithmetic and
+PRODUCT_SPEC.md §3 gives the app the arithmetic. Only then is a judgement asked, and
+the projector puts the two or three rows that answer it on screen. The learner reads
+the evidence, exactly as the XOR lesson has them read its truth table; the copy
+never asks anyone to recall something it is showing them.
+
+It is worth recording that this is a genuine stretch of the interaction model rather
+than a comfortable fit, and that the mitigation is the evidence rather than the
+question format.
+
+### Long statements live on cards, not on buttons
+
+A `DecisionButton` is one line at `labelLarge`; "SHA-256 output length depends on the
+input length" is not. Two Pointers hit the same wall and solved it the same way
+(ADR-032): the meaning goes where it teaches rather than where it wraps. So the full
+statement sits in a card — `DpTableScene`'s choice strip, reused — and the button
+carries one short word, printed on the card too so the pairing cannot be misread.
+Neither card is styled as the true one, and the scene does not carry which is, so the
+renderer could not leak it even by accident.
+
+The correct answer is deliberately **not always in the same seat**. A learner who
+noticed the first button was always right would finish the stage without reading
+anything; a test asserts both seats are used.
+
+### `MessageDigest`, and the first `java.*` import in `:engine`
+
+Every other transform in the engine is hand-written because the transform *is* the
+lesson — `xorBit` is an inequality because *the result is 1 when the bits differ* is
+the sentence being taught. SHA-256's internals are explicitly not the lesson, and a
+hand-rolled copy of them would be a second, unreviewed cryptographic implementation
+whose only job is to agree with the platform's.
+
+The boundary ARCHITECTURE.md §3 enforces is *no Android and no Compose*, so a lesson
+cannot reach a `@Composable`. `java.security` is neither; the module is still a pure
+JVM module and its tests still run in milliseconds with no Robolectric.
+
+**No digest is authored anywhere.** Every value on screen is computed from a message
+string at run time — ADR-045's rule for Fibonacci's call counts — and the tests pin
+them against values produced independently by `sha256sum` and `openssl dgst
+-sha256`, so the engine is checked against the outside world rather than against
+itself. The avalanche beat's "61 of 64" is computed the same way.
+
+### The caption was one frame ahead of the picture
+
+`WatchScriptBuilder` hands the narrator the scene projected from the state **after**
+the transition, so the frame that answers question *n* is drawn showing question
+*n + 1*'s evidence. The first draft captioned each frame with the question it had
+just settled, which put the fixed-length sentence over the determinism rows and the
+determinism sentence over the avalanche rows, all the way down. Every test passed.
+
+It was found by dumping the walkthrough and reading it. That is now three lessons in
+a row — Caesar's wrap beat lighting the wrong letter (ADR-046), Fibonacci's six
+identical opening screens (ADR-045), XOR's relabelled final frame (ADR-047) — and
+the general lesson keeps being true: **a walkthrough dump is a test the test suite
+cannot write.**
+
+The fix is that a frame is captioned by `frame.state.question`, never by what it just
+answered, and a new test asserts each property beat's scene actually contains that
+property's evidence.
+
+### The two caveats are recap bullets
+
+*Hashing is not encryption*, and *SHA-256 alone is not how passwords are stored* —
+last, where a bullet is read rather than skipped, and repeated on the Complete
+screen. That is ADR-047's placement for the XOR security caveat, for the same
+reason. The password bullet names Argon2, bcrypt and scrypt rather than leaving the
+learner with a correction and no alternative.
+
+The one-way copy says **"designed to be computationally infeasible to reverse from
+the hash alone"** and never "impossible". The difference is why salting and rainbow
+tables exist, and a lesson that overstated it would be teaching a beginner a
+sentence they would later have to unlearn.
+
+**Alternatives considered.**
+- *Force it into `CipherScene` or `BitwiseScene`.* Rejected above — both assert a
+  positional relationship between input and output, which is the one thing false.
+- *Keep the category called Encryption.* Rejected: it files the lesson under the word
+  the lesson exists to correct, in a badge, on Home.
+- *Visualise the 64 compression rounds.* Rejected by the brief and on its merits.
+- *Fake a few representative rounds.* Rejected harder: inventing steps of a real
+  algorithm is worse than showing none.
+- *Hand-write SHA-256 in the engine.* Rejected — a second cryptographic
+  implementation to review, for no teaching gain.
+- *Hardcode the digests.* Rejected: it is a second source of truth for the one value
+  the lesson is about, and it goes stale silently.
+- *Free-form text input for a "Hash It" demo.* Deferred: the mechanical hashing beats
+  already hash real strings and show real digests, and a text field adds an input
+  surface, a keyboard and validation for one beat (brief §9 permits predefined
+  messages).
+- *Put the lesson before Caesar and XOR.* Rejected: "there is no way back" only reads
+  as a distinction once the learner has watched two messages be turned back.
+- *Ask the learner to compute a digest.* Rejected by the brief, and rightly — it is
+  the gesture-teaching trap over arithmetic nobody can check by hand.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

@@ -2597,6 +2597,221 @@ object Narration {
                 "XOR is a building block of real cryptography, but a XOR cipher with " +
                     "a short or reused key is not secure on its own. This is a " +
                     "demonstration of the operation, not a way to protect anything."
+
+            // ── SHA-256 Hashing ───────────────────────────────────────────
+            // **This lesson is about a hash function, and the copy never calls it
+            // encryption.** The words "encrypt", "decrypt", "cipher" and "key"
+            // appear here only where the point is that none of them applies — a
+            // learner who leaves thinking SHA-256 encrypts has been taught
+            // something false about a real algorithm, which is worse than being
+            // taught nothing.
+            //
+            // Two other wordings are deliberate and should not be "tidied":
+            //  - never "impossible to reverse". The true claim is *computationally
+            //    infeasible from the hash alone*, and the difference is the whole
+            //    of why rainbow tables and salting exist;
+            //  - never "SHA-256 is how passwords are stored". It is fast by
+            //    design, which is exactly wrong for a password, and the recap
+            //    names the algorithms that are built for the job.
+            NarrationId.SHA_HASHED -> "“${arg(0)}” → ${arg(1)}…"
+
+            // -- Fixed length --------------------------------------------------
+            NarrationId.SHA_ASK_FIXED_LENGTH -> "Which statement is correct?"
+            NarrationId.SHA_OPTION_FIXED -> "FIXED"
+            NarrationId.SHA_OPTION_VARIES -> "VARIES"
+            NarrationId.SHA_HINT_FIXED_LENGTH ->
+                "Count the characters in each hash above. Then count them again on " +
+                    "the next row."
+            NarrationId.SHA_RETRY_LOOK_FIXED_LENGTH ->
+                "Look at the rows again — the messages are different lengths."
+            NarrationId.SHA_RETRY_ASK_FIXED_LENGTH ->
+                "One message is much longer than the other. Are their hashes " +
+                    "different lengths too?"
+            NarrationId.SHA_RETRY_EXPLAIN_FIXED_LENGTH ->
+                "Every hash on screen is 64 characters, however long its message " +
+                    "was. SHA-256 always produces a fixed-length output."
+            NarrationId.SHA_WHY_NOT_VARIES ->
+                "Not quite. SHA-256 always produces a 256-bit output — the rows " +
+                    "above have very different messages and hashes of exactly the " +
+                    "same length."
+            NarrationId.SHA_CORRECT_FIXED_LENGTH ->
+                "Correct. SHA-256 always produces a 256-bit hash, whatever goes in."
+
+            // -- Determinism ---------------------------------------------------
+            NarrationId.SHA_ASK_DETERMINISTIC -> "Which statement is correct?"
+            NarrationId.SHA_OPTION_SAME -> "SAME"
+            NarrationId.SHA_OPTION_RANDOM -> "RANDOM"
+            NarrationId.SHA_HINT_DETERMINISTIC ->
+                "The same message was hashed twice, as two separate runs. Compare " +
+                    "the two hashes."
+            NarrationId.SHA_RETRY_LOOK_DETERMINISTIC ->
+                "Look at the two rows again — they are the same message."
+            NarrationId.SHA_RETRY_ASK_DETERMINISTIC ->
+                "The same message went through twice. Did anything about the hash " +
+                    "change?"
+            NarrationId.SHA_RETRY_EXPLAIN_DETERMINISTIC ->
+                "The two hashes are identical, character for character. The same " +
+                    "input always produces the same SHA-256 hash."
+            NarrationId.SHA_WHY_NOT_RANDOM ->
+                "Not quite. Nothing about SHA-256 is random — the two rows above " +
+                    "are the same message hashed twice, and the hashes match " +
+                    "exactly. A hash that changed each time could never verify " +
+                    "anything."
+            NarrationId.SHA_CORRECT_DETERMINISTIC ->
+                "Correct. The same input always produces the same SHA-256 hash."
+
+            // -- The avalanche effect ------------------------------------------
+            NarrationId.SHA_ASK_AVALANCHE ->
+                "One character changed. What happens to the hash?"
+            NarrationId.SHA_OPTION_UNCHANGED -> "SAME"
+            NarrationId.SHA_OPTION_DIFFERENT -> "DIFFERENT"
+            NarrationId.SHA_HINT_AVALANCHE ->
+                "The two messages differ by one character. The changed parts of the " +
+                    "hash are marked."
+            NarrationId.SHA_RETRY_LOOK_AVALANCHE ->
+                "Look at the two hashes again — the marked characters are the ones " +
+                    "that changed."
+            NarrationId.SHA_RETRY_ASK_AVALANCHE ->
+                "Only one character of the message changed. Does the second hash " +
+                    "still look anything like the first?"
+            NarrationId.SHA_RETRY_EXPLAIN_AVALANCHE ->
+                "Almost every character of the hash is different, from a single " +
+                    "changed letter. That is the avalanche effect."
+            NarrationId.SHA_WHY_NOT_UNCHANGED ->
+                "Not quite. A one-character change rewrites almost the whole hash — " +
+                    "that is what makes a hash useful for spotting that a file was " +
+                    "altered."
+            NarrationId.SHA_CORRECT_AVALANCHE ->
+                "Correct. A tiny change to the input produces a completely " +
+                    "different hash."
+
+            // -- One-way -------------------------------------------------------
+            NarrationId.SHA_ASK_ONE_WAY ->
+                "Can a SHA-256 hash normally be turned back into its input?"
+            NarrationId.SHA_OPTION_YES_KEY -> "YES"
+            NarrationId.SHA_OPTION_NO_ONE_WAY -> "NO"
+            NarrationId.SHA_HINT_ONE_WAY ->
+                "Look at the pipeline. There is no key going in, and no arrow " +
+                    "coming back."
+            NarrationId.SHA_RETRY_LOOK_ONE_WAY ->
+                "Look at the pipeline again — every arrow points one way."
+            NarrationId.SHA_RETRY_ASK_ONE_WAY ->
+                "A cipher needs a key to undo it. Where would SHA-256's key go?"
+            NarrationId.SHA_RETRY_EXPLAIN_ONE_WAY ->
+                "Hashing is not encryption. There is no key and no decrypt step, " +
+                    "and 64 characters could not hold a message of any length " +
+                    "anyway — so the input cannot normally be recovered."
+            NarrationId.SHA_WHY_NOT_DECRYPTABLE ->
+                "Not quite — that is encryption, not hashing. SHA-256 has no key " +
+                    "and no reverse operation: it is designed to be computationally " +
+                    "infeasible to reverse from the hash alone."
+            NarrationId.SHA_CORRECT_ONE_WAY ->
+                "Correct. Hashing is designed as a one-way operation — there is no " +
+                    "key and nothing to decrypt."
+
+            // -- Output size ---------------------------------------------------
+            NarrationId.SHA_ASK_OUTPUT_SIZE -> "What does SHA-256 produce?"
+            NarrationId.SHA_OPTION_ENCRYPTED_MESSAGE -> "A MESSAGE"
+            NarrationId.SHA_OPTION_256_BIT_HASH -> "256 BITS"
+            NarrationId.SHA_HINT_OUTPUT_SIZE ->
+                "The name says the size. Read the last two stages of the pipeline."
+            NarrationId.SHA_RETRY_LOOK_OUTPUT_SIZE ->
+                "Look at the end of the pipeline again."
+            NarrationId.SHA_RETRY_ASK_OUTPUT_SIZE ->
+                "Is the output a message you could read back, or a fixed-size " +
+                    "fingerprint?"
+            NarrationId.SHA_RETRY_EXPLAIN_OUTPUT_SIZE ->
+                "SHA-256 produces a 256-bit hash — 32 bytes, written as 64 " +
+                    "hexadecimal characters. It is a fingerprint, not a message."
+            NarrationId.SHA_WHY_NOT_ENCRYPTED_MESSAGE ->
+                "Not quite. SHA-256 does not encrypt anything, and its output is " +
+                    "never variable-length: it is always a 256-bit hash."
+            NarrationId.SHA_CORRECT_OUTPUT_SIZE ->
+                "Correct. SHA-256 produces a 256-bit hash — always 64 hexadecimal " +
+                    "characters."
+
+            // -- What WATCH says as each property lands ------------------------
+            NarrationId.SHA_SETTLED_FIXED_LENGTH ->
+                "Different messages. The same output length."
+            NarrationId.SHA_SETTLED_DETERMINISTIC ->
+                "The same input always produces the same hash."
+            NarrationId.SHA_SETTLED_AVALANCHE ->
+                "Change one character, and almost all of the hash changes."
+            NarrationId.SHA_SETTLED_ONE_WAY ->
+                "A hash does not go back."
+            NarrationId.SHA_SETTLED_OUTPUT_SIZE ->
+                "Where hashes are actually used."
+
+            // -- WATCH ---------------------------------------------------------
+            NarrationId.SHA_WATCH_SETUP ->
+                "A hash function turns data into a fixed-size value."
+            NarrationId.SHA_WATCH_SETUP_SUPPORT ->
+                "Anything can go in — a word, a sentence, a whole file. What comes " +
+                    "out is always the same size."
+            NarrationId.SHA_WATCH_SIZES -> "SHA-256 is one such function."
+            NarrationId.SHA_WATCH_SIZES_SUPPORT ->
+                "Its output is always ${arg(0)} bits — ${arg(1)} bytes, written as " +
+                    "${arg(2)} hexadecimal characters. Those are three ways of " +
+                    "saying one size."
+            NarrationId.SHA_WATCH_FIRST -> "Hashing “${arg(0)}”."
+            NarrationId.SHA_WATCH_FIRST_SUPPORT ->
+                "${arg(0)} — ${arg(1)} characters, and the same every time you hash " +
+                    "that word."
+            // Also the hand-over from hashing to comparing, so it says every
+            // message went through the same pipeline before reading the lengths.
+            NarrationId.SHA_WATCH_FIXED_LENGTH_SUPPORT ->
+                "All ${arg(0)} messages went through the same pipeline. ${arg(1)} " +
+                    "characters in, ${arg(2)} characters in — and ${arg(3)} " +
+                    "hexadecimal characters out, every time."
+            NarrationId.SHA_WATCH_DETERMINISTIC_SUPPORT ->
+                "“${arg(0)}” went through twice, as two separate runs, and " +
+                    "came out identical. That is what makes a hash worth comparing " +
+                    "against."
+            NarrationId.SHA_WATCH_AVALANCHE_SUPPORT ->
+                "“${arg(0)}” and “${arg(1)}” differ by one " +
+                    "character, and ${arg(2)} of the ${arg(3)} hash characters " +
+                    "changed with it."
+            NarrationId.SHA_WATCH_ONE_WAY_SUPPORT ->
+                "There is no key and no decrypt step. SHA-256 is designed to be " +
+                    "computationally infeasible to reverse from the hash alone."
+            NarrationId.SHA_WATCH_USES_SUPPORT ->
+                "Checking a download arrived intact, spotting that a file changed, " +
+                    "and as one part of digital signatures."
+
+            NarrationId.SHA_WATCH_INSIGHT ->
+                "Any input, any length — always ${arg(0)} bits, and never back again."
+            NarrationId.SHA_WATCH_INSIGHT_SUPPORT ->
+                "That one-way arrow is the difference between hashing and " +
+                    "encryption. A cipher is meant to be undone; a hash is not."
+            NarrationId.SHA_WATCH_SUMMARY ->
+                "Input → fixed-size fingerprint."
+            NarrationId.SHA_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.SHA_IDEA_1 ->
+                "Hashing turns any input into a fixed-size value — SHA-256 always " +
+                    "gives ${arg(0)} bits, written as ${arg(1)} hexadecimal " +
+                    "characters."
+            NarrationId.SHA_IDEA_2 ->
+                "The same input always gives the same hash, and different inputs " +
+                    "normally give different ones."
+            NarrationId.SHA_IDEA_3 ->
+                "Change one character and almost the whole hash changes."
+            NarrationId.SHA_IDEA_4 ->
+                "One pass over the message, so O(n) in its length at a high level. " +
+                    "Inside, it is padded into 512-bit blocks and each block runs 64 " +
+                    "compression rounds — real work this lesson deliberately does " +
+                    "not draw."
+            // The two a learner must not leave without, last, where a recap bullet
+            // is read rather than skipped.
+            NarrationId.SHA_IDEA_5 ->
+                "Hashing is not encryption. There is no key and no decrypt step, and " +
+                    "SHA-256 is designed to be computationally infeasible to reverse " +
+                    "from the hash alone."
+            NarrationId.SHA_IDEA_6 ->
+                "SHA-256 on its own is not how passwords should be stored — it is " +
+                    "built to be fast, which is the wrong property for a password. " +
+                    "Password systems use algorithms made for the job, such as " +
+                    "Argon2, bcrypt or scrypt."
         }
     }
 }

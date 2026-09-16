@@ -652,7 +652,7 @@ different set of live ends (ADR-027).
 `Scene` is a sealed union of **shapes**, and the app dispatches on the shape — never on which
 algorithm produced it. Nine lessons are sequences and share one renderer — the eight array and
 structure lessons, plus Fibonacci's one-dimensional DP table (ADR-045); a hash map, the two
-ciphers and the rest are not sequences and have their own (ADR-030).
+ciphers, the SHA-256 pipeline and the rest are not sequences and have their own (ADR-030).
 
 ```kotlin
 sealed interface Scene
@@ -670,6 +670,9 @@ data class CipherScene(...) : Scene     // two aligned messages and the 26-lette
                                         // mapping between them (Caesar; ADR-046)
 data class BitwiseScene(...) : Scene    // three rows sharing one set of columns,
                                         // and a truth table (XOR; ADR-047)
+data class HashScene(...) : Scene       // a labelled pipeline, a fixed-size
+                                        // digest, and messages compared against
+                                        // each other (SHA-256; ADR-048)
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
@@ -698,6 +701,18 @@ share columns; `PrefixScene` shares them offset by one. `DpTableScene` is the ne
 its two axes are two *quantities* and a cell is a point in that space, while these rows are
 three different things that line up, and it carries item cards and a bag meter a bitwise lesson
 would null out. Again no event, no interaction model, no cell state (ADR-047).
+
+The ninth, `HashScene`, is the one where the *absence* of a relationship is the data. A hash
+takes an input of any size to a fixed-size output with **no positional correspondence between
+them at all**, and that is precisely what SHA-256's lesson teaches — so the two shapes that
+would otherwise fit are disqualified rather than merely imperfect: `CipherScene` aligns its two
+messages position by position, because Caesar letter 3 became ciphertext letter 3, and
+`BitwiseScene` shares one set of columns across its rows. Either would draw the one thing that
+is false. What it holds instead is a labelled pipeline, a digest as *text* rather than as cells,
+and rows compared against each other — because comparison is the only way *fixed length*,
+*determinism* and *the avalanche* can be shown at all, each being a relationship between two
+rows. No event, no interaction model, no cell state; five `when` sites gained a branch and the
+compiler found all five (ADR-048).
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers

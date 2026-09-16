@@ -4,6 +4,7 @@ import com.algorithms.algoking.billing.AccessDecision
 import com.algorithms.algoking.billing.ProAccess
 import com.algorithms.algoking.billing.ProEntitlement
 import com.algorithms.algoking.engine.core.AlgorithmId
+import com.algorithms.algoking.ui.screens.algorithmCategories
 import com.algorithms.algoking.ui.screens.algorithmLibrary
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,9 +45,9 @@ class ProAccessTest {
     }
 
     @Test
-    fun `every other lesson is free, including the newest sort`() {
+    fun `every other lesson is free, including the newest ones`() {
         val free = algorithmLibrary.filterNot { ProAccess.requiresPro(it.category) }
-        assertEquals(13, free.size)
+        assertEquals(14, free.size)
         // Counting Sort ships free and must stay that way.
         assertTrue(free.any { it.id == AlgorithmId.COUNTING_SORT })
         assertTrue(free.any { it.id == AlgorithmId.BINARY_SEARCH })
@@ -57,9 +58,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 25 lessons, and the partition is total: a lesson that fell out of both
+        // 26 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(25, algorithmLibrary.size)
+        assertEquals(26, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -109,7 +110,7 @@ class ProAccessTest {
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
         // The rule applied to the real catalogue rather than to a string: all twelve
-        // are locked, and none of the thirteen free ones is.
+        // are locked, and none of the fourteen free ones is.
         for (entry in algorithmLibrary) {
             val decision = ProAccess.decide(entry.category, ProEntitlement.Free)
             val expected = if (entry.title in expectedPro) {
@@ -169,6 +170,7 @@ class ProAccessTest {
                 "Hash Map",
                 "Caesar Cipher",
                 "XOR Cipher",
+                "SHA-256 Hashing",
             ).sorted(),
             free.sorted(),
         )
@@ -185,9 +187,9 @@ class ProAccessTest {
     fun `XOR Cipher is free, and opens for anyone`() {
         val xor = algorithmLibrary.single { it.id == AlgorithmId.XOR_CIPHER }
 
-        // Filed under Encryption, which is not the Pro category — and that is the
-        // whole of the registration (ADR-032, ADR-041).
-        assertEquals("Encryption", xor.category)
+        // Filed under Cryptography, which is not the Pro category — and that is
+        // the whole of the registration (ADR-032, ADR-041).
+        assertEquals("Cryptography", xor.category)
         assertFalse(ProAccess.requiresPro(xor.category))
 
         for (entitlement in listOf(
@@ -210,7 +212,7 @@ class ProAccessTest {
         // Filed under its own category, which is not the Pro one — and that is the
         // whole of it. Access derives from the category, so a lesson outside the
         // Advanced shelf is free with nothing saying so (ADR-032, ADR-041).
-        assertEquals("Encryption", caesar.category)
+        assertEquals("Cryptography", caesar.category)
         assertFalse(ProAccess.requiresPro(caesar.category))
 
         // No entitlement, an unknown one, or Pro — the lesson opens either way, and
@@ -229,12 +231,52 @@ class ProAccessTest {
     }
 
     @Test
-    fun `the Encryption category exists and holds only free lessons`() {
+    fun `the Cryptography category exists and holds only free lessons`() {
         // A chip that filters to an empty list is a dead end, and one that filters
         // to a locked list would be a shelf the learner cannot open.
-        val encryption = algorithmLibrary.filter { it.category == "Encryption" }
-        assertEquals(2, encryption.size)
-        assertTrue(encryption.none { ProAccess.requiresPro(it.category) })
+        val cryptography = algorithmLibrary.filter { it.category == "Cryptography" }
+        assertEquals(3, cryptography.size)
+        assertTrue(cryptography.none { ProAccess.requiresPro(it.category) })
+        // The shelf is named for what it holds: two ciphers and one hash function.
+        // "Encryption" would file SHA-256 under the exact word its lesson exists to
+        // correct, on the Home screen, before the learner opens anything (ADR-048).
+        assertTrue(algorithmLibrary.none { it.category == "Encryption" })
+        assertTrue("Cryptography" in algorithmCategories)
+        assertTrue("Encryption" !in algorithmCategories)
+    }
+
+    @Test
+    fun `SHA-256 Hashing is free, and opens for anyone`() {
+        val sha = algorithmLibrary.single { it.id == AlgorithmId.SHA_256 }
+
+        // Filed under Cryptography, which is not the Pro category — and that is the
+        // whole of the registration. No flag, no billing change, no exclusion list
+        // (ADR-032, ADR-041, ADR-048).
+        assertEquals("Cryptography", sha.category)
+        assertFalse(ProAccess.requiresPro(sha.category))
+
+        for (entitlement in listOf(
+            ProEntitlement.Unknown,
+            ProEntitlement.Free,
+            ProEntitlement.Pro,
+        )) {
+            assertEquals(
+                "SHA-256 Hashing with $entitlement",
+                AccessDecision.OpenLesson,
+                ProAccess.decide(sha.category, entitlement),
+            )
+        }
+    }
+
+    @Test
+    fun `adding SHA-256 moved nothing else`() {
+        // The regression claim, as a test: the twelve Pro lessons are still exactly
+        // the twelve, and every lesson that was free before is still free.
+        assertEquals(
+            expectedPro,
+            algorithmLibrary.filter { ProAccess.requiresPro(it.category) }.map { it.title },
+        )
+        assertFalse(AlgorithmId.SHA_256.name in expectedPro)
     }
 
     @Test

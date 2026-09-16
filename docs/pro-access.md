@@ -1,6 +1,6 @@
 # AlgoKing Pro — access, paywall and billing
 
-**Status:** UI and **Play Billing both connected** · 2026-09-10 (shelf updated 2026-09-15) · the product is not yet configured in Play Console
+**Status:** UI and **Play Billing both connected** · 2026-09-10 (shelf updated 2026-09-16) · the product is not yet configured in Play Console
 **Decision:** ADR-041 · **Spec:** `PRODUCT_SPEC.md` §1, amended
 
 ---
@@ -9,7 +9,7 @@
 
 | | Lessons | |
 |---|---|---|
-| **Free — 13** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map · **Caesar Cipher** · **XOR Cipher** | complete: both stages, the full guidance ladder, progress |
+| **Free — 14** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map · **Caesar Cipher** · **XOR Cipher** · **SHA-256 Hashing** | complete: both stages, the full guidance ladder, progress |
 | **Pro — 12** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder · **Fibonacci** · 0/1 Knapsack | the Advanced shelf |
 
 **Free means complete, not crippled.** Pro adds lessons; it never removes anything
@@ -149,19 +149,24 @@ No identifiers, no user properties, no free text.
 
 ## Tests
 
-29 JVM unit tests in `:app`, no device needed:
+32 JVM unit tests in `:app`, no device needed:
 
 - **`ProAccessTest`** — exactly twelve Pro lessons and they are the Advanced shelf, by
-  name and without duplicates · eleven free, Counting Sort among them · the
-  partition is total over all 25 · free opens for any entitlement · Pro opens only
+  name and without duplicates · fourteen free, Counting Sort among them · the
+  partition is total over all 26 · free opens for any entitlement · Pro opens only
   for a verified one · `Unknown` is not entitled · the rule applied to every real
   catalogue entry, locked and unlocked.
-- **Caesar Cipher access** — it is filed under Encryption, so it opens for every
-  entitlement and the paywall is never reached · the Encryption category contains
+- **Caesar Cipher access** — it is filed under Cryptography, so it opens for every
+  entitlement and the paywall is never reached · the Cryptography category contains
   no locked lesson.
-  **XOR Cipher** is the second lesson on that shelf and resolves the same way;
-  a test pins the category at exactly two, both free (ADR-047). The first time the category rule was exercised in the *free*
-  direction, and it cost nothing (ADR-046).
+  **XOR Cipher** is the second lesson on that shelf and **SHA-256 Hashing** the
+  third, both resolving the same way;
+  a test pins the category at exactly three, all free, and that no entry is filed
+  under the old "Encryption" name (ADR-047, ADR-048). This was the first place the
+  category rule was exercised in the *free* direction, and it has now cost nothing
+  three times over (ADR-046).
+- **SHA-256 access** — free, and a companion test asserts the twelve Pro lessons are
+  still exactly the twelve after it was added (ADR-048).
 - **Fibonacci access** — it is Advanced, so a free learner and an `Unknown`
   entitlement both resolve to the existing paywall and a subscriber opens the
   lesson · and a companion test asserts **every other lesson stayed exactly where
@@ -187,7 +192,7 @@ device, and the real Play Billing flow, which needs Play test tracks.
    whether a subscription is active. The listing still needs a URL.
 4. **Terms of service.** The paywall links Privacy, which exists; there is no Terms
    page, and a subscription needs one.
-5. **Decide what happens to existing progress on the ten Advanced lessons.** Installs
+5. **Decide what happens to existing progress on the twelve Advanced lessons.** Installs
    in the wild have completed some of them. This change locks them — the progress is
    kept and still shows on the card, but the lesson no longer opens. Grandfathering
    is a product decision and has not been made.
