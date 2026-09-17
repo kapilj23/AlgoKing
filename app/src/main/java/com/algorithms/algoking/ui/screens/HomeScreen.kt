@@ -130,9 +130,10 @@ fun HomeScreen(
                         glyph = entry.glyph,
                         status = statusFor(progress[entry.id]),
                         selected = entry.id == inProgress?.id,
-                        // Derived from the category, never stored per entry —
-                        // there is one definition of what Pro covers (ADR-041).
-                        pro = ProAccess.requiresPro(entry.category),
+                        // Derived from what the lesson is, never stored per entry —
+                        // there is one definition of what Pro covers (ADR-041,
+                        // ADR-049), and the card reads it rather than repeating it.
+                        pro = ProAccess.requiresPro(entry.category, entry.id),
                         modifier = gutter,
                         onClick = { onOpenAlgorithm(entry) },
                     )

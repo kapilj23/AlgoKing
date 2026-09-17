@@ -347,6 +347,23 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "signatures — but on its own it is not how passwords should be stored, because " +
             "it is built to be fast. Password systems use Argon2, bcrypt or scrypt."
 
+    // The two caveats are repeated here, where a learner reads them at the end of
+    // the run rather than skipping past them mid-lesson — ADR-047's placement for
+    // XOR's security note and ADR-048's for SHA-256's.
+    AlgorithmId.AES ->
+        "AES is a symmetric block cipher: one key encrypts and decrypts, and it always " +
+            "works on a 128-bit block — 16 bytes, held as a 4 × 4 State and filled column " +
+            "by column. Key Expansion derives one round key per round from the original " +
+            "key, plus one for the AddRoundKey that happens before the rounds start. Every " +
+            "round is SubBytes → ShiftRows → MixColumns → AddRoundKey, and the final round " +
+            "leaves MixColumns out. AES-128 runs 10 rounds, AES-192 twelve and AES-256 " +
+            "fourteen; decryption is the inverse steps in reverse with the same key. A " +
+            "block cipher on its own is not a way to encrypt a message — that needs a mode " +
+            "of operation, and a real system wants an authenticated one such as AES-GCM, " +
+            "not ECB. And AES is not \"unbreakable\": what is true is that no practical " +
+            "attack is known that beats trying every key, and that safety in practice comes " +
+            "just as much from key management and the protocol around it."
+
     AlgorithmId.CAESAR_CIPHER ->
         "Every letter moves the same number of places, and the alphabet is a ring — which " +
             "is all `mod 26` means. Decrypting is the same walk backwards. One pass over " +

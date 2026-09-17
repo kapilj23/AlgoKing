@@ -4,6 +4,7 @@ import com.algorithms.algoking.billing.AccessDecision
 import com.algorithms.algoking.billing.ProAccess
 import com.algorithms.algoking.billing.ProEntitlement
 import com.algorithms.algoking.engine.core.AlgorithmId
+import com.algorithms.algoking.ui.screens.AlgorithmEntry
 import com.algorithms.algoking.ui.screens.algorithmCategories
 import com.algorithms.algoking.ui.screens.algorithmLibrary
 import org.junit.Assert.assertEquals
@@ -19,7 +20,7 @@ import org.junit.Test
  */
 class ProAccessTest {
 
-    /** The twelve the paywall sells, by name, in library order. */
+    /** The thirteen the paywall sells, by name, in library order. */
     private val expectedPro = listOf(
         "Two Pointers",
         "Prefix Sum",
@@ -33,36 +34,99 @@ class ProAccessTest {
         "Binary Tree — Postorder",
         "Fibonacci",
         "0/1 Knapsack",
+        // Pro without being on the Advanced shelf — the first lesson for which
+        // those two are not the same thing (ADR-049).
+        "AES",
     )
 
+    /** Every lesson that is free, by name. */
+    private val expectedFree = listOf(
+        "Binary Search",
+        "Bubble Sort",
+        "Selection Sort",
+        "Insertion Sort",
+        "Merge Sort",
+        "Quick Sort",
+        "Counting Sort",
+        "Stack",
+        "Queue",
+        "Linked List",
+        "Hash Map",
+        "Caesar Cipher",
+        "XOR Cipher",
+        "SHA-256 Hashing",
+    )
+
+    private fun AlgorithmEntry.locked(entitlement: ProEntitlement) =
+        ProAccess.decide(category, id, entitlement)
+
+    private fun proTitles() = algorithmLibrary
+        .filter { ProAccess.requiresPro(it.category, it.id) }
+        .map { it.title }
+
+    private fun freeTitles() = algorithmLibrary
+        .filterNot { ProAccess.requiresPro(it.category, it.id) }
+        .map { it.title }
+
     @Test
-    fun `exactly twelve lessons are Pro, and they are the Advanced shelf`() {
-        val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category) }
-        assertEquals(12, pro.size)
+    fun `exactly thirteen lessons are Pro`() {
+        val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category, it.id) }
+        assertEquals(13, pro.size)
         assertEquals(expectedPro, pro.map { it.title })
         // No duplicates — the paywall's list is what the learner is buying.
         assertEquals(pro.size, pro.map { it.id }.toSet().size)
     }
 
+    /**
+     * Rule 1 is unchanged: the Advanced shelf is wholly Pro.
+     *
+     * The failure this guards is the one ADR-032 named — an Advanced lesson that
+     * is accidentally free. Adding rule 2 could not introduce it, and this says so.
+     */
+    @Test
+    fun `every Advanced lesson is Pro, and no free lesson is Advanced`() {
+        val advanced = algorithmLibrary.filter { it.category == ProAccess.PRO_CATEGORY }
+        assertEquals(12, advanced.size)
+        assertTrue(advanced.all { ProAccess.requiresPro(it.category, it.id) })
+        assertTrue(
+            algorithmLibrary
+                .filterNot { ProAccess.requiresPro(it.category, it.id) }
+                .none { it.category == ProAccess.PRO_CATEGORY },
+        )
+    }
+
+    /** Rule 2 is deliberately small, and every id in it is a real lesson. */
+    @Test
+    fun `the named Pro lessons are real, and there is only one`() {
+        assertEquals(setOf(AlgorithmId.AES), ProAccess.PRO_LESSONS)
+        ProAccess.PRO_LESSONS.forEach { id ->
+            assertTrue("$id is in the library", algorithmLibrary.any { it.id == id })
+            // A lesson named here must not also be on the Advanced shelf, or the
+            // two rules would be saying the same thing in two places.
+            assertTrue(
+                "$id is named because its category does not make it Pro",
+                algorithmLibrary.single { it.id == id }.category != ProAccess.PRO_CATEGORY,
+            )
+        }
+    }
+
     @Test
     fun `every other lesson is free, including the newest ones`() {
-        val free = algorithmLibrary.filterNot { ProAccess.requiresPro(it.category) }
+        val free = algorithmLibrary.filterNot { ProAccess.requiresPro(it.category, it.id) }
         assertEquals(14, free.size)
         // Counting Sort ships free and must stay that way.
         assertTrue(free.any { it.id == AlgorithmId.COUNTING_SORT })
         assertTrue(free.any { it.id == AlgorithmId.BINARY_SEARCH })
         assertTrue(free.any { it.id == AlgorithmId.HASH_MAP })
-        // ...and no free lesson is filed under the Pro category by accident.
-        assertTrue(free.none { it.category == ProAccess.PRO_CATEGORY })
     }
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 26 lessons, and the partition is total: a lesson that fell out of both
+        // 27 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(26, algorithmLibrary.size)
-        val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category) }
-        val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category) }
+        assertEquals(27, algorithmLibrary.size)
+        val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category, it.id) }
+        val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category, it.id) }
         assertEquals(algorithmLibrary.size, pro + free)
     }
 
@@ -76,7 +140,7 @@ class ProAccessTest {
             assertEquals(
                 "free lesson with $entitlement",
                 AccessDecision.OpenLesson,
-                ProAccess.decide("Sorting", entitlement),
+                ProAccess.decide("Sorting", AlgorithmId.BUBBLE_SORT, entitlement),
             )
         }
     }
@@ -85,11 +149,11 @@ class ProAccessTest {
     fun `a Pro lesson opens only for a verified entitlement`() {
         assertEquals(
             AccessDecision.OpenLesson,
-            ProAccess.decide(ProAccess.PRO_CATEGORY, ProEntitlement.Pro),
+            ProAccess.decide(ProAccess.PRO_CATEGORY, AlgorithmId.FIBONACCI, ProEntitlement.Pro),
         )
         assertEquals(
             AccessDecision.ShowPaywall,
-            ProAccess.decide(ProAccess.PRO_CATEGORY, ProEntitlement.Free),
+            ProAccess.decide(ProAccess.PRO_CATEGORY, AlgorithmId.FIBONACCI, ProEntitlement.Free),
         )
     }
 
@@ -100,7 +164,11 @@ class ProAccessTest {
         // who does not own it is giving it away.
         assertEquals(
             AccessDecision.ShowPaywall,
-            ProAccess.decide(ProAccess.PRO_CATEGORY, ProEntitlement.Unknown),
+            ProAccess.decide(
+                ProAccess.PRO_CATEGORY,
+                AlgorithmId.FIBONACCI,
+                ProEntitlement.Unknown,
+            ),
         )
         assertFalse(ProEntitlement.Unknown.isPro)
         assertFalse(ProEntitlement.Free.isPro)
@@ -109,16 +177,15 @@ class ProAccessTest {
 
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
-        // The rule applied to the real catalogue rather than to a string: all twelve
-        // are locked, and none of the fourteen free ones is.
+        // The rule applied to the real catalogue rather than to a string: all
+        // thirteen are locked, and none of the fourteen free ones is.
         for (entry in algorithmLibrary) {
-            val decision = ProAccess.decide(entry.category, ProEntitlement.Free)
             val expected = if (entry.title in expectedPro) {
                 AccessDecision.ShowPaywall
             } else {
                 AccessDecision.OpenLesson
             }
-            assertEquals(entry.title, expected, decision)
+            assertEquals(entry.title, expected, entry.locked(ProEntitlement.Free))
         }
     }
 
@@ -129,68 +196,91 @@ class ProAccessTest {
         // Filed under Advanced, which is the whole of the registration: no flag,
         // no billing change, no second taxonomy (ADR-032, ADR-041).
         assertEquals(ProAccess.PRO_CATEGORY, fibonacci.category)
-        assertTrue(ProAccess.requiresPro(fibonacci.category))
+        assertTrue(ProAccess.requiresPro(fibonacci.category, fibonacci.id))
 
         // A free learner is sent to the existing paywall...
-        assertEquals(
-            AccessDecision.ShowPaywall,
-            ProAccess.decide(fibonacci.category, ProEntitlement.Free),
-        )
+        assertEquals(AccessDecision.ShowPaywall, fibonacci.locked(ProEntitlement.Free))
         // ...as is one whose entitlement has not come back from the store yet.
-        assertEquals(
-            AccessDecision.ShowPaywall,
-            ProAccess.decide(fibonacci.category, ProEntitlement.Unknown),
-        )
+        assertEquals(AccessDecision.ShowPaywall, fibonacci.locked(ProEntitlement.Unknown))
         // ...and a subscriber goes straight into the lesson.
-        assertEquals(
-            AccessDecision.OpenLesson,
-            ProAccess.decide(fibonacci.category, ProEntitlement.Pro),
-        )
+        assertEquals(AccessDecision.OpenLesson, fibonacci.locked(ProEntitlement.Pro))
+    }
+
+    // ── AES ──────────────────────────────────────────────────────────────────
+
+    /**
+     * AES is Pro, and it is Pro for a reason the category cannot express.
+     *
+     * Every other paid lesson is paid because of its shelf. This one is on the
+     * Cryptography shelf — where a block cipher belongs, beside the two ciphers and
+     * the hash it builds on — and is named in `ProAccess.PRO_LESSONS` instead
+     * (ADR-049). Both halves are asserted here, because getting either wrong is how
+     * a paid lesson ships free.
+     */
+    @Test
+    fun `AES is registered as PRO, on the Cryptography shelf`() {
+        val aes = algorithmLibrary.single { it.id == AlgorithmId.AES }
+
+        assertEquals("AES", aes.title)
+        assertEquals("Cryptography", aes.category)
+        // Not filed on the Pro shelf...
+        assertFalse(aes.category == ProAccess.PRO_CATEGORY)
+        // ...and Pro all the same.
+        assertTrue(ProAccess.requiresPro(aes.category, aes.id))
+        assertTrue(AlgorithmId.AES in ProAccess.PRO_LESSONS)
     }
 
     @Test
-    fun `every free and Pro lesson is where it should be`() {
-        // The safety claim, as a test: every free lesson is still free and every
-        // Pro lesson is still Pro, whatever was added last.
-        val free = algorithmLibrary
-            .filterNot { ProAccess.requiresPro(it.category) }
-            .map { it.title }
-        assertEquals(
-            listOf(
-                "Binary Search",
-                "Bubble Sort",
-                "Selection Sort",
-                "Insertion Sort",
-                "Merge Sort",
-                "Quick Sort",
-                "Counting Sort",
-                "Stack",
-                "Queue",
-                "Linked List",
-                "Hash Map",
-                "Caesar Cipher",
-                "XOR Cipher",
-                "SHA-256 Hashing",
-            ).sorted(),
-            free.sorted(),
-        )
-        assertEquals(
-            expectedPro.sorted(),
-            algorithmLibrary
-                .filter { ProAccess.requiresPro(it.category) }
-                .map { it.title }
-                .sorted(),
-        )
+    fun `a free learner tapping AES gets the paywall, and cannot bypass it`() {
+        val aes = algorithmLibrary.single { it.id == AlgorithmId.AES }
+
+        // The two states a learner who has not paid can be in, and both are refused.
+        assertEquals(AccessDecision.ShowPaywall, aes.locked(ProEntitlement.Free))
+        assertEquals(AccessDecision.ShowPaywall, aes.locked(ProEntitlement.Unknown))
+
+        // There is no other answer. `decide` is total over the entitlements, so
+        // "not entitled" cannot resolve to anything but the paywall — and the only
+        // way into the lesson is the branch that returns OpenLesson.
+        listOf(ProEntitlement.Free, ProEntitlement.Unknown).forEach { entitlement ->
+            assertFalse(
+                "AES must never open for $entitlement",
+                aes.locked(entitlement) == AccessDecision.OpenLesson,
+            )
+        }
     }
+
+    @Test
+    fun `a Pro learner tapping AES opens the lesson directly`() {
+        val aes = algorithmLibrary.single { it.id == AlgorithmId.AES }
+        assertEquals(AccessDecision.OpenLesson, aes.locked(ProEntitlement.Pro))
+    }
+
+    /**
+     * The regression claim, as a test.
+     *
+     * Adding AES changed the signature of the access rule, so this asserts the
+     * thing that actually matters: every lesson that was free before is still free,
+     * and every lesson that was Pro before is still Pro.
+     */
+    @Test
+    fun `adding AES moved nothing else`() {
+        assertEquals(expectedFree.sorted(), freeTitles().sorted())
+        assertEquals(expectedPro.sorted(), proTitles().sorted())
+
+        // The twelve that were Pro before AES are still exactly those twelve.
+        assertEquals(expectedPro - "AES", proTitles() - "AES")
+    }
+
+    // ── The Cryptography shelf ───────────────────────────────────────────────
 
     @Test
     fun `XOR Cipher is free, and opens for anyone`() {
         val xor = algorithmLibrary.single { it.id == AlgorithmId.XOR_CIPHER }
 
-        // Filed under Cryptography, which is not the Pro category — and that is
-        // the whole of the registration (ADR-032, ADR-041).
+        // Filed under Cryptography, which is not the Pro category, and not named as
+        // a Pro lesson — and that is the whole of the registration.
         assertEquals("Cryptography", xor.category)
-        assertFalse(ProAccess.requiresPro(xor.category))
+        assertFalse(ProAccess.requiresPro(xor.category, xor.id))
 
         for (entitlement in listOf(
             ProEntitlement.Unknown,
@@ -200,7 +290,7 @@ class ProAccessTest {
             assertEquals(
                 "XOR Cipher with $entitlement",
                 AccessDecision.OpenLesson,
-                ProAccess.decide(xor.category, entitlement),
+                xor.locked(entitlement),
             )
         }
     }
@@ -209,14 +299,9 @@ class ProAccessTest {
     fun `Caesar Cipher is free, and opens for anyone`() {
         val caesar = algorithmLibrary.single { it.id == AlgorithmId.CAESAR_CIPHER }
 
-        // Filed under its own category, which is not the Pro one — and that is the
-        // whole of it. Access derives from the category, so a lesson outside the
-        // Advanced shelf is free with nothing saying so (ADR-032, ADR-041).
         assertEquals("Cryptography", caesar.category)
-        assertFalse(ProAccess.requiresPro(caesar.category))
+        assertFalse(ProAccess.requiresPro(caesar.category, caesar.id))
 
-        // No entitlement, an unknown one, or Pro — the lesson opens either way, and
-        // the paywall is never reached.
         for (entitlement in listOf(
             ProEntitlement.Unknown,
             ProEntitlement.Free,
@@ -225,35 +310,17 @@ class ProAccessTest {
             assertEquals(
                 "Caesar Cipher with $entitlement",
                 AccessDecision.OpenLesson,
-                ProAccess.decide(caesar.category, entitlement),
+                caesar.locked(entitlement),
             )
         }
-    }
-
-    @Test
-    fun `the Cryptography category exists and holds only free lessons`() {
-        // A chip that filters to an empty list is a dead end, and one that filters
-        // to a locked list would be a shelf the learner cannot open.
-        val cryptography = algorithmLibrary.filter { it.category == "Cryptography" }
-        assertEquals(3, cryptography.size)
-        assertTrue(cryptography.none { ProAccess.requiresPro(it.category) })
-        // The shelf is named for what it holds: two ciphers and one hash function.
-        // "Encryption" would file SHA-256 under the exact word its lesson exists to
-        // correct, on the Home screen, before the learner opens anything (ADR-048).
-        assertTrue(algorithmLibrary.none { it.category == "Encryption" })
-        assertTrue("Cryptography" in algorithmCategories)
-        assertTrue("Encryption" !in algorithmCategories)
     }
 
     @Test
     fun `SHA-256 Hashing is free, and opens for anyone`() {
         val sha = algorithmLibrary.single { it.id == AlgorithmId.SHA_256 }
 
-        // Filed under Cryptography, which is not the Pro category — and that is the
-        // whole of the registration. No flag, no billing change, no exclusion list
-        // (ADR-032, ADR-041, ADR-048).
         assertEquals("Cryptography", sha.category)
-        assertFalse(ProAccess.requiresPro(sha.category))
+        assertFalse(ProAccess.requiresPro(sha.category, sha.id))
 
         for (entitlement in listOf(
             ProEntitlement.Unknown,
@@ -263,20 +330,41 @@ class ProAccessTest {
             assertEquals(
                 "SHA-256 Hashing with $entitlement",
                 AccessDecision.OpenLesson,
-                ProAccess.decide(sha.category, entitlement),
+                sha.locked(entitlement),
             )
         }
     }
 
+    /**
+     * The shelf now holds four lessons: three free and one Pro.
+     *
+     * It used to hold only free ones, and that was worth asserting while it was
+     * true. What replaces it is the thing that is true now and still worth
+     * protecting: **the three free ciphers are still free**, and exactly one lesson
+     * on this shelf is not (ADR-049).
+     */
     @Test
-    fun `adding SHA-256 moved nothing else`() {
-        // The regression claim, as a test: the twelve Pro lessons are still exactly
-        // the twelve, and every lesson that was free before is still free.
+    fun `the Cryptography shelf holds three free lessons and one Pro one`() {
+        val cryptography = algorithmLibrary.filter { it.category == "Cryptography" }
+        assertEquals(4, cryptography.size)
+
+        val locked = cryptography.filter { ProAccess.requiresPro(it.category, it.id) }
+        assertEquals(listOf("AES"), locked.map { it.title })
+
         assertEquals(
-            expectedPro,
-            algorithmLibrary.filter { ProAccess.requiresPro(it.category) }.map { it.title },
+            listOf("Caesar Cipher", "SHA-256 Hashing", "XOR Cipher"),
+            cryptography
+                .filterNot { ProAccess.requiresPro(it.category, it.id) }
+                .map { it.title }
+                .sorted(),
         )
-        assertFalse(AlgorithmId.SHA_256.name in expectedPro)
+
+        // The shelf is named for what it holds: ciphers and one hash function.
+        // "Encryption" would file SHA-256 under the exact word its lesson exists to
+        // correct, on the Home screen, before the learner opens anything (ADR-048).
+        assertTrue(algorithmLibrary.none { it.category == "Encryption" })
+        assertTrue("Cryptography" in algorithmCategories)
+        assertTrue("Encryption" !in algorithmCategories)
     }
 
     @Test
@@ -285,7 +373,7 @@ class ProAccessTest {
             assertEquals(
                 entry.title,
                 AccessDecision.OpenLesson,
-                ProAccess.decide(entry.category, ProEntitlement.Pro),
+                entry.locked(ProEntitlement.Pro),
             )
         }
     }

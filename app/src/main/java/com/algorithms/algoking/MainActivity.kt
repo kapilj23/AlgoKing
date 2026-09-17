@@ -179,7 +179,7 @@ private fun AlgoKingApp() {
                 // **The one access check in the app.** Free lessons and paid-for
                 // lessons open; a locked one opens the paywall instead, and the
                 // rule lives in `ProAccess` rather than in this screen (ADR-041).
-                route = when (ProAccess.decide(entry.category, entitlement)) {
+                route = when (ProAccess.decide(entry.category, entry.id, entitlement)) {
                     AccessDecision.OpenLesson ->
                         // Resume where the learner actually left off. A finished
                         // algorithm reopens at Watch, because re-reading is what
@@ -402,9 +402,15 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // and that difference only reads as a difference once the learner has watched
     // the other two do it (ADR-048).
     AlgorithmId.XOR_CIPHER -> AlgorithmId.SHA_256
+    // The shelf ends on the cipher a real system would actually use. AES comes
+    // last of the four because it is the payoff: two hand-run ciphers and a hash
+    // are what make "four steps, ten times over" read as a technique rather than
+    // as a wall of names (ADR-049). It is also the only one of the four that is
+    // Pro, so a free learner meets the paywall having just finished SHA-256.
+    AlgorithmId.SHA_256 -> AlgorithmId.AES
     // ...and then to the Advanced shelf, which is where the library stops teaching
     // named routines and starts teaching techniques.
-    AlgorithmId.SHA_256 -> AlgorithmId.TWO_POINTERS
+    AlgorithmId.AES -> AlgorithmId.TWO_POINTERS
     AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
     AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
     // BFS immediately after DFS, so the contrast lands while DFS is still fresh —

@@ -166,6 +166,14 @@ object ChallengeCatalog {
         // would be a different kind of assessment, not a seeded variant of this
         // one — which is a design decision rather than a missing constraint.
         AlgorithmId.SHA_256 -> null
+        // Not authored, for the reason SHA-256's is not: the judgements are about
+        // what AES *is* — a block size, the shape of a round, what the last one
+        // leaves out — rather than about a step to execute, and nobody runs a
+        // MixColumns by hand. A seeded variant would be a different block through
+        // the same fixed cipher, which changes the bytes on screen and not one of
+        // the questions. If a V2 challenge exists here it is a different kind of
+        // assessment, not a generated version of this lesson.
+        AlgorithmId.AES -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

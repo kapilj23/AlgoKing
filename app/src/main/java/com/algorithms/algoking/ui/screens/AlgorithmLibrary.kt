@@ -275,6 +275,23 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Green,
         glyph = AlgoIcons.TileBars,
     ),
+    // Last on the shelf, and the only lesson on it that is Pro (ADR-049). It comes
+    // after all three on purpose: Caesar and XOR each hide a message with one
+    // operation the learner performs by hand, SHA-256 refuses to give one back, and
+    // AES is what a real system actually uses — which only reads as the payoff once
+    // the three simpler ideas are in place.
+    //
+    // Its category is "Cryptography" because that is what it *is*; being Pro is
+    // decided in `ProAccess`, not by a flag here and not by filing it on a shelf
+    // that would put the wrong word on its card (ADR-032, ADR-041).
+    AlgorithmEntry(
+        id = AlgorithmId.AES,
+        title = "AES",
+        description = "Four steps a round, ten rounds — and the last one is different.",
+        category = "Cryptography",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
 )
 
 /**

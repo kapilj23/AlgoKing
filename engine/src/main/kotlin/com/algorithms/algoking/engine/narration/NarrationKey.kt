@@ -1519,4 +1519,132 @@ enum class NarrationId {
     SHA_IDEA_4,
     SHA_IDEA_5,
     SHA_IDEA_6,
+
+    // ── AES ───────────────────────────────────────────────────────────────────
+    // The fourth Cryptography lesson, and the first block cipher. Two wordings
+    // here are load-bearing and should not be "tidied":
+    //  - never "unbreakable". What is true is that no practical attack is known
+    //    that beats trying every key, which is a different and checkable claim;
+    //  - never a recommendation to encrypt a message by encrypting its blocks. A
+    //    block cipher needs a mode of operation, the recap names AES-GCM, and ECB
+    //    appears only as the thing not to reach for.
+
+    // Two labels that carry their own text, so a number or a transformation name
+    // does not need an enum entry of its own.
+    AES_OPTION_NUMBER,
+    AES_OPTION_TRANSFORMATION,
+    AES_OPTION_KEY_EXPANSION,
+    AES_OPTION_SBOX,
+
+    // -- What the app says as each step of the real run lands ------------------
+    AES_STEP_PLAINTEXT,
+    AES_STEP_BLOCK,
+    AES_STEP_STATE,
+    AES_STEP_KEY_EXPANSION,
+    AES_STEP_INITIAL_ADD_ROUND_KEY,
+    AES_STEP_TRANSFORM,
+    AES_STEP_CIPHERTEXT,
+    AES_STEP_VARIANTS,
+    AES_STEP_DECRYPTION,
+
+    // -- Exercise 1 · the block size -------------------------------------------
+    AES_ASK_BLOCK_SIZE,
+    AES_HINT_BLOCK_SIZE,
+    AES_RETRY_LOOK_BLOCK_SIZE,
+    AES_RETRY_ASK_BLOCK_SIZE,
+    AES_RETRY_EXPLAIN_BLOCK_SIZE,
+    AES_WHY_BLOCK_TOO_SMALL,
+    AES_WHY_BLOCK_IS_KEY_SIZE,
+    AES_CORRECT_BLOCK_SIZE,
+
+    // -- Exercise 2 · the State ------------------------------------------------
+    AES_ASK_STATE_SIZE,
+    AES_HINT_STATE_SIZE,
+    AES_RETRY_LOOK_STATE_SIZE,
+    AES_RETRY_ASK_STATE_SIZE,
+    AES_RETRY_EXPLAIN_STATE_SIZE,
+    AES_WHY_STATE_ONE_ROW,
+    AES_WHY_STATE_HALF_BLOCK,
+    AES_WHY_STATE_IS_KEY_SIZE,
+    AES_CORRECT_STATE_SIZE,
+
+    // -- Exercise 3 · the order of a normal round ------------------------------
+    AES_ASK_NEXT_TRANSFORMATION,
+    AES_HINT_NEXT_TRANSFORMATION,
+    AES_RETRY_LOOK_NEXT_TRANSFORMATION,
+    AES_RETRY_ASK_NEXT_TRANSFORMATION,
+    AES_RETRY_EXPLAIN_NEXT_TRANSFORMATION,
+    AES_WHY_TRANSFORMATION_ALREADY_DONE,
+    AES_WHY_TRANSFORMATION_LATER,
+    AES_CORRECT_SUB_BYTES,
+    AES_CORRECT_SHIFT_ROWS,
+    AES_CORRECT_MIX_COLUMNS,
+    AES_CORRECT_ADD_ROUND_KEY,
+
+    // -- Exercise 4 · what the final round leaves out --------------------------
+    AES_ASK_SKIPPED,
+    AES_HINT_SKIPPED,
+    AES_RETRY_LOOK_SKIPPED,
+    AES_RETRY_ASK_SKIPPED,
+    AES_RETRY_EXPLAIN_SKIPPED,
+    AES_WHY_NOT_SKIPPED,
+    AES_CORRECT_SKIPPED,
+
+    // -- Exercise 5 · rounds per variant ---------------------------------------
+    AES_ASK_ROUND_COUNT,
+    AES_HINT_ROUND_COUNT,
+    AES_RETRY_LOOK_ROUND_COUNT,
+    AES_RETRY_ASK_ROUND_COUNT,
+    AES_RETRY_EXPLAIN_ROUND_COUNT,
+    AES_WHY_ROUND_COUNT,
+    AES_CORRECT_ROUND_COUNT,
+
+    // -- Exercise 6 · where the round keys come from ---------------------------
+    AES_ASK_KEY_EXPANSION,
+    AES_HINT_KEY_EXPANSION,
+    AES_RETRY_LOOK_KEY_EXPANSION,
+    AES_RETRY_ASK_KEY_EXPANSION,
+    AES_RETRY_EXPLAIN_KEY_EXPANSION,
+    AES_WHY_NOT_SBOX,
+    AES_CORRECT_KEY_EXPANSION,
+
+    // -- WATCH -----------------------------------------------------------------
+    AES_WATCH_SETUP,
+    AES_WATCH_SETUP_SUPPORT,
+    AES_WATCH_PLAINTEXT,
+    AES_WATCH_PLAINTEXT_SUPPORT,
+    AES_WATCH_BLOCK,
+    AES_WATCH_BLOCK_SUPPORT,
+    AES_WATCH_STATE,
+    AES_WATCH_STATE_SUPPORT,
+    AES_WATCH_KEY_EXPANSION,
+    AES_WATCH_KEY_EXPANSION_SUPPORT,
+    AES_WATCH_INITIAL_ADD_ROUND_KEY,
+    AES_WATCH_INITIAL_ADD_ROUND_KEY_SUPPORT,
+    AES_WATCH_TRANSFORM,
+    AES_WATCH_FINAL_TRANSFORM,
+    AES_WATCH_SUB_BYTES_SUPPORT,
+    AES_WATCH_SHIFT_ROWS_SUPPORT,
+    AES_WATCH_MIX_COLUMNS_SUPPORT,
+    AES_WATCH_ADD_ROUND_KEY_SUPPORT,
+    AES_WATCH_FINAL_ROUND_OMITS,
+    AES_WATCH_MIDDLE_ROUNDS,
+    AES_WATCH_MIDDLE_ROUNDS_SUPPORT,
+    AES_WATCH_CIPHERTEXT,
+    AES_WATCH_CIPHERTEXT_SUPPORT,
+    AES_WATCH_VARIANTS,
+    AES_WATCH_VARIANTS_SUPPORT,
+    AES_WATCH_DECRYPTION,
+    AES_WATCH_DECRYPTION_SUPPORT,
+    AES_WATCH_INSIGHT,
+    AES_WATCH_INSIGHT_SUPPORT,
+    AES_WATCH_SUMMARY,
+    AES_WATCH_SUMMARY_SUPPORT,
+    AES_IDEA_1,
+    AES_IDEA_2,
+    AES_IDEA_3,
+    AES_IDEA_4,
+    AES_IDEA_5,
+    AES_IDEA_6,
+    AES_IDEA_7,
 }

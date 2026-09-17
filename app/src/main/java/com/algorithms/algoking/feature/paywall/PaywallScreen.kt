@@ -24,8 +24,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.algorithms.algoking.billing.BillingState
 import com.algorithms.algoking.billing.BillingUnavailable
+import com.algorithms.algoking.billing.ProAccess
 import com.algorithms.algoking.billing.ProProduct
 import com.algorithms.algoking.billing.PurchaseOutcome
+import com.algorithms.algoking.ui.screens.algorithmLibrary
 import com.algorithms.algoking.ui.components.AlgoCard
 import com.algorithms.algoking.ui.components.AlgoHeader
 import com.algorithms.algoking.ui.components.AlgoIcon
@@ -197,7 +199,7 @@ private fun Hero(triggeringAlgorithm: String?) {
             ProBadge()
             Gap(Spacing.xs)
             Text(
-                text = "It is one of the twelve advanced lessons in AlgoKing Pro.",
+                text = "It is one of the $proLessonCount lessons in AlgoKing Pro.",
                 style = AlgoType.bodyLarge,
                 color = AlgoColors.textSecondary,
                 textAlign = TextAlign.Center,
@@ -222,6 +224,18 @@ private fun Hero(triggeringAlgorithm: String?) {
 }
 
 /** What Pro includes. Four lines, each one a thing the app actually does. */
+/**
+ * How many lessons Pro actually covers — **counted, never written down**.
+ *
+ * The copy said "eleven" while the shelf held twelve, which is what a hardcoded
+ * number does eventually. Reading it from the library and the one access rule means
+ * the paywall cannot claim a size the app does not have, and a lesson added
+ * tomorrow updates this sentence by existing (ADR-045's rule for Fibonacci's call
+ * counts, applied to a price page).
+ */
+private val proLessonCount: Int
+    get() = algorithmLibrary.count { ProAccess.requiresPro(it.category, it.id) }
+
 @Composable
 private fun Includes() {
     AlgoCard(Modifier.fillMaxWidth()) {
@@ -233,9 +247,9 @@ private fun Includes() {
             )
             Gap(Spacing.sm)
             listOf(
-                "11 advanced algorithms",
+                "$proLessonCount Pro lessons",
                 "Interactive WATCH and TRY for every one",
-                "Graph and tree algorithms",
+                "Graph, tree, dynamic-programming and cipher algorithms",
                 "Learn by driving the algorithm, not memorising it",
                 "No ads, anywhere in the app",
                 "Your progress, kept on your device",

@@ -1,7 +1,8 @@
 # AlgoKing Pro — access, paywall and billing
 
-**Status:** UI and **Play Billing both connected** · 2026-09-10 (shelf updated 2026-09-16) · the product is not yet configured in Play Console
-**Decision:** ADR-041 · **Spec:** `PRODUCT_SPEC.md` §1, amended
+**Status:** UI and **Play Billing both connected** · 2026-09-10 (shelf updated 2026-09-17) · the product is not yet configured in Play Console
+**Decisions:** ADR-041 (the shelf) · ADR-049 (a lesson that is Pro without being on it)
+**Spec:** `PRODUCT_SPEC.md` §1, amended
 
 ---
 
@@ -10,7 +11,8 @@
 | | Lessons | |
 |---|---|---|
 | **Free — 14** | Binary Search · Bubble · Selection · Insertion · Merge · Quick · **Counting** · Stack · Queue · Linked List · Hash Map · **Caesar Cipher** · **XOR Cipher** · **SHA-256 Hashing** | complete: both stages, the full guidance ladder, progress |
-| **Pro — 12** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder · **Fibonacci** · 0/1 Knapsack | the Advanced shelf |
+| **Pro — 13** | Two Pointers · Prefix Sum · Graph DFS · Graph BFS · Dijkstra · Binary Search Tree · AVL Tree · Binary Tree Inorder · Preorder · Postorder · **Fibonacci** · 0/1 Knapsack | the Advanced shelf |
+| | **AES** | Pro, and **not** Advanced — see below |
 
 **Free means complete, not crippled.** Pro adds lessons; it never removes anything
 from a free one, never gates progress already earned, and never interrupts a free
@@ -27,10 +29,41 @@ pro, and entitled     -> open the lesson
 pro, and not entitled -> show the paywall
 ```
 
-**Access derives from the lesson's category**, never from a flag on the entry.
-ADR-032 settled that Advanced is a category rather than a second taxonomy, and a
-price flag beside it would be exactly that: two things to keep in step. A lesson
-filed under Advanced is protected the day it is added.
+**Access derives from what the lesson is**, never from a flag on the entry. ADR-032
+settled that Advanced is a category rather than a second taxonomy, and a price flag
+beside it would be exactly that: two things to keep in step. A lesson filed under
+Advanced is protected the day it is added.
+
+### The one lesson that is Pro without being Advanced
+
+`PRO_CATEGORY` covers twelve lessons. **AES is the thirteenth, and it is on the
+Cryptography shelf** — it is a block cipher, and filing it under "Advanced" would
+print the wrong word on its card, which is the objection ADR-048 raised when a hash
+function was about to be filed under "Encryption".
+
+So `ProAccess` reads two rules in one breath (ADR-049):
+
+```kotlin
+const val PRO_CATEGORY = "Advanced"
+val PRO_LESSONS = setOf(AlgorithmId.AES)
+
+fun requiresPro(category: String, id: AlgorithmId): Boolean =
+    category == PRO_CATEGORY || id in PRO_LESSONS
+```
+
+This is **not** the `isPro` flag ADR-032 refused, and the difference is where it
+lives: that was a second place access is decided, sitting on every entry and drifting
+out of step with the category. This is a set of ids *inside the one object that
+answers the question*, read by the one function every caller already goes through.
+
+Three things keep it that way:
+
+- **both arguments are required**, so a caller that knows only the category cannot
+  answer wrongly by accident — a compile error, not a silent `false`;
+- **rule 1 is untouched**, so an Advanced lesson that is accidentally free remains
+  impossible, and a test asserts the whole shelf is still Pro;
+- **the set is meant to stay tiny.** A long list means the categories have stopped
+  describing the library, and the fix then is the categories.
 
 `ProEntitlement.Unknown` is not entitled, deliberately. Friction for someone who
 owns Pro is corrected by the next purchase-state read; opening a paid lesson for
@@ -149,24 +182,29 @@ No identifiers, no user properties, no free text.
 
 ## Tests
 
-32 JVM unit tests in `:app`, no device needed:
+57 JVM unit tests in `:app`, no device needed:
 
-- **`ProAccessTest`** — exactly twelve Pro lessons and they are the Advanced shelf, by
-  name and without duplicates · fourteen free, Counting Sort among them · the
-  partition is total over all 26 · free opens for any entitlement · Pro opens only
-  for a verified one · `Unknown` is not entitled · the rule applied to every real
-  catalogue entry, locked and unlocked.
+- **`ProAccessTest`** — exactly thirteen Pro lessons, by name and without duplicates ·
+  the whole Advanced shelf is Pro and no free lesson is Advanced · `PRO_LESSONS` names
+  only real lessons, and none of them is also Advanced · fourteen free, Counting Sort
+  among them · the partition is total over all 27 · free opens for any entitlement ·
+  Pro opens only for a verified one · `Unknown` is not entitled · the rule applied to
+  every real catalogue entry, locked and unlocked.
+- **AES access** — registered Pro, on the Cryptography shelf and **not** the Advanced
+  one · a free learner and an `Unknown` entitlement both get the paywall, and neither
+  can resolve to `OpenLesson` · a subscriber opens the lesson · and a companion test
+  asserts **every other lesson stayed exactly where it was**, free and Pro alike
+  (ADR-049).
 - **Caesar Cipher access** — it is filed under Cryptography, so it opens for every
-  entitlement and the paywall is never reached · the Cryptography category contains
-  no locked lesson.
-  **XOR Cipher** is the second lesson on that shelf and **SHA-256 Hashing** the
-  third, both resolving the same way;
-  a test pins the category at exactly three, all free, and that no entry is filed
-  under the old "Encryption" name (ADR-047, ADR-048). This was the first place the
-  category rule was exercised in the *free* direction, and it has now cost nothing
-  three times over (ADR-046).
-- **SHA-256 access** — free, and a companion test asserts the twelve Pro lessons are
-  still exactly the twelve after it was added (ADR-048).
+  entitlement and the paywall is never reached. **XOR Cipher** is the second lesson on
+  that shelf and **SHA-256 Hashing** the third, both resolving the same way.
+  A test pins the shelf at **four lessons — the three ciphers and hash free, AES
+  locked** — and that no entry is filed under the old "Encryption" name (ADR-047,
+  ADR-048, ADR-049). It used to assert the shelf held *only* free lessons, which was
+  worth saying while it was true; what replaces it is the thing that is true now and
+  still worth protecting: the three free ones are still free, and exactly one is not.
+- **SHA-256 access** — free, and a companion test asserts the Pro lessons are
+  unchanged after it was added (ADR-048).
 - **Fibonacci access** — it is Advanced, so a free learner and an `Unknown`
   entitlement both resolve to the existing paywall and a subscriber opens the
   lesson · and a companion test asserts **every other lesson stayed exactly where
@@ -192,7 +230,7 @@ device, and the real Play Billing flow, which needs Play test tracks.
    whether a subscription is active. The listing still needs a URL.
 4. **Terms of service.** The paywall links Privacy, which exists; there is no Terms
    page, and a subscription needs one.
-5. **Decide what happens to existing progress on the twelve Advanced lessons.** Installs
+5. **Decide what happens to existing progress on the thirteen Pro lessons.** Installs
    in the wild have completed some of them. This change locks them — the progress is
    kept and still shows on the card, but the lesson no longer opens. Grandfathering
    is a product decision and has not been made.

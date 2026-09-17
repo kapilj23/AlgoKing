@@ -125,6 +125,14 @@ object Dimens {
     /** The gutter that names each row of the Stack-vs-Queue table. */
     val compareLabelWidth = 64.dp
 
+    /**
+     * The gutter that names each round key in the AES key schedule — `K0`, `K1`.
+     *
+     * Narrow on purpose: the label is two or three characters and the hex beside it
+     * is what needs the width.
+     */
+    val roundKeyLabelWidth = 28.dp
+
     val legendSwatch = 14.dp
     val legendGap = Spacing.sm
 

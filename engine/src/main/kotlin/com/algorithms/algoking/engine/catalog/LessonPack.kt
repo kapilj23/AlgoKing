@@ -1,5 +1,9 @@
 package com.algorithms.algoking.engine.catalog
 
+import com.algorithms.algoking.engine.algorithms.aes.AesEncryptionAlgorithm
+import com.algorithms.algoking.engine.algorithms.aes.AesProjector
+import com.algorithms.algoking.engine.algorithms.aes.AesWatchNarrator
+import com.algorithms.algoking.engine.dataset.AesDatasets
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchProjector
 import com.algorithms.algoking.engine.algorithms.binarysearch.BinarySearchWatchNarrator
@@ -375,6 +379,27 @@ object AlgorithmCatalog {
         tryDataset = Sha256Datasets.tryIt,
     )
 
+    /**
+     * The fourth Cryptography lesson, and the first block cipher in the library.
+     *
+     * Caesar and XOR each hide a message with one operation the learner performs
+     * themselves; SHA-256 refuses to give one back. AES is what real systems
+     * actually use, and the thing worth taking away is the *shape* of it: one
+     * 128-bit block, a 4 × 4 State, and a round that is always the same four
+     * transformations — except the last, which leaves MixColumns out.
+     *
+     * It is the one lesson on this shelf that is Pro (ADR-049).
+     */
+    fun aes() = LessonPack(
+        id = AlgorithmId.AES,
+        displayName = "AES",
+        algorithm = AesEncryptionAlgorithm(),
+        projector = AesProjector(),
+        watchNarrator = AesWatchNarrator(),
+        watchDataset = AesDatasets.watch,
+        tryDataset = AesDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -500,6 +525,7 @@ object AlgorithmCatalog {
         AlgorithmId.XOR_CIPHER -> xorCipher()
         AlgorithmId.CAESAR_CIPHER -> caesarCipher()
         AlgorithmId.SHA_256 -> sha256()
+        AlgorithmId.AES -> aes()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

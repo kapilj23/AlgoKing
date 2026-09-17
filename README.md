@@ -27,7 +27,7 @@ existed to leave behind. No stars — Try is never scored.
 
 ---
 
-## The twenty-six lessons
+## The twenty-seven lessons
 
 | | Lessons | The learner decides |
 |---|---|---|
@@ -39,6 +39,7 @@ existed to leave behind. No stars — Try is never scored.
 | Cryptography | **Caesar Cipher** | what each letter becomes — and the alphabet wraps round at Z |
 | Cryptography | **XOR Cipher** | what each pair of bits makes — and the same key undoes it |
 | Cryptography | **SHA-256 Hashing** | which statement about a hash is true — with the real digests on screen to read it off |
+| Cryptography | **AES** *(Pro)* | what a round is made of — and which step the last round leaves out |
 | **Advanced** | **Two Pointers** | which pointer can still improve the sum |
 | **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 | **Advanced** | **Graph DFS** | which node DFS moves to next — deeper, or back |
@@ -83,11 +84,11 @@ Everything else falls out of it:
   caller *could* apply. The rule is structural, not a convention each new algorithm must
   remember.
 - **The renderer cannot name an algorithm.** It receives a `Scene` and branches only on the
-  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, a DP table, or a hash pipeline). Twenty-six lessons, one
+  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, a DP table, a hash pipeline, or a cipher State). Twenty-seven lessons, one
   renderer entry point, zero `when (algorithm)` in `:app`.
 - **Adding a lesson adds a `LessonPack`** — an algorithm, a projector, a narrator and two
   authored datasets. Never a screen, never a renderer.
-- **13 events cover all twenty-six lessons.** None was added after the first — Two Pointers,
+- **13 events cover all twenty-seven lessons.** None was added after the first — Two Pointers,
   written long after the event model was fixed, needed none (ADR-032), and the Binary Search
   Tree added no renderer either: a tree is a graph, so it draws itself with the one the
   graph lessons already use (ADR-036).
@@ -96,7 +97,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 849 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 920 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -108,7 +109,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 849 unit tests, no device needed
+./gradlew :engine:test        # 920 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -138,14 +139,19 @@ inherits — and the Advanced lessons
 dynamic-programming lessons [`fibonacci-dp.md`](docs/fibonacci-dp.md) and
 [`zero-one-knapsack.md`](docs/zero-one-knapsack.md), and the Cryptography lessons
 [`caesar-cipher.md`](docs/caesar-cipher.md), [`xor-cipher.md`](docs/xor-cipher.md) and
-[`sha256-hashing.md`](docs/sha256-hashing.md).
+[`sha256-hashing.md`](docs/sha256-hashing.md) and [`aes.md`](docs/aes.md).
 
 ## Access
 
 Fourteen lessons are free and complete — both stages, the full guidance ladder, progress.
-The twelve **Advanced** lessons are **AlgoKing Pro**, a Play subscription: tapping one opens a
-paywall rather than the lesson. Pro adds lessons and never takes anything away from a free
-one.
+Thirteen are **AlgoKing Pro**, a Play subscription: tapping one opens a paywall rather than
+the lesson. Pro adds lessons and never takes anything away from a free one.
+
+Twelve of those thirteen are the **Advanced** shelf, and access derives from that category
+rather than from a flag — so a lesson filed there is protected the day it is added. **AES is
+the exception and the first one**: it is a block cipher, so it belongs on the Cryptography
+shelf beside the two ciphers and the hash it builds on, and it is named in `ProAccess` instead.
+One object still answers the whole question (ADR-049).
 
 **Ads are one interstitial**, shown to a free learner after they finish a lesson's TRY run,
 and nowhere else — no banner, no rewarded ad, nothing during a lesson, nothing on Home.
@@ -160,8 +166,8 @@ and ADR-041.
 
 ## Status
 
-**Built:** the engine and all twenty-six lessons · Watch · Try · Complete · Home · ten renderers ·
-the full light design-system token layer · progress persistence · 849 passing engine tests.
+**Built:** the engine and all twenty-seven lessons · Watch · Try · Complete · Home · ten renderers ·
+the full light design-system token layer · progress persistence · 920 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

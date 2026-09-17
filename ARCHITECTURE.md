@@ -673,6 +673,10 @@ data class BitwiseScene(...) : Scene    // three rows sharing one set of columns
 data class HashScene(...) : Scene       // a labelled pipeline, a fixed-size
                                         // digest, and messages compared against
                                         // each other (SHA-256; ADR-048)
+data class BlockCipherScene(...) : Scene // a 4 x 4 State whose rows and columns
+                                        // are each named by a transformation that
+                                        // acts on them, the round it is in, and
+                                        // the key schedule (AES; ADR-049)
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
@@ -713,6 +717,16 @@ and rows compared against each other — because comparison is the only way *fix
 *determinism* and *the avalanche* can be shown at all, each being a relationship between two
 rows. No event, no interaction model, no cell state; five `when` sites gained a branch and the
 compiler found all five (ADR-048).
+
+The tenth, `BlockCipherScene`, is a square whose **two axes are each named by an operation that
+acts on them**: ShiftRows moves along rows, MixColumns mixes down columns. No shape before it
+has that. `DpTableScene` is the near miss and is genuinely rows × columns — but its axes are two
+*quantities* and a cell is a point in that space, while AES's axes are a byte's position in a
+block and the grid is the same sixteen bytes rearranged; it also carries item cards, a bag meter
+and a two-sided choice strip a cipher would null out. `SequenceScene`'s `GRID` layout is a
+*wrap*, with no meaning in which line a box lands on, which is exactly the thing that is false
+here. Again no event, no interaction model, no cell state — the bytes are ordinary `Cell`s
+carrying a hex label, so the `SceneCell` that draws Caesar's letters draws these too (ADR-049).
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers
@@ -1028,7 +1042,7 @@ BillingGateway  (the seam — one implementation per store)
       ↓
 SubscriptionRepository   entitlement: StateFlow<ProEntitlement>
       ↓                  billing:     StateFlow<BillingState>
-ProAccess.decide(category, entitlement) -> OpenLesson | ShowPaywall
+ProAccess.decide(category, id, entitlement) -> OpenLesson | ShowPaywall
       ↓
 MainActivity — the one call site
 ```
@@ -1042,8 +1056,12 @@ Three rules hold this together:
 2. **Nothing is persisted.** Progress is latched and additive because it is earned (ADR-028);
    an entitlement must be able to go away on a refund or an expiry, so it is read from the
    store every time and never cached to disk.
-3. **Access derives from the lesson's category**, so there is no `isPro` flag to keep in step
-   with the Advanced shelf (ADR-032).
+3. **Access derives from what the lesson is**, so there is no `isPro` flag to keep in step
+   with the Advanced shelf (ADR-032). The Advanced shelf is the Pro shelf, and a short set of
+   named lesson ids covers the case where the two come apart — AES is a block cipher, so its
+   category is Cryptography, and it is Pro all the same (ADR-049). Both rules are read by one
+   function in one object, and **both of its arguments are required**, so a caller that knows
+   only the category gets a compile error rather than a silently wrong answer.
 
 **Play Billing is connected** — `com.android.billingclient:billing:8.0.0`, implemented in
 `PlayBillingGateway`, the only file in the app that knows the library exists. It acknowledges

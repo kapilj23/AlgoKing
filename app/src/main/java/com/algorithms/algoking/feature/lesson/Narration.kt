@@ -2812,6 +2812,286 @@ object Narration {
                     "built to be fast, which is the wrong property for a password. " +
                     "Password systems use algorithms made for the job, such as " +
                     "Argon2, bcrypt or scrypt."
+
+            // ── AES ───────────────────────────────────────────────────────────
+            // **This lesson is about a block cipher, and the copy is careful in
+            // three places that should not be "tidied":
+            //
+            //  - never "unbreakable", and never "impossible to break". What is
+            //    true is that no practical attack is known that beats trying every
+            //    key, which is a claim a learner can go and check. The stronger
+            //    sentence is one they would later have to unlearn;
+            //  - never a suggestion that encrypting a message means encrypting its
+            //    blocks. A block cipher is a primitive; turning it into a way to
+            //    send a message takes a mode of operation, and the recap names
+            //    AES-GCM. ECB appears once, as the thing not to reach for;
+            //  - never "AES keeps your data safe" on its own. Key management, an
+            //    authenticated mode and a protocol around it are what do that, and
+            //    the last recap bullet says so.
+            //
+            // The learner is also never asked to perform the arithmetic. SubBytes
+            // is a table lookup, MixColumns is multiplication in GF(2^8), and
+            // PRODUCT_SPEC.md §3 gives the app the arithmetic — so the copy
+            // explains what each step *achieves* and never asks for a byte.
+
+            // -- Labels that carry their own text ------------------------------
+            NarrationId.AES_OPTION_NUMBER -> arg(0)
+            NarrationId.AES_OPTION_TRANSFORMATION -> arg(0)
+            NarrationId.AES_OPTION_KEY_EXPANSION -> "EXPANSION"
+            NarrationId.AES_OPTION_SBOX -> "S-BOX"
+
+            // -- What the app says as each step of the real run lands -----------
+            NarrationId.AES_STEP_PLAINTEXT -> "The message, before anything happens."
+            NarrationId.AES_STEP_BLOCK -> "${arg(0)} bits — ${arg(1)} bytes."
+            NarrationId.AES_STEP_STATE -> "Arranged as a ${arg(0)} × ${arg(1)} State."
+            NarrationId.AES_STEP_KEY_EXPANSION ->
+                "The ${arg(0)}-bit key becomes ${arg(1)} round keys."
+            NarrationId.AES_STEP_INITIAL_ADD_ROUND_KEY ->
+                "AddRoundKey, before the rounds begin."
+            NarrationId.AES_STEP_TRANSFORM -> "Round ${arg(0)} / ${arg(1)} · ${arg(2)}"
+            NarrationId.AES_STEP_CIPHERTEXT -> "${arg(0)} rounds done."
+            NarrationId.AES_STEP_VARIANTS -> "Three key sizes, one block size."
+            NarrationId.AES_STEP_DECRYPTION -> "And the same steps, backwards."
+
+            // -- Exercise 1 · the block size -----------------------------------
+            NarrationId.AES_ASK_BLOCK_SIZE -> "How large is an AES block, in bits?"
+            NarrationId.AES_HINT_BLOCK_SIZE ->
+                "Count the bytes in the State — there are ${arg(0)} of them, and a " +
+                    "byte is 8 bits."
+            NarrationId.AES_RETRY_LOOK_BLOCK_SIZE ->
+                "Look at the State again, and count what is in it."
+            NarrationId.AES_RETRY_ASK_BLOCK_SIZE ->
+                "${arg(0)} bytes are on screen. How many bits is that?"
+            NarrationId.AES_RETRY_EXPLAIN_BLOCK_SIZE ->
+                "${arg(0)} bytes × 8 bits = ${arg(1)}. An AES block is ${arg(1)} bits, " +
+                    "in every variant."
+            NarrationId.AES_WHY_BLOCK_TOO_SMALL ->
+                "That is DES's block size, and it is half of AES's. One of the " +
+                    "reasons AES replaced it."
+            NarrationId.AES_WHY_BLOCK_IS_KEY_SIZE ->
+                "${arg(0)} is an AES **key** size, not a block size — that is the " +
+                    "number in the name AES-${arg(0)}. The block does not change " +
+                    "between variants."
+            NarrationId.AES_CORRECT_BLOCK_SIZE ->
+                "Correct. AES always works on a ${arg(0)}-bit block — ${arg(1)} bytes, " +
+                    "whichever key size it uses."
+
+            // -- Exercise 2 · the State ----------------------------------------
+            NarrationId.AES_ASK_STATE_SIZE -> "How many bytes does the State hold?"
+            NarrationId.AES_HINT_STATE_SIZE ->
+                "It is ${arg(0)} rows by ${arg(1)} columns, and every cell is one byte."
+            NarrationId.AES_RETRY_LOOK_STATE_SIZE -> "Count the cells on screen."
+            NarrationId.AES_RETRY_ASK_STATE_SIZE ->
+                "${arg(0)} rows, ${arg(1)} columns. How many cells is that?"
+            NarrationId.AES_RETRY_EXPLAIN_STATE_SIZE ->
+                "${arg(0)} × ${arg(1)} = ${arg(2)} cells, one byte each — which is " +
+                    "the ${arg(3)}-bit block, rearranged."
+            NarrationId.AES_WHY_STATE_ONE_ROW ->
+                "That is one row, or one column. The State has ${arg(0)} of each."
+            NarrationId.AES_WHY_STATE_HALF_BLOCK ->
+                "8 bytes is 64 bits — half a block. The State holds a whole one."
+            NarrationId.AES_WHY_STATE_IS_KEY_SIZE ->
+                "32 bytes is 256 bits, which is AES-256's **key**. The State holds " +
+                    "the block, and that is 16 bytes in every variant."
+            NarrationId.AES_CORRECT_STATE_SIZE ->
+                "Correct. ${arg(0)} × ${arg(1)} = ${arg(2)} bytes — the ${arg(3)}-bit " +
+                    "block, laid out as a square."
+
+            // -- Exercise 3 · the order of a normal round ----------------------
+            NarrationId.AES_ASK_NEXT_TRANSFORMATION ->
+                "A normal round, step ${arg(0)} of ${arg(1)}. Tap what comes next."
+            NarrationId.AES_HINT_NEXT_TRANSFORMATION ->
+                "Substitute, then move, then mix, then add the key."
+            NarrationId.AES_RETRY_LOOK_NEXT_TRANSFORMATION ->
+                "Look at the round again — the steps you have placed are filled in."
+            NarrationId.AES_RETRY_ASK_NEXT_TRANSFORMATION ->
+                "Step ${arg(0)}. What has the round done so far, and what is left?"
+            NarrationId.AES_RETRY_EXPLAIN_NEXT_TRANSFORMATION ->
+                "Step ${arg(0)} of a normal round is ${arg(1)}. Tap it."
+            NarrationId.AES_WHY_TRANSFORMATION_ALREADY_DONE ->
+                "${arg(0)} has already run in this round. Each step happens once."
+            NarrationId.AES_WHY_TRANSFORMATION_LATER ->
+                "${arg(0)} is in the round, but not yet — something comes before it."
+            NarrationId.AES_CORRECT_SUB_BYTES ->
+                "Correct. SubBytes first: every byte is swapped through the S-box, " +
+                    "and nothing moves."
+            NarrationId.AES_CORRECT_SHIFT_ROWS ->
+                "Correct. ShiftRows next: row r rotates left by r, so row 0 stays " +
+                    "put and the other three slide. Values do not change — only " +
+                    "where they sit."
+            NarrationId.AES_CORRECT_MIX_COLUMNS ->
+                "Correct. MixColumns: each column is mixed into itself, so every " +
+                    "byte now depends on all four above it. That is what spreads a " +
+                    "change sideways."
+            NarrationId.AES_CORRECT_ADD_ROUND_KEY ->
+                "Correct. AddRoundKey last: the State is XORed with this round's " +
+                    "key. It is the only step the key touches — without it the " +
+                    "round would be a fixed scramble anyone could undo."
+
+            // -- Exercise 4 · what the final round leaves out -------------------
+            NarrationId.AES_ASK_SKIPPED ->
+                "Round ${arg(0)} is the last one. Tap the step it leaves out."
+            NarrationId.AES_HINT_SKIPPED ->
+                "Three of these four ran in the final round you just watched."
+            NarrationId.AES_RETRY_LOOK_SKIPPED ->
+                "Look back at round ${arg(0)} — one of these four was struck through."
+            NarrationId.AES_RETRY_ASK_SKIPPED ->
+                "Which step mixes the columns together? That is the one the last " +
+                    "round does without."
+            NarrationId.AES_RETRY_EXPLAIN_SKIPPED ->
+                "The final round is SubBytes → ShiftRows → AddRoundKey. MixColumns " +
+                    "is the one that is left out."
+            NarrationId.AES_WHY_NOT_SKIPPED ->
+                "${arg(0)} runs in every round, including the last one."
+            NarrationId.AES_CORRECT_SKIPPED ->
+                "Correct. The final round is SubBytes → ShiftRows → AddRoundKey. " +
+                    "Mixing the columns at the very end would add nothing that " +
+                    "decryption could not immediately undo, so the standard does " +
+                    "not spend it."
+
+            // -- Exercise 5 · rounds per variant -------------------------------
+            NarrationId.AES_ASK_ROUND_COUNT -> "How many rounds does ${arg(0)} run?"
+            NarrationId.AES_HINT_ROUND_COUNT ->
+                "A longer key buys more rounds, two at a time."
+            NarrationId.AES_RETRY_LOOK_ROUND_COUNT ->
+                "${arg(0)} has a ${arg(1)}-bit key. Look at the table again."
+            NarrationId.AES_RETRY_ASK_ROUND_COUNT ->
+                "The three counts go up in twos. Which one belongs to this key size?"
+            NarrationId.AES_RETRY_EXPLAIN_ROUND_COUNT ->
+                "${arg(0)} has a ${arg(1)}-bit key and runs ${arg(2)} rounds."
+            NarrationId.AES_WHY_ROUND_COUNT ->
+                "${arg(0)} rounds is ${arg(1)}'s, not ${arg(2)}'s."
+            NarrationId.AES_CORRECT_ROUND_COUNT ->
+                "Correct. ${arg(0)} runs ${arg(1)} rounds."
+
+            // -- Exercise 6 · where the round keys come from --------------------
+            NarrationId.AES_ASK_KEY_EXPANSION -> "What produces the round keys?"
+            NarrationId.AES_HINT_KEY_EXPANSION ->
+                "One key went in at the start. More than one came out."
+            NarrationId.AES_RETRY_LOOK_KEY_EXPANSION ->
+                "Look at the key panel — one key, and a list under it."
+            NarrationId.AES_RETRY_ASK_KEY_EXPANSION ->
+                "There is one key and ${arg(0)} round keys. What turned one into " +
+                    "the other?"
+            NarrationId.AES_RETRY_EXPLAIN_KEY_EXPANSION ->
+                "Key Expansion takes the ${arg(0)}-bit key and derives ${arg(1)} " +
+                    "round keys from it."
+            NarrationId.AES_WHY_NOT_SBOX ->
+                "The S-box substitutes bytes inside SubBytes. Key Expansion uses it " +
+                    "along the way, but the S-box is a lookup table — it is not " +
+                    "what produces the round keys."
+            NarrationId.AES_CORRECT_KEY_EXPANSION ->
+                "Correct. Key Expansion derives ${arg(0)} round keys from the one " +
+                    "key — one for each of the ${arg(1)} rounds, plus the one spent " +
+                    "before they start."
+
+            // -- WATCH ----------------------------------------------------------
+            NarrationId.AES_WATCH_SETUP -> "AES is a symmetric block cipher."
+            NarrationId.AES_WATCH_SETUP_SUPPORT ->
+                "Symmetric means one key both ways — the same key encrypts and " +
+                    "decrypts. Block means it works on a fixed number of bytes at a " +
+                    "time."
+            NarrationId.AES_WATCH_PLAINTEXT -> "Start with the message."
+            NarrationId.AES_WATCH_PLAINTEXT_SUPPORT ->
+                "Sixteen characters, which is exactly what AES takes at once."
+            NarrationId.AES_WATCH_BLOCK -> "One block is ${arg(0)} bits — ${arg(1)} bytes."
+            NarrationId.AES_WATCH_BLOCK_SUPPORT ->
+                "That never changes. AES-128, AES-192 and AES-256 all take the same " +
+                    "block; the number in the name is the key."
+            NarrationId.AES_WATCH_STATE -> "The bytes become a ${arg(0)} × ${arg(1)} State."
+            NarrationId.AES_WATCH_STATE_SUPPORT ->
+                "Filled column by column — byte 0 top-left, byte 1 beneath it, byte " +
+                    "4 at the top of the next column. All ${arg(0)} of them, and " +
+                    "every transformation from here works on this square."
+            NarrationId.AES_WATCH_KEY_EXPANSION -> "The key is expanded."
+            NarrationId.AES_WATCH_KEY_EXPANSION_SUPPORT ->
+                "Key Expansion turns the ${arg(0)}-bit key into ${arg(1)} round " +
+                    "keys — one for each of the ${arg(2)} rounds, plus one spent " +
+                    "before they begin."
+            NarrationId.AES_WATCH_INITIAL_ADD_ROUND_KEY ->
+                "AddRoundKey, before round 1."
+            NarrationId.AES_WATCH_INITIAL_ADD_ROUND_KEY_SUPPORT ->
+                "The State is XORed with round key 0. Without this the first " +
+                    "SubBytes would be a fixed substitution with no key in it at all."
+            NarrationId.AES_WATCH_TRANSFORM -> "Round ${arg(0)} of ${arg(1)}: ${arg(2)}."
+            NarrationId.AES_WATCH_FINAL_TRANSFORM ->
+                "The final round, ${arg(0)} of ${arg(1)}: ${arg(2)}."
+            NarrationId.AES_WATCH_SUB_BYTES_SUPPORT ->
+                "Every one of the ${arg(1)} bytes is swapped for its S-box entry. " +
+                    "All ${arg(0)} changed, and not one of them moved."
+            NarrationId.AES_WATCH_SHIFT_ROWS_SUPPORT ->
+                "Row 1 rotates one place left, row 2 two, row 3 three — and row 0 " +
+                    "stays where it is. ${arg(0)} of ${arg(1)} bytes moved, and no " +
+                    "value changed."
+            NarrationId.AES_WATCH_MIX_COLUMNS_SUPPORT ->
+                "Each column is mixed into itself, so every byte now depends on all " +
+                    "four that were above it. This is what carries a change " +
+                    "sideways; ShiftRows is what carries it between columns."
+            NarrationId.AES_WATCH_ADD_ROUND_KEY_SUPPORT ->
+                "The State is XORed with this round's key. It is the only step the " +
+                    "key touches, and it is why the round cannot be undone by " +
+                    "someone who does not have it."
+            NarrationId.AES_WATCH_FINAL_ROUND_OMITS ->
+                "And that is the round finished — with no ${arg(0)}. The last round " +
+                    "leaves it out: mixing at the very end would add nothing that " +
+                    "decryption could not immediately undo."
+            NarrationId.AES_WATCH_MIDDLE_ROUNDS ->
+                "Rounds ${arg(0)} to ${arg(1)} are the same four steps again."
+            NarrationId.AES_WATCH_MIDDLE_ROUNDS_SUPPORT ->
+                "${arg(0)} more rounds of SubBytes → ShiftRows → MixColumns → " +
+                    "AddRoundKey. Round 2 is on screen; the rest run exactly the " +
+                    "same way, each with its own round key."
+            NarrationId.AES_WATCH_CIPHERTEXT -> "${arg(0)} rounds later: the ciphertext."
+            NarrationId.AES_WATCH_CIPHERTEXT_SUPPORT ->
+                "${arg(0)} — the same ${arg(1)} bytes that went in, and nothing " +
+                    "about them left to read."
+            NarrationId.AES_WATCH_VARIANTS -> "Three variants, and one block size."
+            NarrationId.AES_WATCH_VARIANTS_SUPPORT ->
+                "The number in the name is the key size. The block is ${arg(0)} bits " +
+                    "in all three — a longer key buys more rounds, not a bigger block."
+            NarrationId.AES_WATCH_DECRYPTION -> "And it goes back."
+            NarrationId.AES_WATCH_DECRYPTION_SUPPORT ->
+                "Decryption runs the inverse transformations in reverse order, with " +
+                    "the same round keys. That is what symmetric means, and it is " +
+                    "the whole difference from a hash."
+
+            NarrationId.AES_WATCH_INSIGHT ->
+                "The same four steps, ${arg(0)} times over — and the last round " +
+                    "leaves one out."
+            NarrationId.AES_WATCH_INSIGHT_SUPPORT ->
+                "Substitute, shift, mix, add the key. Everything else about AES is " +
+                    "how many times and with which key."
+            NarrationId.AES_WATCH_SUMMARY -> "One block in, one block out."
+            NarrationId.AES_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.AES_IDEA_1 ->
+                "AES is a symmetric block cipher: one key both ways, and always a " +
+                    "${arg(0)}-bit block — ${arg(1)} bytes."
+            NarrationId.AES_IDEA_2 ->
+                "Those bytes are held as a ${arg(0)} × ${arg(1)} State, filled " +
+                    "column by column, and every transformation works on it."
+            NarrationId.AES_IDEA_3 ->
+                "Key Expansion derives one round key per round from the original " +
+                    "key, plus one for the AddRoundKey before the rounds start."
+            NarrationId.AES_IDEA_4 ->
+                "A round is SubBytes → ShiftRows → MixColumns → AddRoundKey. The " +
+                    "final round leaves MixColumns out."
+            NarrationId.AES_IDEA_5 ->
+                "AES-128 runs 10 rounds, AES-192 twelve and AES-256 fourteen. " +
+                    "Decryption is the inverse steps in reverse, with the same key."
+            // The two a learner must not leave without, last, where a recap bullet
+            // is read rather than skipped.
+            NarrationId.AES_IDEA_6 ->
+                "A block cipher on its own is not a way to encrypt a message. It " +
+                    "needs a mode of operation, and a real system wants an " +
+                    "authenticated one such as AES-GCM — not ECB, which encrypts " +
+                    "identical blocks identically and leaks the shape of the data."
+            NarrationId.AES_IDEA_7 ->
+                "AES is not \"unbreakable\", and it is not a whole security system. " +
+                    "What is true is that no practical attack is known that beats " +
+                    "trying every key — and that safety in practice comes just as " +
+                    "much from key management, a sound mode and the protocol around " +
+                    "it."
         }
     }
 }

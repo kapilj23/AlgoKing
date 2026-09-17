@@ -2872,6 +2872,176 @@ sentence they would later have to unlearn.
 
 ---
 
+## ADR-049 — AES is Pro without being Advanced, and the State is drawn for real
+
+**Decision.** AES ships as a **Pro** `LessonPack` with WATCH and TRY, filed under
+**Cryptography**. `Scene` gains a tenth shape, `BlockCipherScene`; `Dataset` gains a
+defaulted `aes`. `ProAccess` gains a second, narrow rule so that a lesson can be Pro
+without being on the Advanced shelf. Full detail: `docs/aes.md`.
+
+⚠ **Product-owner decision**, 2026-09-17: AES as a paywalled lesson on the
+Cryptography shelf, taught conceptually rather than by hand.
+
+### The category and the price came apart, and that is new
+
+Every paid lesson until now was paid **because of its shelf**. ADR-032 established
+that Advanced is a category rather than a second taxonomy, ADR-041 made that shelf
+the Pro shelf, and the rule was one line with nothing to remember.
+
+AES breaks the coincidence. It is a block cipher, so its category is Cryptography —
+filing it under "Advanced" would print the wrong word on its card, on Home, in the
+chip row and in the filter, which is precisely the objection ADR-048 raised when a
+hash function was about to be filed under "Encryption". But it is also the one lesson
+on that shelf worth paying for, and the brief asked for it to be Pro.
+
+So `requiresPro` now reads two rules in one breath:
+
+```kotlin
+fun requiresPro(category: String, id: AlgorithmId): Boolean =
+    category == PRO_CATEGORY || id in PRO_LESSONS
+```
+
+**This is not the flag ADR-032 refused**, and the difference is where it lives. That
+ADR rejected an `isPro` field on `AlgorithmEntry` — a second place access is
+decided, sitting beside the category, drifting out of step with it. `PRO_LESSONS` is
+a set of ids **inside the one object that answers the question**, read by the one
+function every caller already goes through. There is still exactly one access rule
+and exactly one call site.
+
+Three things keep it from becoming the thing it is not:
+
+1. **Both arguments are required.** A caller that knows only the category cannot
+   answer the question at all, so "forgot to pass the id" is a compile error rather
+   than a silently wrong `false`. That is the standard ADR-021 set for decision
+   validation — structural, not a convention someone has to remember.
+2. **Rule 1 is untouched**, so the failure ADR-032 actually named — an Advanced
+   lesson that is accidentally free — remains impossible. A test asserts the whole
+   Advanced shelf is still Pro.
+3. **The set is meant to stay tiny.** A long list would mean the categories had
+   stopped describing the library, and the fix then is the categories.
+
+**Nothing else in billing moved.** `SubscriptionRepository`, `PlayBillingGateway`,
+`ProEntitlement` and the paywall are untouched; `ProEntitlement.Unknown` is still not
+entitled; no boolean is persisted. What did change is that the paywall's "twelve
+advanced lessons" is now **counted from the library** — it already said "eleven"
+while the shelf held twelve, which is what a hardcoded number does eventually.
+
+**Alternatives considered.**
+- *File AES under Advanced.* Rejected above: it is the architecture's own answer and
+  it costs the card its true category. Recorded because it is the cheaper option and
+  a reasonable person would take it.
+- *An `isPro` flag on `AlgorithmEntry`.* Rejected — ADR-032's parallel axis, and the
+  one this decision was careful not to become.
+- *A "Cryptography — Advanced" category.* Rejected: a category that encodes a price
+  in its name is the same flag wearing a chip.
+- *Make Pro a set of categories and add Cryptography.* Rejected outright — it would
+  lock Caesar, XOR and SHA-256, which are free and must stay free.
+
+### The State is computed, because here the steps *are* the lesson
+
+ADR-048 refused to draw SHA-256's 64 compression rounds: the internals are not that
+lesson, and **drawing invented ones would teach something false about a real
+algorithm**. That rule points the other way here. AES's picture *is* the State
+changing, so every byte drawn has to be the byte AES really produces — and a platform
+`Cipher` hands back a finished ciphertext with no way to ask what the State looked
+like after ShiftRows in round 3.
+
+So `engine/core/Aes.kt` implements the transformations and the key schedule. What
+keeps that honest rather than merely confident is that it is checked against things
+outside itself: the **S-box regenerated from its mathematical definition**, **FIPS-197
+Appendix C.1**, **FIPS-197 Appendix B including its round-by-round States**, and the
+**JDK's own AES** for all three variants. The intermediate assertion is the one that
+matters — a cipher can reach the right ciphertext through wrong, self-cancelling
+steps, and this lesson draws the steps.
+
+No ciphertext, State or round key is authored anywhere; every value is computed from
+the plaintext and key. That is ADR-045's rule for Fibonacci's call counts applied to
+the one lesson where a stale hardcoded value would be invisible.
+
+### The learner explains the cipher back rather than running it
+
+Nobody performs a MixColumns by hand. PRODUCT_SPEC.md §3 gives the app the arithmetic,
+so the app encrypts and the six exercises are about what the run *means* — the block
+size, the State, the order of a round, what the last round leaves out, the variants,
+and what makes the round keys.
+
+Two of them are answered by **tapping the round strip**, not by picking a word.
+Practically, four buttons reading SubBytes / ShiftRows / MixColumns / AddRoundKey do
+not fit one row at `labelLarge` — the wall ADR-037 hit with AVL's case names. But the
+real reason is ADR-034's: the round's steps are already on screen, and pointing at the
+next one is what understanding an order looks like.
+
+This is the same stretch of the interaction model ADR-048 recorded, and it is named as
+one: TRY must not become a quiz, and what keeps it from being one is that every
+question is asked with the run drawn and the evidence in the picture.
+
+### Why a tenth shape
+
+The bar every shape has cleared and that ADR-036 and ADR-045 each refused: a new
+*kind* of data. The State is a 4 × 4 grid whose **rows and columns are each named by
+a transformation that acts on them** — ShiftRows moves along rows, MixColumns mixes
+down columns. No existing shape has an axis an operation is named after.
+
+`DpTableScene` is the near miss and the instructive one. It is genuinely rows ×
+columns — but its axes are two *quantities* and a cell is a point in that space, while
+the State's axes are a byte's position in a block and the grid is the same sixteen
+bytes rearranged. It also carries item cards, a bag meter and a two-sided choice strip
+a cipher would null out, which is the union-pretending-to-be-a-record ADR-047 refused.
+`SequenceScene.GRID` is a *wrap* with no meaning in which line a box lands on, which
+is the thing that is false here.
+
+It added no event, no interaction model and no cell state; the bytes are ordinary
+`Cell`s carrying a hex label, drawn by the `SceneCell` every other lesson uses.
+
+### The hand-over step, and the bug that earned it
+
+A frame is drawn from the state **after** its transition, so the frame that applies
+the last step of the run is also the frame the first TRY question is pending on. They
+are the same state, and nothing can derive them apart. The closing beat about
+decryption was therefore drawn with the first question's evidence over it.
+
+That is ADR-047's XOR bug and ADR-048's SHA-256 bug arriving through a third door, and
+it was found the same way — by dumping the walkthrough and reading it. The fix is an
+inert `AesStepKind.READY`: the run ends on a frame where nothing happens, so the
+collision lands somewhere with nothing to collide. **An inert step is a strange thing
+to add and it earns its place**: the alternative is moving the narration one frame
+earlier, which is what ADR-048 had to do, and which costs a beat its own picture.
+
+**Four lessons in a row now.** The general lesson is no longer a surprise and should
+be treated as procedure: *dump the walkthrough and read it before calling a lesson
+finished.*
+
+### The three things the copy will not say
+
+- never **"unbreakable"**, and never "impossible to break". What is true is that no
+  practical attack is known that beats trying every key, and that is what the recap
+  says. The word appears exactly once, inside the sentence that denies it, because a
+  learner who meets the myth elsewhere is better served having already been warned —
+  and a test asserts that single negated use;
+- never a suggestion that encrypting a message means encrypting its blocks. A block
+  cipher is a primitive; the recap names **AES-GCM**, and **ECB** appears once, as the
+  thing not to reach for;
+- never that AES alone keeps anything safe. Key management, a sound mode and the
+  protocol around it are what do that.
+
+All three are asserted against the resolved copy rather than trusted to review.
+
+**Alternatives considered.**
+- *Hand-wave the State with illustrative bytes.* Rejected — ADR-048's rule, and the
+  worst available option: a picture of AES that is not AES.
+- *Use the platform `Cipher` and draw only input and output.* Rejected: that is a
+  lesson about a black box, and the 4 × 4 State is what the brief asked to teach.
+- *Animate all ten rounds.* Rejected: forty-three beats of the same four steps. Round
+  1 and the final round are narrated in full and the middle is one beat (ADR-025).
+- *Ask the learner for a byte.* Rejected: a table lookup and GF(2⁸) multiplication are
+  arithmetic they cannot check, which is the gesture-teaching trap PRODUCT_SPEC.md §3
+  names.
+- *A live AES-GCM demo.* Deferred: the lesson already performs real AES with a real
+  key and a verified ciphertext, and a second demonstration would add an input
+  surface and a nonce discussion for one beat.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

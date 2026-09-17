@@ -770,6 +770,66 @@ so the renderer cannot style the right answer differently even by accident.
 `surfaceVariant` grounds as every other lesson. A cryptography lesson is not a licence
 for a terminal aesthetic.
 
+### 6.16m A square that transforms — `BlockCipherStage`
+
+The tenth scene shape (ADR-049), for AES. It is the first stage whose **two axes are
+each named by an operation that acts on them**: ShiftRows moves along rows,
+MixColumns mixes down columns.
+
+```
+Plaintext → Block → State → Rounds → Ciphertext        the concept, as a flow
+
+┌ Round 3 / 10                            SubBytes ┐
+│  ✓SubBytes  ✓ShiftRows  *MixColumns  ·AddRoundKey │   what this round is made of
+│  every byte swapped through the S-box · nothing moves │
+└──────────────────────────────────────────────────┘
+
+        ┌────┬────┬────┬────┐
+        │ 3b │ 9c │ 7f │ b4 │      the State: slot = row + 4 × column,
+        ├────┼────┼────┼────┤      so a column is four contiguous slots —
+        │ c7 │ 38 │ 7e │ e4 │      which is what MixColumns works on
+        ├────┼────┼────┼────┤
+        │ b8 │ 96 │ 99 │ 25 │
+        ├────┼────┼────┼────┤
+        │ 05 │ 1f │ 79 │ 84 │
+        └────┴────┴────┴────┘
+```
+
+| Element | Treatment |
+|---|---|
+| pipeline stage | the `HashScene` pill exactly (§6.16l) — `labelMedium` on `surfaceVariant`, wrapping, `→` between; live takes `primarySoft`, done `successSoft` |
+| the Rounds stage | **one pill, never ten.** Ten identical boxes would make the pipeline a progress bar; what a round is made of is drawn properly, once, in the card below |
+| round card | `surfaceVariant`, `Radius.card`: the round counter in `labelSmall`/`textMuted` on the left, the live transformation in `titleSmall`/`primary` on the right, and one clause underneath saying what it does |
+| a round step | `Radius.cell` chip — done `successSoft`, current `primarySoft` with a `comparing` outline, upcoming `surface`/`textMuted` |
+| **a skipped step** | drawn in its place, `surfaceMuted`, `disabled` ink, and **struck through**. A step that simply vanished says nothing; a step crossed out says *this one is left out* |
+| a selectable step | the `pointer` outline every tappable thing carries, at `outlineStrong`, and grown to the 48dp touch minimum |
+| a State byte | the shared `SceneCell` with a two-character hex `label` — the treatment Caesar gives its letters (§6.16f), so the visual language cannot fork |
+| a byte this step changed | `CANDIDATE` amber. Computed by comparing the State on both sides of the step, never authored |
+| key schedule | `surfaceVariant` card: the key in `AlgoType.digest`, `↓ Key Expansion` in `primary`, then the first three round keys with a `K0` gutter and the rest counted |
+| variant table | `surfaceVariant` card, four columns — variant, key, **block**, rounds. A round count reads `?` until it is settled |
+| claim card | `surface` + hairline `border`, the button's short word in that button's own tone above the full statement — `HashScene`'s arrangement reused (§6.16l) |
+
+**SubBytes and ShiftRows must look like opposites, and they do.** SubBytes marks all
+sixteen bytes and moves none; ShiftRows marks twelve and changes no value. Both are
+pictures the projector computes rather than sentences the copy asserts, and row 0
+staying put is the detail that makes ShiftRows legible as a *rotation* rather than as
+a shuffle.
+
+**The block size is printed on every row of the variant table, identically.** That is
+the whole reason the three are drawn together: the number in the name is the key size,
+and a learner who reads "AES-256" as a 256-bit block has misread the one thing the
+table exists to settle.
+
+**Nothing scrolls sideways.** Four byte cells across is the least cramped grid in the
+app; the round strip and the pipeline wrap through a `FlowRow` rather than shrinking a
+label. ADR-039's rule again — *the layout gives way, never the thing the learner has
+to read.*
+
+**The bright language, not a dark one.** Same cards, same 20dp radii, same violet,
+same `surfaceVariant` grounds as every other lesson. A cipher is not a licence for a
+terminal aesthetic; the only thing that is not Plus Jakarta Sans is the key hex, and
+only so a round key's columns line up under the key that produced it.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

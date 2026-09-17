@@ -36,12 +36,21 @@ V2:   WATCH → TRY → CHALLENGE → RESULT
 > **AlgoKing Pro**, a Play subscription, and the other eleven stay free. The rest of the
 > Never list stands unchanged. Recorded in full at ADR-041 and `docs/pro-access.md`.
 
-**Monetization:** fourteen free lessons, and a **Pro subscription** for the twelve Advanced ones
+**Monetization:** fourteen free lessons, and a **Pro subscription** for thirteen
 (0/1 Knapsack made it eleven, ADR-044; Fibonacci twelve, ADR-045; Caesar Cipher is
 free, under the Cryptography shelf, ADR-046; XOR Cipher joined it, ADR-047; and SHA-256
 Hashing is the third, ADR-048 — which is also why that shelf is called Cryptography rather
 than Encryption: a hash function is not encryption, and a category badge saying otherwise
 would contradict the lesson).
+
+> **⚠ ACCESS AMENDMENT — 2026-09-17, product owner.** Twelve of the thirteen Pro
+> lessons are the Advanced shelf, and until now "Pro" and "Advanced" were the same
+> set. **AES is Pro and is not Advanced** (ADR-049): it is a block cipher, so its
+> category is Cryptography, and filing it elsewhere would put the wrong word on its
+> card. Access still derives from what a lesson *is* rather than from a flag on it,
+> and it is still decided in one object — `ProAccess` now reads the category **or**
+> a short list of named lessons. Where this amendment and the sentence above
+> disagree, the amendment wins.
 Ads remain unbuilt and are now unlikely — §9 stands as written but is no longer the plan.
 
 **Free means complete, not crippled.** A free lesson has both stages, the whole guidance
@@ -115,6 +124,7 @@ advancement is performed by the app, never by the user.
 | Caesar Cipher | copies anything that is not a letter, and prints each letter's alphabet position | **what does this letter become?** — every letter, all the way through the message |
 | XOR Cipher | nothing — every column is the learner's | **what is `a ⊕ b`?** — every bit, and then every bit again on the way back |
 | SHA-256 Hashing | hashes every message, because nobody runs 64 compression rounds by hand | **which statement about hashing is true?** — five times, with the real digests on screen to read the answer off |
+| AES | runs the whole cipher, because nobody performs a MixColumns by hand — and every State it draws is the one AES really produces | **how big is a block, what does the State hold, what comes next in a round, what does the last round leave out, how many rounds does each variant run, and what makes the round keys** |
 
 > **Explicitly rejected:** "Which pair should we compare?" in Bubble Sort. The next pair is
 > always the next pair — there is no decision, and tapping the only legal target teaches a
@@ -183,6 +193,7 @@ One engineered moment per algorithm, given its **own step** so it cannot be scro
 | Caesar Cipher | "The alphabet is a ring, not a line." |
 | XOR Cipher | "The same key, applied twice, gives the original back." |
 | SHA-256 Hashing | "Any input, any length — always 256 bits, and never back again." |
+| AES | "The same four steps, ten times over — and the last round leaves one out." |
 | Fibonacci | "Solve each smaller problem once, and write the answer down." |
 | 0/1 Knapsack | "Every cell is a smaller bag, solved once." |
 | Sliding Window | "The window never re-reads what it already counted." |

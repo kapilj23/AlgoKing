@@ -79,6 +79,15 @@ data class Dataset(
      * `cipher` and `xor` each made before it.
      */
     val hash: HashProblem? = null,
+    /**
+     * A block and the key it is encrypted with, for the lesson whose data is a
+     * 4 × 4 State rather than an array, a structure, a message or a bit pattern.
+     *
+     * Optional and defaulted, the additive move `graph`, `tree`, `knapsack`,
+     * `cipher`, `xor` and `hash` each made before it, so no existing lesson changed
+     * when it arrived.
+     */
+    val aes: AesProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -154,6 +163,13 @@ enum class AlgorithmId {
     // appears, then read the table back in order. O(n + k), and the k is the
     // catch the lesson is honest about.
     COUNTING_SORT,
+
+    // Cryptography: the block cipher the other three lead up to, and the first
+    // lesson on that shelf that is Pro. AES is symmetric — one key both ways — and
+    // what it teaches is the shape of a round: SubBytes, ShiftRows, MixColumns,
+    // AddRoundKey, ten to fourteen times over, with the last round leaving
+    // MixColumns out.
+    AES,
 
     // Data structures, not algorithms: there is no array to sort and no target to
     // find. What they teach is the rule that decides which item you may touch.
