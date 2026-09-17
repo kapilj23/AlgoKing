@@ -3092,6 +3092,396 @@ object Narration {
                     "trying every key — and that safety in practice comes just as " +
                     "much from key management, a sound mode and the protocol around " +
                     "it."
+
+            // ── RSA ───────────────────────────────────────────────────────────
+            // **The first asymmetric lesson, and the one with the most ways to
+            // mislead.** Three wordings are load-bearing and should not be
+            // "tidied":
+            //
+            //  - never a claim that these numbers are secure. n = 55 factors by
+            //    inspection, so anyone holding the public key has the private one
+            //    too. The caveat is on the picture for the whole lesson, gets a
+            //    beat of its own, and the recap names what real use takes: large
+            //    parameters and OAEP padding;
+            //  - never "anyone can encrypt and only you can ever decrypt" as an
+            //    unqualified promise. What is true is narrower, and is what the
+            //    copy says: the private key is what undoes the public key's work,
+            //    and it is the half that is kept;
+            //  - never a suggestion that a learner implement this. Textbook RSA is
+            //    deterministic and unpadded, which is exactly why it is a teaching
+            //    device and not a recipe.
+            //
+            // The learner is also never asked to grind. 9^27 is a twenty-six digit
+            // number, and PRODUCT_SPEC.md §3 gives the app the arithmetic — so
+            // every question prints its formula with the operands filled in and
+            // asks which value it produces.
+
+            // -- Labels that carry their own text -------------------------------
+            NarrationId.RSA_OPTION_NUMBER -> arg(0)
+            NarrationId.RSA_OPTION_PAIR -> "(${arg(0)}, ${arg(1)})"
+            NarrationId.RSA_OPTION_TEXT -> arg(0)
+
+            // -- What the app says as each beat lands ---------------------------
+            NarrationId.RSA_STEP_SETUP -> "Two keys, not one."
+            NarrationId.RSA_STEP_ASYMMETRIC -> "Asymmetric cryptography."
+            NarrationId.RSA_STEP_PRIMES -> "p = ${arg(0)}, q = ${arg(1)}."
+            NarrationId.RSA_STEP_MODULUS -> "n = ${arg(0)} × ${arg(1)} = ${arg(2)}."
+            NarrationId.RSA_STEP_TOTIENT ->
+                "φ(n) = ${arg(0)} × ${arg(1)} = ${arg(2)}."
+            NarrationId.RSA_STEP_PUBLIC_EXPONENT ->
+                "e = ${arg(0)}, and gcd(${arg(0)}, ${arg(1)}) = 1."
+            NarrationId.RSA_STEP_PRIVATE_EXPONENT ->
+                "d = ${arg(0)}, because ${arg(1)} × ${arg(0)} = ${arg(2)}, which is " +
+                    "1 more than a multiple of ${arg(3)}."
+            NarrationId.RSA_STEP_PUBLIC_KEY -> "Public key ${arg(0)}."
+            NarrationId.RSA_STEP_PRIVATE_KEY -> "Private key ${arg(0)}."
+            NarrationId.RSA_STEP_KEY_ROLES -> "One encrypts, the other decrypts."
+            NarrationId.RSA_STEP_ENCRYPT ->
+                "c = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
+            NarrationId.RSA_STEP_DECRYPT ->
+                "m = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
+            NarrationId.RSA_STEP_ROUND_TRIP ->
+                "${arg(0)} → ${arg(1)} → ${arg(2)}."
+            NarrationId.RSA_STEP_SECRET_KEY -> "One of them has to stay secret."
+            NarrationId.RSA_STEP_REAL_WORLD -> "And this is the toy version."
+
+            // -- Exercise 1 · which kind of cryptography ------------------------
+            NarrationId.RSA_ASK_ASYMMETRIC ->
+                "Which kind of cryptography uses a public key and a private key?"
+            NarrationId.RSA_HINT_ASYMMETRIC ->
+                "One of these uses two different keys. The others use one, or none."
+            NarrationId.RSA_RETRY_LOOK_ASYMMETRIC ->
+                "Read the four again — only one of them mentions two keys."
+            NarrationId.RSA_RETRY_ASK_ASYMMETRIC ->
+                "If the same key both locks and unlocks, everyone who can read your " +
+                    "messages can also send them. Which kind avoids that?"
+            NarrationId.RSA_RETRY_EXPLAIN_ASYMMETRIC ->
+                "Asymmetric cryptography uses a pair: a public key and a private " +
+                    "key, mathematically related, and what one does the other undoes."
+            NarrationId.RSA_WHY_NOT_SYMMETRIC ->
+                "Not quite — symmetric cryptography uses **one** shared key for both " +
+                    "directions. AES is the example you have already met. Its open " +
+                    "question is how two people agree on that key, and RSA is an " +
+                    "answer to it."
+            NarrationId.RSA_WHY_NOT_HASHING ->
+                "Not quite. Hashing has no key at all and nothing to undo — that is " +
+                    "what the SHA-256 lesson is about."
+            NarrationId.RSA_WHY_NOT_COMPRESSION ->
+                "Not quite. Compression makes data smaller; it is not a security " +
+                    "operation and has no keys."
+            NarrationId.RSA_CORRECT_ASYMMETRIC ->
+                "Correct. Asymmetric cryptography uses two related keys — and that " +
+                    "is what lets one of them be published."
+
+            // -- Exercise 2 · n = p × q -----------------------------------------
+            NarrationId.RSA_ASK_MODULUS -> "What is n?"
+            NarrationId.RSA_HINT_MODULUS -> "n is ${arg(0)} and ${arg(1)}, multiplied."
+            NarrationId.RSA_RETRY_LOOK_MODULUS ->
+                "Look at the formula on the row: n = p × q."
+            NarrationId.RSA_RETRY_ASK_MODULUS -> "What is ${arg(0)} × ${arg(1)}?"
+            NarrationId.RSA_RETRY_EXPLAIN_MODULUS ->
+                "n = ${arg(0)} × ${arg(1)} = ${arg(2)}. It is the modulus, and both " +
+                    "keys will carry it."
+            NarrationId.RSA_WHY_N_IS_TOTIENT ->
+                "That is φ(n), which comes next and is a different number. n is the " +
+                    "two primes multiplied, not the two primes minus one each."
+            NarrationId.RSA_WHY_N_IS_SUM ->
+                "That is p + q. RSA multiplies the primes rather than adding them — " +
+                    "which is the whole reason n is hard to take apart again."
+            NarrationId.RSA_WHY_N_IS_PARTIAL ->
+                "That subtracts 1 from one of the primes. n uses both of them as " +
+                    "they are: ${arg(0)} × ${arg(1)}."
+            NarrationId.RSA_CORRECT_MODULUS ->
+                "Correct. n = ${arg(0)} × ${arg(1)} = ${arg(2)}, and both keys share it."
+
+            // -- Exercise 3 · φ(n) = (p − 1)(q − 1) -----------------------------
+            NarrationId.RSA_ASK_TOTIENT -> "What is φ(n)?"
+            NarrationId.RSA_HINT_TOTIENT ->
+                "Take 1 off each prime first, then multiply."
+            NarrationId.RSA_RETRY_LOOK_TOTIENT ->
+                "Look at the formula on the row: φ(n) = (p − 1)(q − 1)."
+            NarrationId.RSA_RETRY_ASK_TOTIENT -> "What is ${arg(0)} × ${arg(1)}?"
+            NarrationId.RSA_RETRY_EXPLAIN_TOTIENT ->
+                "φ(n) = ${arg(0)} × ${arg(1)} = ${arg(2)}. It is the modulus that e " +
+                    "and d are inverses in — not the one the message is encrypted in."
+            NarrationId.RSA_WHY_PHI_IS_N ->
+                "That is n. φ(n) takes 1 off each prime before multiplying, so it is " +
+                    "always the smaller of the two."
+            NarrationId.RSA_WHY_PHI_IS_PARTIAL ->
+                "That takes 1 off only one of them. Both primes lose 1: " +
+                    "${arg(0)} × ${arg(1)}."
+            NarrationId.RSA_WHY_PHI_IS_HALF ->
+                "That is one of the two factors on its own. They have to be " +
+                    "multiplied together."
+            NarrationId.RSA_CORRECT_TOTIENT ->
+                "Correct. φ(n) = ${arg(0)} × ${arg(1)} = ${arg(2)} — and this is the " +
+                    "number d will be built against."
+
+            // -- Exercise 4 · a legal public exponent ---------------------------
+            NarrationId.RSA_ASK_PUBLIC_EXPONENT ->
+                "φ(n) is ${arg(0)}. Which of these can be the public exponent e?"
+            NarrationId.RSA_HINT_PUBLIC_EXPONENT ->
+                "e has to share no factor with ${arg(0)} — that is what " +
+                    "gcd(e, φ(n)) = 1 means."
+            NarrationId.RSA_RETRY_LOOK_PUBLIC_EXPONENT ->
+                "Look at the condition on the row: gcd(e, φ(n)) = 1."
+            NarrationId.RSA_RETRY_ASK_PUBLIC_EXPONENT ->
+                "Which of these divides into ${arg(0)} evenly — and which does not?"
+            NarrationId.RSA_RETRY_EXPLAIN_PUBLIC_EXPONENT ->
+                "${arg(0)} is the only one here that shares no factor with ${arg(1)}. " +
+                    "Without that, no d would exist for it."
+            NarrationId.RSA_WHY_E_SHARES_FACTOR ->
+                "${arg(0)} and ${arg(1)} share a factor of ${arg(2)}, so " +
+                    "gcd is not 1 — and there is no d that would undo it."
+            NarrationId.RSA_CORRECT_PUBLIC_EXPONENT ->
+                "Correct. gcd(${arg(0)}, ${arg(1)}) = 1, so ${arg(0)} has an inverse " +
+                    "and can be the public exponent."
+
+            // -- Exercise 5 · the private exponent ------------------------------
+            NarrationId.RSA_ASK_PRIVATE_EXPONENT ->
+                "e is ${arg(0)} and φ(n) is ${arg(1)}. Which value is d?"
+            NarrationId.RSA_HINT_PRIVATE_EXPONENT ->
+                "Multiply each one by ${arg(0)}, then take the remainder mod " +
+                    "${arg(1)}. You are looking for 1."
+            NarrationId.RSA_RETRY_LOOK_PRIVATE_EXPONENT ->
+                "Look at the condition on the row: d × e ≡ 1 (mod φ(n))."
+            NarrationId.RSA_RETRY_ASK_PRIVATE_EXPONENT ->
+                "Which of these, multiplied by ${arg(0)}, leaves a remainder of 1 " +
+                    "when divided by ${arg(1)}?"
+            NarrationId.RSA_RETRY_EXPLAIN_PRIVATE_EXPONENT ->
+                "${arg(0)} × ${arg(1)} = ${arg(2)}, and ${arg(2)} leaves 1 when " +
+                    "divided by ${arg(3)}. So d is ${arg(1)}."
+            NarrationId.RSA_WHY_D_IS_E ->
+                "That is e. d is the number that undoes it — a different value, " +
+                    "found from e and φ(n) together."
+            NarrationId.RSA_WHY_D_NOT_INVERSE ->
+                "${arg(0)} × ${arg(1)} leaves ${arg(2)} when divided by ${arg(3)}, " +
+                    "not 1 — so it would not undo the encryption."
+            NarrationId.RSA_CORRECT_PRIVATE_EXPONENT ->
+                "Correct. ${arg(0)} × ${arg(1)} = ${arg(2)}, which is 1 more than a " +
+                    "multiple of ${arg(3)}. That is what makes d undo e."
+
+            // -- Exercises 6 and 7 · the two keys -------------------------------
+            NarrationId.RSA_ASK_PUBLIC_KEY -> "Which pair is the public key?"
+            NarrationId.RSA_HINT_PUBLIC_KEY ->
+                "The public key is the exponent you publish, with the modulus."
+            NarrationId.RSA_RETRY_LOOK_PUBLIC_KEY ->
+                "Look at the chain again — which exponent was the public one?"
+            NarrationId.RSA_RETRY_ASK_PUBLIC_KEY ->
+                "A key is written (exponent, modulus). Which exponent is public, and " +
+                    "which of these numbers is the modulus?"
+            NarrationId.RSA_RETRY_EXPLAIN_PUBLIC_KEY ->
+                "The public key is (e, n) — here (${arg(0)}, ${arg(1)})."
+            NarrationId.RSA_CORRECT_PUBLIC_KEY ->
+                "Correct. The public key is (e, n) = (${arg(0)}, ${arg(1)}), and it " +
+                    "is the half you can hand out."
+            NarrationId.RSA_ASK_PRIVATE_KEY -> "And which pair is the private key?"
+            NarrationId.RSA_HINT_PRIVATE_KEY ->
+                "Same modulus, the other exponent."
+            NarrationId.RSA_RETRY_LOOK_PRIVATE_KEY ->
+                "Look at the chain again — which exponent was the private one?"
+            NarrationId.RSA_RETRY_ASK_PRIVATE_KEY ->
+                "The two keys share the modulus. Which exponent belongs to the half " +
+                    "you keep?"
+            NarrationId.RSA_RETRY_EXPLAIN_PRIVATE_KEY ->
+                "The private key is (d, n) — here (${arg(0)}, ${arg(1)})."
+            NarrationId.RSA_CORRECT_PRIVATE_KEY ->
+                "Correct. The private key is (d, n) = (${arg(0)}, ${arg(1)}) — the " +
+                    "same modulus, and the exponent that undoes the other one."
+            NarrationId.RSA_WHY_KEY_SWAPPED ->
+                "Those are the right two numbers the wrong way round. A key is " +
+                    "written (exponent, modulus), and ${arg(1)} is the exponent here."
+            NarrationId.RSA_WHY_KEY_IS_PRIVATE ->
+                "That is the private key — the exponent that decrypts. The public " +
+                    "one uses e."
+            NarrationId.RSA_WHY_KEY_IS_PUBLIC ->
+                "That is the public key — the exponent that encrypts. The private " +
+                    "one uses d."
+            NarrationId.RSA_WHY_KEY_USES_PHI ->
+                "That is φ(n), not n. φ(n) was only ever used to *find* d; it never " +
+                    "goes into a key, and anyone who had it could work d out."
+
+            // -- Exercise 8 · c = mᵉ mod n --------------------------------------
+            NarrationId.RSA_ASK_ENCRYPT ->
+                "m = ${arg(0)}, e = ${arg(1)}, n = ${arg(2)}. What is c = mᵉ mod n?"
+            NarrationId.RSA_HINT_ENCRYPT ->
+                "Raise the message to the public exponent, then take the remainder."
+            NarrationId.RSA_RETRY_LOOK_ENCRYPT ->
+                "Look at the formula again: c = mᵉ mod n. Both halves matter."
+            NarrationId.RSA_RETRY_ASK_ENCRYPT ->
+                "You need ${arg(0)} raised to ${arg(1)}, and then the remainder when " +
+                    "that is divided by ${arg(2)}. What is left?"
+            NarrationId.RSA_RETRY_EXPLAIN_ENCRYPT ->
+                "Raise ${arg(0)} to the power ${arg(1)}, then take the remainder mod " +
+                    "${arg(2)}. That gives ${arg(3)}."
+            NarrationId.RSA_WHY_C_NO_MOD ->
+                "That is ${arg(0)} to the power ${arg(1)} — ${arg(2)} — without the " +
+                    "mod. A ciphertext always lands below n, so taking the remainder " +
+                    "mod ${arg(3)} is what finishes it: ${arg(4)}."
+            NarrationId.RSA_WHY_C_MULTIPLIED ->
+                "That is ${arg(0)} × ${arg(1)}. RSA raises the message to the " +
+                    "exponent rather than multiplying by it."
+            NarrationId.RSA_WHY_C_USED_PHI ->
+                "That reduces by φ(n) = ${arg(0)}. Encryption uses n = ${arg(1)} — " +
+                    "φ(n) only ever appeared while d was being found."
+            NarrationId.RSA_WHY_C_UNCHANGED ->
+                "That is the message itself. Encrypting it has to change it."
+            NarrationId.RSA_CORRECT_ENCRYPT ->
+                "Correct. ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}. That is the " +
+                    "ciphertext, and it was made with the public key alone."
+
+            // -- Exercise 9 · m = c^d mod n -------------------------------------
+            NarrationId.RSA_ASK_DECRYPT ->
+                "c = ${arg(0)}, d = ${arg(1)}, n = ${arg(2)}. What was the message?"
+            NarrationId.RSA_HINT_DECRYPT ->
+                "The same operation as encryption, with the other exponent."
+            NarrationId.RSA_RETRY_LOOK_DECRYPT ->
+                "Look at the formula: m = c^d mod n. Nothing new — just d instead of e."
+            NarrationId.RSA_RETRY_ASK_DECRYPT ->
+                "What did you start with, before any of this?"
+            NarrationId.RSA_RETRY_EXPLAIN_DECRYPT ->
+                "${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)} — the message, back " +
+                    "again."
+            NarrationId.RSA_WHY_M_IS_CIPHERTEXT ->
+                "That is the ciphertext you started this step with. Decrypting has " +
+                    "to give back something different."
+            NarrationId.RSA_WHY_M_IS_EXPONENT ->
+                "That is one of the exponents, not the message. The exponents are " +
+                    "what you calculate *with*."
+            NarrationId.RSA_CORRECT_DECRYPT ->
+                "Correct. ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)} — the " +
+                    "original message. The private key undid the public key's work."
+
+            // -- Exercise 10 · which key stays secret ---------------------------
+            NarrationId.RSA_ASK_SECRET_KEY -> "Which key must remain secret?"
+            NarrationId.RSA_HINT_SECRET_KEY ->
+                "One of them is meant to be handed out. The other is what undoes it."
+            NarrationId.RSA_RETRY_LOOK_SECRET_KEY ->
+                "Look at the two key cards again — one says share, one does not."
+            NarrationId.RSA_RETRY_ASK_SECRET_KEY ->
+                "If someone else had the key that decrypts, what would be left of " +
+                    "the message?"
+            NarrationId.RSA_RETRY_EXPLAIN_SECRET_KEY ->
+                "The private key is the one that must be kept. The public key is " +
+                    "meant to be published — that is the whole point of it."
+            NarrationId.RSA_WHY_SECRET_PUBLIC ->
+                "The public key is the half that is *meant* to be handed out. " +
+                    "Keeping it secret would stop anyone sending you anything."
+            NarrationId.RSA_WHY_SECRET_BOTH ->
+                "If the public key were secret too, nobody could encrypt anything " +
+                    "for you — and publishing it is what makes this worth doing."
+            NarrationId.RSA_WHY_SECRET_NEITHER ->
+                "If the private key were published, anyone could undo the " +
+                    "encryption, and the pair would protect nothing."
+            NarrationId.RSA_CORRECT_SECRET_KEY ->
+                "Correct. The private key is kept; the public key is published. " +
+                    "Because they are a pair, giving one away does not give away the " +
+                    "other — as long as the numbers are large enough."
+
+            // -- WATCH -----------------------------------------------------------
+            NarrationId.RSA_WATCH_SETUP -> "RSA uses two keys, not one."
+            NarrationId.RSA_WATCH_SETUP_SUPPORT ->
+                "Caesar, XOR and AES all share one key between both sides, which " +
+                    "leaves a question none of them answers: how do two people who " +
+                    "have never met agree on it?"
+            NarrationId.RSA_WATCH_ASYMMETRIC -> "This is asymmetric cryptography."
+            NarrationId.RSA_WATCH_ASYMMETRIC_SUPPORT ->
+                "A public key and a private key, mathematically related. What one " +
+                    "does, the other undoes — so one of them can be published."
+            NarrationId.RSA_WATCH_PRIMES -> "Start with two primes: ${arg(0)} and ${arg(1)}."
+            NarrationId.RSA_WATCH_PRIMES_SUPPORT ->
+                "These are the only secret inputs. Everything else on this screen is " +
+                    "worked out from them."
+            NarrationId.RSA_WATCH_MODULUS -> "n = ${arg(0)} × ${arg(1)} = ${arg(2)}."
+            NarrationId.RSA_WATCH_MODULUS_SUPPORT ->
+                "The modulus. Both keys will carry it, and every calculation from " +
+                    "here happens mod n."
+            NarrationId.RSA_WATCH_TOTIENT ->
+                "φ(n) = ${arg(0)} × ${arg(1)} = ${arg(2)}."
+            NarrationId.RSA_WATCH_TOTIENT_SUPPORT ->
+                "Take 1 off each prime, then multiply. This one never goes into a " +
+                    "key — it exists to find d, and then it is thrown away."
+            NarrationId.RSA_WATCH_PUBLIC_EXPONENT -> "Choose e = ${arg(0)}."
+            NarrationId.RSA_WATCH_PUBLIC_EXPONENT_SUPPORT ->
+                "It only has to share no factor with φ(n): gcd(${arg(0)}, ${arg(1)}) " +
+                    "= 1. That is what guarantees a d exists to undo it."
+            NarrationId.RSA_WATCH_PRIVATE_EXPONENT -> "And d = ${arg(0)}."
+            NarrationId.RSA_WATCH_PRIVATE_EXPONENT_SUPPORT ->
+                "${arg(0)} × ${arg(1)} = ${arg(2)}, which is 1 more than a multiple " +
+                    "of ${arg(3)}. That relationship is the whole reason one key " +
+                    "undoes the other."
+            NarrationId.RSA_WATCH_PUBLIC_KEY -> "Public key: ${arg(0)}."
+            NarrationId.RSA_WATCH_PUBLIC_KEY_SUPPORT ->
+                "The exponent that encrypts, and the modulus. This is the half you " +
+                    "publish."
+            NarrationId.RSA_WATCH_PRIVATE_KEY -> "Private key: ${arg(0)}."
+            NarrationId.RSA_WATCH_PRIVATE_KEY_SUPPORT ->
+                "The same modulus, ${arg(0)}, and the other exponent. Two keys, one " +
+                    "shared number, and only one of them ever leaves."
+            NarrationId.RSA_WATCH_KEY_ROLES -> "One encrypts. The other decrypts."
+            NarrationId.RSA_WATCH_KEY_ROLES_SUPPORT ->
+                "In this lesson the public key encrypts and the private key " +
+                    "decrypts. Someone can send you something without either of you " +
+                    "ever sharing a secret."
+            NarrationId.RSA_WATCH_ENCRYPT ->
+                "c = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
+            NarrationId.RSA_WATCH_ENCRYPT_SUPPORT ->
+                "Encrypted with the public key ${arg(0)} — the half anyone is allowed " +
+                    "to have."
+            NarrationId.RSA_WATCH_DECRYPT ->
+                "m = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
+            NarrationId.RSA_WATCH_DECRYPT_SUPPORT ->
+                "Decrypted with the private key ${arg(0)}, and the message is back. " +
+                    "The same operation both ways — only the exponent changed."
+            NarrationId.RSA_WATCH_SECRET_KEY -> "Only one of them has to be kept."
+            NarrationId.RSA_WATCH_SECRET_KEY_SUPPORT ->
+                "The public key is meant to be handed out. The private key is what " +
+                    "undoes its work, so it never leaves — and because they are a " +
+                    "pair, publishing one does not give away the other."
+            NarrationId.RSA_WATCH_REAL_WORLD -> "And this is the toy version."
+            NarrationId.RSA_WATCH_REAL_WORLD_SUPPORT ->
+                "n = ${arg(0)} factors by inspection, so anyone with the public key " +
+                    "here has the private one too. Real RSA uses numbers hundreds of " +
+                    "digits long, and adds a padding scheme — OAEP — because " +
+                    "textbook RSA on its own is deterministic and not safe to use."
+
+            NarrationId.RSA_WATCH_INSIGHT ->
+                "Two keys, built from the same chain — and only one has to be kept."
+            NarrationId.RSA_WATCH_INSIGHT_SUPPORT ->
+                "That is what makes it asymmetric, and it is why a stranger can " +
+                    "encrypt something only you can read."
+            NarrationId.RSA_WATCH_SUMMARY -> "One key out, one key in."
+            NarrationId.RSA_WATCH_SUMMARY_SUPPORT -> "The idea"
+
+            NarrationId.RSA_IDEA_1 ->
+                "RSA is asymmetric: a public key and a private key, mathematically " +
+                    "related, where what one does the other undoes."
+            NarrationId.RSA_IDEA_2 ->
+                "Key generation starts from two primes. n = p × q — here " +
+                    "${arg(0)} × ${arg(1)} = ${arg(2)} — and φ(n) = (p − 1)(q − 1)."
+            NarrationId.RSA_IDEA_3 ->
+                "e is chosen with gcd(e, φ(n)) = 1, and d is the value with " +
+                    "d × e ≡ 1 (mod φ(n)). The public key is (e, n) and the private " +
+                    "key is (d, n)."
+            NarrationId.RSA_IDEA_4 ->
+                "Encryption is c = mᵉ mod n and decryption is m = c^d mod n — the " +
+                    "same modular exponentiation, with the other exponent."
+            NarrationId.RSA_IDEA_5 ->
+                "That exponentiation is far more expensive than a symmetric cipher, " +
+                    "which is why real systems commonly use asymmetric cryptography " +
+                    "to agree on a key and a symmetric algorithm like AES for the " +
+                    "data itself."
+            // The two a learner must not leave without, last, where a recap bullet
+            // is read rather than skipped.
+            NarrationId.RSA_IDEA_6 ->
+                "These numbers are a demonstration, not security. n = 55 factors by " +
+                    "inspection. Real RSA uses keys of 2048 bits or more, where " +
+                    "factoring n is what nobody knows how to do quickly."
+            NarrationId.RSA_IDEA_7 ->
+                "Textbook RSA — the version here, with no padding — is deterministic " +
+                    "and should not be used as it stands. Real encryption adds a " +
+                    "padding scheme such as OAEP, and in practice you use a reviewed " +
+                    "library rather than writing any of this yourself."
         }
     }
 }

@@ -3042,6 +3042,160 @@ All three are asserted against the resolved copy rather than trusted to review.
 
 ---
 
+## ADR-050 — RSA: the chain is the lesson, so the questions are asked inside it
+
+**Decision.** RSA ships as a **Pro** `LessonPack` with WATCH and TRY, filed under
+**Cryptography**. `Scene` gains an eleventh shape, `KeyPairScene`; `Dataset` gains a
+defaulted `rsa`. Access needed **no change** — one id added to the set ADR-049
+created. Full detail: `docs/rsa.md`.
+
+⚠ **Product-owner decision**, 2026-09-17: RSA as a paywalled lesson on the
+Cryptography shelf, taught on a small verified example.
+
+### The questions are interleaved, and that is the whole design
+
+SHA-256 and AES run their algorithm and *then* ask about it (ADR-048, ADR-049),
+because their judgements are about the run as a whole — what a hash guarantees, what
+shape a round has. That pattern is wrong here and it took drawing the lesson to see
+why.
+
+RSA's judgements are about **links in a chain**: `n` from `p` and `q`, `φ(n)` from
+the same two, `d` from `e` and `φ(n)`. Run the chain to completion first and every
+value is on screen when the learner is asked for it — which is not a question, it is
+a reading exercise. So every value is asked **at the point it would be computed**,
+with the values it depends on already drawn and its own place showing `?`.
+
+That is the hash flow's rule (ADR-030) applied to a dependency chain rather than to a
+single answer, and it settles the shape of the state machine: one cursor over a fixed
+list of beats, where a beat either states something or asks for something and cannot
+be passed without being answered.
+
+**It also comes with a free property.** The collision ADR-049 had to fence — the
+frame that ends the run is also the frame the first question is pending on — cannot
+arise, because here the pending question is always about the *next* value, which is
+correctly drawn as unknown. No inert hand-over step was needed.
+
+### …except for the two judgements that settle nothing
+
+Eight of the ten questions settle a value, so their frame shows that value landing.
+Two do not: *which kind of cryptography is this* and *which key stays secret* produce
+no number, and the picture they make is the four choice cards themselves — which
+appear on the frame where the question is **pending**, one beat before it is answered.
+
+The first draft captioned them where they were answered, so the secrecy cards were
+drawn under the round-trip sentence and the beat that was actually about them showed
+nothing. Every test passed. It was found by dumping the walkthrough and reading it,
+which is now **five lessons in a row** and should be treated as procedure rather than
+as a discovery each time.
+
+The fix is ADR-048's rule — *a frame is captioned by what its own scene shows* — so
+those two are captioned where their cards appear. Each needs the step before it to
+have no story of its own, and both already did: `SETUP` is covered by `opening()`, and
+`ROUND_TRIP` draws exactly what the `DECRYPT` beat before it drew. So unlike AES, no
+inert step had to be invented; two existing seams were already there.
+
+### Why an eleventh shape
+
+The bar every shape has cleared and that ADR-036 and ADR-045 each refused: a new
+*kind* of data. A **derivation chain** — named scalars, each produced from earlier
+ones by a printed formula, all staying on screen because later ones read them — is
+not something any existing shape holds:
+
+- `SequenceScene`'s slots are **positions**, and its `equation` is one
+  `PrefixEquation`: a single two-operand line with `+` or `−`. This needs six
+  different formulas, two of which (`mod`, exponentiation) it cannot express;
+- `BlockCipherScene` carries a key schedule, which is the near miss — but that is
+  *one* key expanded into many of the same kind, drawn as hex beside a 4 × 4 State.
+  RSA's two keys are **different kinds with opposite rules**, and saying which is
+  which is half of what asymmetric means. Its State grid, round strip and variant
+  table would all be null here;
+- `HashScene` has a pipeline, but a stage is a box the data passes *through* and
+  carries no value of its own. Every step here **is** a value that stays;
+- `CipherScene` and `BitwiseScene` align rows position by position, and
+  `DpTableScene`, `CountingScene` and `PrefixScene` are grids indexed by quantities.
+  There is no second axis here at all.
+
+It added no event, no cell state and no interaction model.
+
+### The access rule did not move, and that is the result worth recording
+
+ADR-049 added `PRO_LESSONS` for AES, with a warning attached: *keep this small; a long
+list means the categories have stopped describing the library.* RSA is the first test
+of that, and it cost **one line**:
+
+```kotlin
+val PRO_LESSONS: Set<AlgorithmId> = setOf(AlgorithmId.AES, AlgorithmId.RSA)
+```
+
+Two entries, both on one shelf, both for the same reason — a real cipher rather than a
+teaching device — is the rule describing the library rather than fighting it. Rule 1
+is untouched, so the Advanced shelf is still wholly Pro, and a test asserts both
+halves. `SubscriptionRepository`, `PlayBillingGateway`, `ProEntitlement`,
+`ProAccess.decide` and `PaywallScreen` were not touched at all; the paywall's count is
+computed from the library and says "fourteen" by itself.
+
+### TRY gets its own key pair, against the brief
+
+The brief lists the TRY exercises using WATCH's numbers. Six of the ten judgements
+would then be answerable from memory — a learner who watched `n = 55` land does not
+have to multiply anything to answer it again — which is precisely what ADR-014
+forbids.
+
+So the **questions** are the brief's ten, unchanged and in its order, and the
+**numbers** are new: `p = 7, q = 13, e = 5`, giving `n = 91`, `φ(n) = 72`, `d = 29`,
+`c = 23`. The message stays `4`, because it is the one value the learner is not asked
+to derive and holding it still makes the two runs comparable.
+
+This is the third time a brief-supplied dataset has been replaced for teaching the
+wrong thing — ADR-044 for 0/1 Knapsack's bag, ADR-047 for XOR's key — and the rule
+those two set applies unchanged: **the numbers are the lesson, so a dataset that
+teaches the wrong thing gets replaced and the replacement is written down.**
+
+### The arithmetic is written out, and checked against the JDK
+
+`Sha256` delegates because its internals are not that lesson; RSA's five lines *are*
+the lesson, so `engine/core/Rsa.kt` implements them. It is also not a choice: the
+platform's RSA will not touch a toy modulus, since `KeyFactory` rejects anything under
+512 bits — which is itself part of what the lesson says.
+
+What keeps it honest is that there is no NIST vector for a 55 modulus, so the engine
+is checked against `java.math.BigInteger` over thousands of random values, against
+every message under `n` round-tripping, and against **a real 2048-bit key pair** from
+`KeyPairGenerator` — which turns the lesson's central claim, *this is the same
+arithmetic with bigger numbers*, into something the suite checks rather than something
+the copy asserts.
+
+### What the copy will not say
+
+- never **"unbreakable"**, and never that the numbers here are secure. `n = 55`
+  factors by inspection, and the lesson says so on the picture for its whole length,
+  in a beat of its own, and on the Complete screen;
+- never textbook RSA as a recipe. It is deterministic and unpadded; the recap names
+  **OAEP**, 2048-bit keys, and reaching for a reviewed library rather than writing any
+  of it yourself;
+- never "anyone can encrypt and only you can ever decrypt" as an unqualified promise.
+  What is true is narrower and is what the copy says: the private key is what undoes
+  the public key's work, and it is the half that is kept.
+
+All three are asserted against the resolved copy rather than trusted to review.
+
+**Alternatives considered.**
+- *Ask the ten questions after the chain, as AES does.* Rejected above — it turns six
+  of them into reading exercises.
+- *Reuse `BlockCipherScene`'s key schedule.* Rejected: one key expanded is not two
+  keys with opposite rules, and a cipher would null out most of it.
+- *Four buttons for "Asymmetric cryptography".* Rejected on width, the wall ADR-032
+  and ADR-037 each hit — and stacked cards are the better interaction anyway.
+- *Ask the learner to compute `9²⁷ mod 55`.* Rejected: PRODUCT_SPEC.md §3 gives the
+  app the arithmetic, and this is arithmetic nobody can check by hand.
+- *A live `javax.crypto` demonstration.* Deferred: it cannot use the lesson's key at
+  all, so it would be a separate 2048-bit key pair — a different thing from the
+  lesson. The test suite generates one, which is where that belongs.
+- *File RSA under Advanced.* Rejected for ADR-049's reason: a category is a statement
+  about what a lesson *is*.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

@@ -830,6 +830,70 @@ same `surfaceVariant` grounds as every other lesson. A cipher is not a licence f
 terminal aesthetic; the only thing that is not Plus Jakarta Sans is the key hex, and
 only so a round key's columns line up under the key that produced it.
 
+### 6.16n A chain of derived values — `KeyPairStage`
+
+The eleventh scene shape (ADR-050), for RSA. It is the first stage whose subject is a
+**dependency**: a short list of named values where each is produced from earlier ones
+by a printed formula, and where the arrow between two rows is the lesson.
+
+```
+┌ KEY GENERATION ─────────────────────────┐
+│  p, q    two different primes    5, 11  │
+│    ↓                                    │
+│  n       p × q                     55   │   every value stays on screen,
+│    ↓                                    │   because the next one reads it
+│  φ(n)    (p − 1)(q − 1)            40   │
+│    ↓                                    │
+│  e       gcd(e, φ(n)) = 1           ?   │   ← being asked for
+└─────────────────────────────────────────┘
+
+┌ PUBLIC KEY ────────┐  ┌ PRIVATE KEY 🔒 ┐
+│ (3, 55)            │  │ (27, 55)       │
+│ Share it freely    │  │ Never share it │
+└────────────────────┘  └────────────────┘
+
+MESSAGE    4  →encrypt→  9  →decrypt→  4
+```
+
+| Element | Treatment |
+|---|---|
+| derivation card | `surfaceVariant`, `Radius.card`, captioned `KEY GENERATION` in `labelSmall`/`textMuted` |
+| a row | `Radius.cell`: the symbol in `titleSmall` in a fixed `Dimens.derivationSymbolWidth` gutter, the formula in `bodyMedium`/`textSecondary` taking the remaining width, and the value in `numeralMedium` at the end |
+| the arrow between rows | `↓` in `labelSmall`/`disabled`, inset to the gutter — it is what makes this a chain rather than a list |
+| being asked for | `primarySoft` fill, `comparing` outline, and the value reads **`?`** |
+| just derived | `secondarySoft` fill, `next` outline — amber for one beat, then settled |
+| settled | `surface` fill, hairline `border` |
+| not reached | `surfaceMuted`, `textMuted`, and `?` |
+| key card | half width, `Radius.card`. The public one takes `primarySoft`/`primary`; the private one takes `goldSoft`/`gold` with a 14dp lock glyph |
+| round trip | `surfaceVariant` card: three values in `numeralMedium` boxes with two labelled arrows between them, and the recovered value turning `successSoft` when it matches the message |
+| choice card | full width, `surface` + hairline `border`, title in `titleSmall` over a clause in `bodyMedium`; a selectable one takes the `pointer` outline at `outlineStrong` and the 48dp touch minimum |
+| the caveat | an amber `TOY EXAMPLE` pill and one `labelSmall` line, all lesson — and a full `secondarySoft` card on the one beat that is about it |
+
+**A `?` is the most important thing this stage draws.** A value the lesson has not
+produced is absent — never zero, never guessed — so the picture can never answer the
+question being asked. That is the rule the hash flow set (§6.16e) applied to a
+dependency chain rather than to a single answer, and it is what makes a derivation
+askable rather than merely readable.
+
+**Both keys are drawn together, always.** They share a modulus and differ in exactly
+one number and one rule, and a learner who meets them apart can read them as two
+unrelated keys — which is the misconception the lesson exists to correct.
+
+**The secret half is gold, not red.** It borrows the ornament colour the wordmark's
+crown and the streak bolt already use, for the reason §6.3a gives for the PRO pill: a
+key that must be kept is a normal thing, and an alarm colour would read as an error
+rather than as a rule.
+
+**Sentences are tapped, not pressed.** When a judgement's options are clauses rather
+than numbers they become full-width stacked cards. Four `DecisionButton`s share a row
+at about 76dp each — enough for `(3, 55)` and nothing like enough for "Asymmetric
+cryptography" — which is the wall ADR-032 and ADR-037 each hit, and the move AES made
+with its round strip (§6.16m).
+
+**The layout gives way, never the numbers.** A row's formula wraps; the symbol and the
+value do not. Every value is two digits by construction, which is the point of the
+lesson rather than a layout convenience.
+
 ### 6.17 Mascot container — `MascotKing`
 The purple blob king: body `#9957F8` with a soft inner highlight, gold crown `#FBA90A`, white
 eyes (one winking), a magenta smile, blush, a gold sceptre, and three violet sparkles.

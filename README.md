@@ -27,7 +27,7 @@ existed to leave behind. No stars — Try is never scored.
 
 ---
 
-## The twenty-seven lessons
+## The twenty-eight lessons
 
 | | Lessons | The learner decides |
 |---|---|---|
@@ -40,6 +40,7 @@ existed to leave behind. No stars — Try is never scored.
 | Cryptography | **XOR Cipher** | what each pair of bits makes — and the same key undoes it |
 | Cryptography | **SHA-256 Hashing** | which statement about a hash is true — with the real digests on screen to read it off |
 | Cryptography | **AES** *(Pro)* | what a round is made of — and which step the last round leaves out |
+| Cryptography | **RSA** *(Pro)* | every link in the chain that builds two keys — and which one stays secret |
 | **Advanced** | **Two Pointers** | which pointer can still improve the sum |
 | **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 | **Advanced** | **Graph DFS** | which node DFS moves to next — deeper, or back |
@@ -84,11 +85,11 @@ Everything else falls out of it:
   caller *could* apply. The rule is structural, not a convention each new algorithm must
   remember.
 - **The renderer cannot name an algorithm.** It receives a `Scene` and branches only on the
-  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, a DP table, a hash pipeline, or a cipher State). Twenty-seven lessons, one
+  *shape* of the data (`ROW` / `PILE` / `CHAIN` / `GRID`, a bucket table, two aligned arrays, a count table, a graph, a DP table, a hash pipeline, a cipher State, or a key-derivation chain). Twenty-eight lessons, one
   renderer entry point, zero `when (algorithm)` in `:app`.
 - **Adding a lesson adds a `LessonPack`** — an algorithm, a projector, a narrator and two
   authored datasets. Never a screen, never a renderer.
-- **13 events cover all twenty-seven lessons.** None was added after the first — Two Pointers,
+- **13 events cover all twenty-eight lessons.** None was added after the first — Two Pointers,
   written long after the event model was fixed, needed none (ADR-032), and the Binary Search
   Tree added no renderer either: a tree is a graph, so it draws itself with the one the
   graph lessons already use (ADR-036).
@@ -97,7 +98,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 920 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 978 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -109,7 +110,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 920 unit tests, no device needed
+./gradlew :engine:test        # 978 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -130,7 +131,7 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-048 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-050 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
@@ -139,15 +140,15 @@ inherits — and the Advanced lessons
 dynamic-programming lessons [`fibonacci-dp.md`](docs/fibonacci-dp.md) and
 [`zero-one-knapsack.md`](docs/zero-one-knapsack.md), and the Cryptography lessons
 [`caesar-cipher.md`](docs/caesar-cipher.md), [`xor-cipher.md`](docs/xor-cipher.md) and
-[`sha256-hashing.md`](docs/sha256-hashing.md) and [`aes.md`](docs/aes.md).
+[`sha256-hashing.md`](docs/sha256-hashing.md), [`aes.md`](docs/aes.md) and [`rsa.md`](docs/rsa.md).
 
 ## Access
 
 Fourteen lessons are free and complete — both stages, the full guidance ladder, progress.
-Thirteen are **AlgoKing Pro**, a Play subscription: tapping one opens a paywall rather than
+Fourteen are **AlgoKing Pro**, a Play subscription: tapping one opens a paywall rather than
 the lesson. Pro adds lessons and never takes anything away from a free one.
 
-Twelve of those thirteen are the **Advanced** shelf, and access derives from that category
+Twelve of those fourteen are the **Advanced** shelf, and access derives from that category
 rather than from a flag — so a lesson filed there is protected the day it is added. **AES is
 the exception and the first one**: it is a block cipher, so it belongs on the Cryptography
 shelf beside the two ciphers and the hash it builds on, and it is named in `ProAccess` instead.
@@ -166,8 +167,8 @@ and ADR-041.
 
 ## Status
 
-**Built:** the engine and all twenty-seven lessons · Watch · Try · Complete · Home · ten renderers ·
-the full light design-system token layer · progress persistence · 920 passing engine tests.
+**Built:** the engine and all twenty-eight lessons · Watch · Try · Complete · Home · ten renderers ·
+the full light design-system token layer · progress persistence · 978 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

@@ -174,6 +174,12 @@ object ChallengeCatalog {
         // the questions. If a V2 challenge exists here it is a different kind of
         // assessment, not a generated version of this lesson.
         AlgorithmId.AES -> null
+        // Not authored. A generated variant would draw new primes and ask the same
+        // ten questions, which changes the arithmetic on screen and none of the
+        // judgements — and the numbers have to stay small enough to check by hand,
+        // which leaves very little room to generate within. If a V2 challenge exists
+        // here it is a different kind of assessment.
+        AlgorithmId.RSA -> null
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

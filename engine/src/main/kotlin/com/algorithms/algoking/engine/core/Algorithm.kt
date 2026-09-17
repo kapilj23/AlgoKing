@@ -88,6 +88,15 @@ data class Dataset(
      * when it arrived.
      */
     val aes: AesProblem? = null,
+    /**
+     * A toy key pair, for the lesson whose data is a chain of derived numbers
+     * rather than a block, a message or a structure.
+     *
+     * Optional and defaulted, the additive move `graph`, `tree`, `knapsack`,
+     * `cipher`, `xor`, `hash` and `aes` each made before it, so no existing lesson
+     * changed when it arrived.
+     */
+    val rsa: RsaProblem? = null,
 )
 
 enum class AlgorithmId {
@@ -170,6 +179,12 @@ enum class AlgorithmId {
     // AddRoundKey, ten to fourteen times over, with the last round leaving
     // MixColumns out.
     AES,
+
+    // Cryptography: the first asymmetric lesson in the library, and the answer to
+    // the question every symmetric cipher leaves open — how two people agree on a
+    // key without meeting. Two related keys, one publishable, built from a chain of
+    // small arithmetic a learner can check by hand.
+    RSA,
 
     // Data structures, not algorithms: there is no array to sort and no target to
     // find. What they teach is the rule that decides which item you may touch.

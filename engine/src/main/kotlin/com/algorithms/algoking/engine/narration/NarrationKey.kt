@@ -1647,4 +1647,185 @@ enum class NarrationId {
     AES_IDEA_5,
     AES_IDEA_6,
     AES_IDEA_7,
+
+    // ── RSA ───────────────────────────────────────────────────────────────────
+    // The first asymmetric lesson. Three wordings are load-bearing and should not
+    // be "tidied":
+    //  - never a claim that these numbers are secure. n = 55 factors by
+    //    inspection, so the caveat is on the picture for the whole lesson and the
+    //    recap names what real use takes: large parameters and OAEP padding;
+    //  - never "anyone can encrypt and only you can decrypt" as an unqualified
+    //    promise. What is true is narrower and is what the copy says: the private
+    //    key is what undoes the public key's work, and it is the half that is
+    //    kept;
+    //  - never a suggestion that a learner implement this. Textbook RSA is
+    //    deterministic and unpadded, which is exactly why it is a teaching device
+    //    and not a recipe.
+
+    // Labels that carry their own text, so a number, a pair or a short word does
+    // not need an enum entry of its own.
+    RSA_OPTION_NUMBER,
+    RSA_OPTION_PAIR,
+    RSA_OPTION_TEXT,
+
+    // -- What the app says as each beat lands ----------------------------------
+    RSA_STEP_SETUP,
+    RSA_STEP_ASYMMETRIC,
+    RSA_STEP_PRIMES,
+    RSA_STEP_MODULUS,
+    RSA_STEP_TOTIENT,
+    RSA_STEP_PUBLIC_EXPONENT,
+    RSA_STEP_PRIVATE_EXPONENT,
+    RSA_STEP_PUBLIC_KEY,
+    RSA_STEP_PRIVATE_KEY,
+    RSA_STEP_KEY_ROLES,
+    RSA_STEP_ENCRYPT,
+    RSA_STEP_DECRYPT,
+    RSA_STEP_ROUND_TRIP,
+    RSA_STEP_SECRET_KEY,
+    RSA_STEP_REAL_WORLD,
+
+    // -- Exercise 1 · which kind of cryptography -------------------------------
+    RSA_ASK_ASYMMETRIC,
+    RSA_HINT_ASYMMETRIC,
+    RSA_RETRY_LOOK_ASYMMETRIC,
+    RSA_RETRY_ASK_ASYMMETRIC,
+    RSA_RETRY_EXPLAIN_ASYMMETRIC,
+    RSA_WHY_NOT_SYMMETRIC,
+    RSA_WHY_NOT_HASHING,
+    RSA_WHY_NOT_COMPRESSION,
+    RSA_CORRECT_ASYMMETRIC,
+
+    // -- Exercise 2 · n = p × q ------------------------------------------------
+    RSA_ASK_MODULUS,
+    RSA_HINT_MODULUS,
+    RSA_RETRY_LOOK_MODULUS,
+    RSA_RETRY_ASK_MODULUS,
+    RSA_RETRY_EXPLAIN_MODULUS,
+    RSA_WHY_N_IS_TOTIENT,
+    RSA_WHY_N_IS_SUM,
+    RSA_WHY_N_IS_PARTIAL,
+    RSA_CORRECT_MODULUS,
+
+    // -- Exercise 3 · φ(n) = (p − 1)(q − 1) ------------------------------------
+    RSA_ASK_TOTIENT,
+    RSA_HINT_TOTIENT,
+    RSA_RETRY_LOOK_TOTIENT,
+    RSA_RETRY_ASK_TOTIENT,
+    RSA_RETRY_EXPLAIN_TOTIENT,
+    RSA_WHY_PHI_IS_N,
+    RSA_WHY_PHI_IS_PARTIAL,
+    RSA_WHY_PHI_IS_HALF,
+    RSA_CORRECT_TOTIENT,
+
+    // -- Exercise 4 · a legal public exponent ----------------------------------
+    RSA_ASK_PUBLIC_EXPONENT,
+    RSA_HINT_PUBLIC_EXPONENT,
+    RSA_RETRY_LOOK_PUBLIC_EXPONENT,
+    RSA_RETRY_ASK_PUBLIC_EXPONENT,
+    RSA_RETRY_EXPLAIN_PUBLIC_EXPONENT,
+    RSA_WHY_E_SHARES_FACTOR,
+    RSA_CORRECT_PUBLIC_EXPONENT,
+
+    // -- Exercise 5 · the private exponent -------------------------------------
+    RSA_ASK_PRIVATE_EXPONENT,
+    RSA_HINT_PRIVATE_EXPONENT,
+    RSA_RETRY_LOOK_PRIVATE_EXPONENT,
+    RSA_RETRY_ASK_PRIVATE_EXPONENT,
+    RSA_RETRY_EXPLAIN_PRIVATE_EXPONENT,
+    RSA_WHY_D_IS_E,
+    RSA_WHY_D_NOT_INVERSE,
+    RSA_CORRECT_PRIVATE_EXPONENT,
+
+    // -- Exercises 6 and 7 · the two keys --------------------------------------
+    RSA_ASK_PUBLIC_KEY,
+    RSA_HINT_PUBLIC_KEY,
+    RSA_RETRY_LOOK_PUBLIC_KEY,
+    RSA_RETRY_ASK_PUBLIC_KEY,
+    RSA_RETRY_EXPLAIN_PUBLIC_KEY,
+    RSA_CORRECT_PUBLIC_KEY,
+    RSA_ASK_PRIVATE_KEY,
+    RSA_HINT_PRIVATE_KEY,
+    RSA_RETRY_LOOK_PRIVATE_KEY,
+    RSA_RETRY_ASK_PRIVATE_KEY,
+    RSA_RETRY_EXPLAIN_PRIVATE_KEY,
+    RSA_CORRECT_PRIVATE_KEY,
+    RSA_WHY_KEY_SWAPPED,
+    RSA_WHY_KEY_IS_PRIVATE,
+    RSA_WHY_KEY_IS_PUBLIC,
+    RSA_WHY_KEY_USES_PHI,
+
+    // -- Exercise 8 · c = mᵉ mod n ---------------------------------------------
+    RSA_ASK_ENCRYPT,
+    RSA_HINT_ENCRYPT,
+    RSA_RETRY_LOOK_ENCRYPT,
+    RSA_RETRY_ASK_ENCRYPT,
+    RSA_RETRY_EXPLAIN_ENCRYPT,
+    RSA_WHY_C_NO_MOD,
+    RSA_WHY_C_MULTIPLIED,
+    RSA_WHY_C_USED_PHI,
+    RSA_WHY_C_UNCHANGED,
+    RSA_CORRECT_ENCRYPT,
+
+    // -- Exercise 9 · m = c^d mod n --------------------------------------------
+    RSA_ASK_DECRYPT,
+    RSA_HINT_DECRYPT,
+    RSA_RETRY_LOOK_DECRYPT,
+    RSA_RETRY_ASK_DECRYPT,
+    RSA_RETRY_EXPLAIN_DECRYPT,
+    RSA_WHY_M_IS_CIPHERTEXT,
+    RSA_WHY_M_IS_EXPONENT,
+    RSA_CORRECT_DECRYPT,
+
+    // -- Exercise 10 · which key stays secret ----------------------------------
+    RSA_ASK_SECRET_KEY,
+    RSA_HINT_SECRET_KEY,
+    RSA_RETRY_LOOK_SECRET_KEY,
+    RSA_RETRY_ASK_SECRET_KEY,
+    RSA_RETRY_EXPLAIN_SECRET_KEY,
+    RSA_WHY_SECRET_PUBLIC,
+    RSA_WHY_SECRET_BOTH,
+    RSA_WHY_SECRET_NEITHER,
+    RSA_CORRECT_SECRET_KEY,
+
+    // -- WATCH -----------------------------------------------------------------
+    RSA_WATCH_SETUP,
+    RSA_WATCH_SETUP_SUPPORT,
+    RSA_WATCH_ASYMMETRIC,
+    RSA_WATCH_ASYMMETRIC_SUPPORT,
+    RSA_WATCH_PRIMES,
+    RSA_WATCH_PRIMES_SUPPORT,
+    RSA_WATCH_MODULUS,
+    RSA_WATCH_MODULUS_SUPPORT,
+    RSA_WATCH_TOTIENT,
+    RSA_WATCH_TOTIENT_SUPPORT,
+    RSA_WATCH_PUBLIC_EXPONENT,
+    RSA_WATCH_PUBLIC_EXPONENT_SUPPORT,
+    RSA_WATCH_PRIVATE_EXPONENT,
+    RSA_WATCH_PRIVATE_EXPONENT_SUPPORT,
+    RSA_WATCH_PUBLIC_KEY,
+    RSA_WATCH_PUBLIC_KEY_SUPPORT,
+    RSA_WATCH_PRIVATE_KEY,
+    RSA_WATCH_PRIVATE_KEY_SUPPORT,
+    RSA_WATCH_KEY_ROLES,
+    RSA_WATCH_KEY_ROLES_SUPPORT,
+    RSA_WATCH_ENCRYPT,
+    RSA_WATCH_ENCRYPT_SUPPORT,
+    RSA_WATCH_DECRYPT,
+    RSA_WATCH_DECRYPT_SUPPORT,
+    RSA_WATCH_SECRET_KEY,
+    RSA_WATCH_SECRET_KEY_SUPPORT,
+    RSA_WATCH_REAL_WORLD,
+    RSA_WATCH_REAL_WORLD_SUPPORT,
+    RSA_WATCH_INSIGHT,
+    RSA_WATCH_INSIGHT_SUPPORT,
+    RSA_WATCH_SUMMARY,
+    RSA_WATCH_SUMMARY_SUPPORT,
+    RSA_IDEA_1,
+    RSA_IDEA_2,
+    RSA_IDEA_3,
+    RSA_IDEA_4,
+    RSA_IDEA_5,
+    RSA_IDEA_6,
+    RSA_IDEA_7,
 }

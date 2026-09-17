@@ -20,10 +20,10 @@ import com.algorithms.algoking.engine.core.AlgorithmId
  *
  *  1. **the Advanced shelf is the Pro shelf.** A lesson filed there is protected
  *     the day it is added, with nothing to remember;
- *  2. **[PRO_LESSONS] names the lessons that are Pro despite their shelf.** AES is
- *     the first and, at the time of writing, the only one — it belongs on the
- *     Cryptography shelf beside the two ciphers and the hash it builds on, and it
- *     is also the one lesson there that is worth paying for (ADR-049).
+ *  2. **[PRO_LESSONS] names the lessons that are Pro despite their shelf.** AES and
+ *     RSA are both real ciphers rather than teaching devices, so both belong on the
+ *     Cryptography shelf beside the two toy ciphers and the hash that lead up to
+ *     them — and both are worth paying for (ADR-049, ADR-050).
  *
  * Rule 2 is deliberately a *set of ids in this file* rather than a flag on the
  * entry, because the failure mode that matters is the one ADR-032 named: a second
@@ -38,16 +38,18 @@ object ProAccess {
     /**
      * Lessons that are Pro without being on the Pro shelf.
      *
-     * **AES is here rather than under "Advanced" because its category is a
-     * statement about what it is**, and filing a block cipher anywhere but
-     * Cryptography would put the wrong word on its card — the same argument ADR-048
-     * used to rename that shelf when a hash function joined two ciphers on it.
+     * **They are here rather than under "Advanced" because a category is a
+     * statement about what a lesson is**, and filing a block cipher or a public-key
+     * system anywhere but Cryptography would put the wrong word on its card — the
+     * same argument ADR-048 used to rename that shelf when a hash function joined
+     * two ciphers on it.
      *
      * Keep this small. A long list is a sign the category has stopped describing
      * the library, and the answer then is to fix the categories rather than to grow
-     * this set.
+     * this set. Two entries, both on one shelf and both for the same reason, is
+     * still the rule describing the library rather than fighting it.
      */
-    val PRO_LESSONS: Set<AlgorithmId> = setOf(AlgorithmId.AES)
+    val PRO_LESSONS: Set<AlgorithmId> = setOf(AlgorithmId.AES, AlgorithmId.RSA)
 
     /**
      * Whether a lesson needs Pro.

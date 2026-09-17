@@ -1,6 +1,10 @@
 package com.algorithms.algoking.engine.catalog
 
 import com.algorithms.algoking.engine.algorithms.aes.AesEncryptionAlgorithm
+import com.algorithms.algoking.engine.algorithms.rsa.RsaEncryptionAlgorithm
+import com.algorithms.algoking.engine.algorithms.rsa.RsaProjector
+import com.algorithms.algoking.engine.algorithms.rsa.RsaWatchNarrator
+import com.algorithms.algoking.engine.dataset.RsaDatasets
 import com.algorithms.algoking.engine.algorithms.aes.AesProjector
 import com.algorithms.algoking.engine.algorithms.aes.AesWatchNarrator
 import com.algorithms.algoking.engine.dataset.AesDatasets
@@ -400,6 +404,29 @@ object AlgorithmCatalog {
         tryDataset = AesDatasets.tryIt,
     )
 
+    /**
+     * The fifth Cryptography lesson, and the first that is **asymmetric**.
+     *
+     * Caesar, XOR and AES all share one key between the two parties, which leaves
+     * the question none of them can answer: how do two people who have never met
+     * agree on it? RSA is the answer, and the shape of it is a chain of small
+     * arithmetic — `n`, `φ(n)`, `e`, `d` — ending in two keys where one undoes the
+     * other and only one has to be kept.
+     *
+     * The numbers are deliberately tiny so every step can be checked by hand, and
+     * the lesson says on the picture, for its whole length, that this is why they
+     * are not secure. It is the second lesson on this shelf that is Pro (ADR-050).
+     */
+    fun rsa() = LessonPack(
+        id = AlgorithmId.RSA,
+        displayName = "RSA",
+        algorithm = RsaEncryptionAlgorithm(),
+        projector = RsaProjector(),
+        watchNarrator = RsaWatchNarrator(),
+        watchDataset = RsaDatasets.watch,
+        tryDataset = RsaDatasets.tryIt,
+    )
+
     fun bubbleSort() = LessonPack(
         id = AlgorithmId.BUBBLE_SORT,
         displayName = "Bubble Sort",
@@ -526,6 +553,7 @@ object AlgorithmCatalog {
         AlgorithmId.CAESAR_CIPHER -> caesarCipher()
         AlgorithmId.SHA_256 -> sha256()
         AlgorithmId.AES -> aes()
+        AlgorithmId.RSA -> rsa()
         AlgorithmId.BUBBLE_SORT -> bubbleSort()
         AlgorithmId.SELECTION_SORT -> selectionSort()
         AlgorithmId.INSERTION_SORT -> insertionSort()

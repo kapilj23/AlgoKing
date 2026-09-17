@@ -292,6 +292,21 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Violet,
         glyph = AlgoIcons.TileNodes,
     ),
+    // Last on the shelf, and the second Pro lesson on it (ADR-050). It comes after
+    // AES on purpose: every cipher before it shares one key between both sides, and
+    // "how do two strangers agree on that key?" is a question a learner only feels
+    // once they have met four algorithms that cannot answer it.
+    //
+    // Its category is "Cryptography" because that is what it is; being Pro is
+    // decided in `ProAccess`, not by a flag here (ADR-032, ADR-041, ADR-049).
+    AlgorithmEntry(
+        id = AlgorithmId.RSA,
+        title = "RSA",
+        description = "Two keys built from two primes — and only one is a secret.",
+        category = "Cryptography",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileNodes,
+    ),
 )
 
 /**

@@ -20,7 +20,7 @@ import org.junit.Test
  */
 class ProAccessTest {
 
-    /** The thirteen the paywall sells, by name, in library order. */
+    /** The fourteen the paywall sells, by name, in library order. */
     private val expectedPro = listOf(
         "Two Pointers",
         "Prefix Sum",
@@ -37,6 +37,8 @@ class ProAccessTest {
         // Pro without being on the Advanced shelf — the first lesson for which
         // those two are not the same thing (ADR-049).
         "AES",
+        // The second, and the first time rule 2 covered more than one lesson.
+        "RSA",
     )
 
     /** Every lesson that is free, by name. */
@@ -69,9 +71,9 @@ class ProAccessTest {
         .map { it.title }
 
     @Test
-    fun `exactly thirteen lessons are Pro`() {
+    fun `exactly fourteen lessons are Pro`() {
         val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category, it.id) }
-        assertEquals(13, pro.size)
+        assertEquals(14, pro.size)
         assertEquals(expectedPro, pro.map { it.title })
         // No duplicates — the paywall's list is what the learner is buying.
         assertEquals(pro.size, pro.map { it.id }.toSet().size)
@@ -97,8 +99,8 @@ class ProAccessTest {
 
     /** Rule 2 is deliberately small, and every id in it is a real lesson. */
     @Test
-    fun `the named Pro lessons are real, and there is only one`() {
-        assertEquals(setOf(AlgorithmId.AES), ProAccess.PRO_LESSONS)
+    fun `the named Pro lessons are real, and each is off the Pro shelf`() {
+        assertEquals(setOf(AlgorithmId.AES, AlgorithmId.RSA), ProAccess.PRO_LESSONS)
         ProAccess.PRO_LESSONS.forEach { id ->
             assertTrue("$id is in the library", algorithmLibrary.any { it.id == id })
             // A lesson named here must not also be on the Advanced shelf, or the
@@ -122,9 +124,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 27 lessons, and the partition is total: a lesson that fell out of both
+        // 28 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(27, algorithmLibrary.size)
+        assertEquals(28, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category, it.id) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category, it.id) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -178,7 +180,7 @@ class ProAccessTest {
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
         // The rule applied to the real catalogue rather than to a string: all
-        // thirteen are locked, and none of the fourteen free ones is.
+        // fourteen are locked, and none of the fourteen free ones is.
         for (entry in algorithmLibrary) {
             val expected = if (entry.title in expectedPro) {
                 AccessDecision.ShowPaywall
@@ -252,6 +254,73 @@ class ProAccessTest {
     @Test
     fun `a Pro learner tapping AES opens the lesson directly`() {
         val aes = algorithmLibrary.single { it.id == AlgorithmId.AES }
+        assertEquals(AccessDecision.OpenLesson, aes.locked(ProEntitlement.Pro))
+    }
+
+    // ── RSA ──────────────────────────────────────────────────────────────────
+
+    /**
+     * RSA is Pro, by the same rule AES is and for the same reason.
+     *
+     * This is the first time rule 2 has covered more than one lesson, which is the
+     * thing worth checking: the set is read, not a special case for one id.
+     */
+    @Test
+    fun `RSA is registered as PRO, on the Cryptography shelf`() {
+        val rsa = algorithmLibrary.single { it.id == AlgorithmId.RSA }
+
+        assertEquals("RSA", rsa.title)
+        assertEquals("Cryptography", rsa.category)
+        // Not filed on the Pro shelf...
+        assertFalse(rsa.category == ProAccess.PRO_CATEGORY)
+        // ...and Pro all the same.
+        assertTrue(ProAccess.requiresPro(rsa.category, rsa.id))
+        assertTrue(AlgorithmId.RSA in ProAccess.PRO_LESSONS)
+    }
+
+    @Test
+    fun `a free learner tapping RSA gets the paywall, and cannot bypass it`() {
+        val rsa = algorithmLibrary.single { it.id == AlgorithmId.RSA }
+
+        // The two states a learner who has not paid can be in, and both are refused.
+        assertEquals(AccessDecision.ShowPaywall, rsa.locked(ProEntitlement.Free))
+        assertEquals(AccessDecision.ShowPaywall, rsa.locked(ProEntitlement.Unknown))
+
+        // There is no other answer: `decide` is total over the entitlements, so
+        // "not entitled" cannot resolve to anything but the paywall.
+        listOf(ProEntitlement.Free, ProEntitlement.Unknown).forEach { entitlement ->
+            assertFalse(
+                "RSA must never open for $entitlement",
+                rsa.locked(entitlement) == AccessDecision.OpenLesson,
+            )
+        }
+    }
+
+    @Test
+    fun `a Pro learner tapping RSA opens the lesson directly`() {
+        val rsa = algorithmLibrary.single { it.id == AlgorithmId.RSA }
+        assertEquals(AccessDecision.OpenLesson, rsa.locked(ProEntitlement.Pro))
+    }
+
+    /**
+     * The regression claim, as a test: adding RSA moved nothing.
+     *
+     * Every lesson that was free before is still free, every lesson that was Pro
+     * before is still Pro, and AES in particular — the other lesson rule 2 covers —
+     * resolves exactly as it did.
+     */
+    @Test
+    fun `adding RSA moved nothing else`() {
+        assertEquals(expectedFree.sorted(), freeTitles().sorted())
+        assertEquals(expectedPro.sorted(), proTitles().sorted())
+
+        // The thirteen that were Pro before RSA are still exactly those thirteen.
+        assertEquals(expectedPro - "RSA", proTitles() - "RSA")
+
+        // And AES still resolves all three ways, unchanged.
+        val aes = algorithmLibrary.single { it.id == AlgorithmId.AES }
+        assertEquals(AccessDecision.ShowPaywall, aes.locked(ProEntitlement.Free))
+        assertEquals(AccessDecision.ShowPaywall, aes.locked(ProEntitlement.Unknown))
         assertEquals(AccessDecision.OpenLesson, aes.locked(ProEntitlement.Pro))
     }
 
@@ -344,12 +413,12 @@ class ProAccessTest {
      * on this shelf is not (ADR-049).
      */
     @Test
-    fun `the Cryptography shelf holds three free lessons and one Pro one`() {
+    fun `the Cryptography shelf holds three free lessons and two Pro ones`() {
         val cryptography = algorithmLibrary.filter { it.category == "Cryptography" }
-        assertEquals(4, cryptography.size)
+        assertEquals(5, cryptography.size)
 
         val locked = cryptography.filter { ProAccess.requiresPro(it.category, it.id) }
-        assertEquals(listOf("AES"), locked.map { it.title })
+        assertEquals(listOf("AES", "RSA"), locked.map { it.title })
 
         assertEquals(
             listOf("Caesar Cipher", "SHA-256 Hashing", "XOR Cipher"),

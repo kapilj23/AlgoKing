@@ -133,6 +133,14 @@ object Dimens {
      */
     val roundKeyLabelWidth = 28.dp
 
+    /**
+     * The gutter that names each value in RSA's derivation chain — `n`, `φ(n)`, `d`.
+     *
+     * Fixed so the symbols line up down the column and the eye can follow the chain,
+     * and wide enough for `φ(n)`, which is the longest of them.
+     */
+    val derivationSymbolWidth = 44.dp
+
     val legendSwatch = 14.dp
     val legendGap = Spacing.sm
 

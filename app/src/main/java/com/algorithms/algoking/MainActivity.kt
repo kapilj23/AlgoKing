@@ -408,9 +408,13 @@ private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
     // as a wall of names (ADR-049). It is also the only one of the four that is
     // Pro, so a free learner meets the paywall having just finished SHA-256.
     AlgorithmId.SHA_256 -> AlgorithmId.AES
+    // AES hands over to the lesson that answers the question it cannot: every
+    // cipher up to here shares one key between both sides, and RSA is where two
+    // strangers get one without meeting (ADR-050).
+    AlgorithmId.AES -> AlgorithmId.RSA
     // ...and then to the Advanced shelf, which is where the library stops teaching
     // named routines and starts teaching techniques.
-    AlgorithmId.AES -> AlgorithmId.TWO_POINTERS
+    AlgorithmId.RSA -> AlgorithmId.TWO_POINTERS
     AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
     AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
     // BFS immediately after DFS, so the contrast lands while DFS is still fresh —

@@ -364,6 +364,25 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "attack is known that beats trying every key, and that safety in practice comes " +
             "just as much from key management and the protocol around it."
 
+    // The two caveats are repeated here, where a learner reads them at the end of
+    // the run rather than skipping past them mid-lesson — ADR-047's placement for
+    // XOR's security note, ADR-048's for SHA-256's and ADR-049's for AES's.
+    AlgorithmId.RSA ->
+        "RSA is asymmetric: a public key and a private key, mathematically related, where " +
+            "what one does the other undoes. Key generation starts from two primes — " +
+            "n = p × q and φ(n) = (p − 1)(q − 1) — then picks a public exponent e with " +
+            "gcd(e, φ(n)) = 1 and finds the private exponent d with d × e ≡ 1 (mod φ(n)). " +
+            "The public key is (e, n) and the private key is (d, n); encryption is " +
+            "c = mᵉ mod n and decryption is m = c^d mod n, the same modular exponentiation " +
+            "with the other exponent. Only the private key has to be kept. That " +
+            "exponentiation is far more expensive than a symmetric cipher, which is why " +
+            "real systems commonly use asymmetric cryptography to agree on a key and " +
+            "something like AES for the data itself. The numbers here are a demonstration " +
+            "and not security: n = 55 factors by inspection, real RSA uses keys of 2048 " +
+            "bits or more, and textbook RSA without a padding scheme such as OAEP is " +
+            "deterministic and should not be used as it stands — in practice you reach for " +
+            "a reviewed library rather than writing any of this yourself."
+
     AlgorithmId.CAESAR_CIPHER ->
         "Every letter moves the same number of places, and the alphabet is a ring — which " +
             "is all `mod 26` means. Decrypting is the same walk backwards. One pass over " +

@@ -54,6 +54,7 @@ import com.algorithms.algoking.engine.scene.Scene
 import com.algorithms.algoking.engine.scene.SceneLayout
 import com.algorithms.algoking.engine.scene.GraphScene
 import com.algorithms.algoking.engine.scene.HashScene
+import com.algorithms.algoking.engine.scene.KeyPairScene
 import com.algorithms.algoking.engine.scene.PrefixScene
 import com.algorithms.algoking.engine.scene.SequenceScene
 import com.algorithms.algoking.ui.theme.AlgoColors
@@ -100,6 +101,8 @@ fun SceneRenderer(
         // The round strip is the control when the learner is asked which
         // transformation comes next, so this shape takes the slots too.
         is BlockCipherScene -> BlockCipherStage(scene, modifier, selectableSlots, onSelectSlot)
+        // The choice cards are the control when a judgement's options are sentences.
+        is KeyPairScene -> KeyPairStage(scene, modifier, selectableSlots, onSelectSlot)
         is DpTableScene -> DpTable(scene, modifier, selectableSlots, onSelectSlot)
     }
 }
@@ -654,6 +657,7 @@ fun SceneMeters(scene: Scene, modifier: Modifier = Modifier) {
         is BitwiseScene -> scene.meters
         is HashScene -> scene.meters
         is BlockCipherScene -> scene.meters
+        is KeyPairScene -> scene.meters
         is DpTableScene -> scene.meters
     }
     if (meters.isEmpty()) return
@@ -705,6 +709,8 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is HashScene -> scene.legendStates.toList()
         // A pipeline and a State, both carrying the same states.
         is BlockCipherScene -> scene.legendStates.toList()
+        // A derivation chain and two key cards, both carrying the same states.
+        is KeyPairScene -> scene.legendStates.toList()
         // A table still being posed has nothing to describe yet.
         is DpTableScene -> if (!scene.tableVisible) return else scene.cells.flatten().mapNotNull { it?.state }
         is BucketScene -> return
@@ -718,6 +724,7 @@ fun SceneLegend(scene: Scene, modifier: Modifier = Modifier) {
         is BitwiseScene -> scene.legendLabels
         is HashScene -> scene.legendLabels
         is BlockCipherScene -> scene.legendLabels
+        is KeyPairScene -> scene.legendLabels
         is DpTableScene -> scene.legendLabels
         is BucketScene -> return
     }

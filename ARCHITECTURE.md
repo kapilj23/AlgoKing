@@ -677,6 +677,10 @@ data class BlockCipherScene(...) : Scene // a 4 x 4 State whose rows and columns
                                         // are each named by a transformation that
                                         // acts on them, the round it is in, and
                                         // the key schedule (AES; ADR-049)
+data class KeyPairScene(...) : Scene    // a chain of named values, each produced
+                                        // from earlier ones by a printed formula,
+                                        // and the two keys it ends in (RSA;
+                                        // ADR-050)
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack
@@ -727,6 +731,22 @@ and a two-sided choice strip a cipher would null out. `SequenceScene`'s `GRID` l
 *wrap*, with no meaning in which line a box lands on, which is exactly the thing that is false
 here. Again no event, no interaction model, no cell state — the bytes are ordinary `Cell`s
 carrying a hex label, so the `SceneCell` that draws Caesar's letters draws these too (ADR-049).
+
+The eleventh, `KeyPairScene`, is a **derivation chain** — named scalars, each produced from
+earlier ones by a printed formula, all staying on screen because later ones read them. No
+existing shape holds that. `SequenceScene`'s slots are positions and its one `equation` is a
+two-operand `+`/`−` line, where this needs six different formulas including `mod` and
+exponentiation; `HashScene`'s pipeline stages are boxes the data passes *through* and carry no
+value of their own; and `BlockCipherScene` is the near miss, because it carries a key schedule
+— but that is *one* key expanded into many of the same kind, where RSA's two keys are different
+kinds with opposite rules, and saying which is which is half of what asymmetric means (ADR-050).
+
+**The lesson also settled where a question belongs.** SHA-256 and AES run their algorithm and
+then ask about it; RSA asks each value *at the point it would be computed*, because a chain
+shown whole before being asked about is one the learner reads off rather than derives. That has
+a structural consequence worth knowing: the frame collision ADR-049 had to fence with an inert
+step cannot arise when the questions are interleaved, because the pending question is always
+about the next value, which is correctly drawn as unknown.
 
 The fifth shape is the clearest statement of the rule the union exists for. A count table
 is not a sequence *because its slots are values rather than positions* — bucket 3 answers
@@ -1058,10 +1078,12 @@ Three rules hold this together:
    store every time and never cached to disk.
 3. **Access derives from what the lesson is**, so there is no `isPro` flag to keep in step
    with the Advanced shelf (ADR-032). The Advanced shelf is the Pro shelf, and a short set of
-   named lesson ids covers the case where the two come apart — AES is a block cipher, so its
-   category is Cryptography, and it is Pro all the same (ADR-049). Both rules are read by one
-   function in one object, and **both of its arguments are required**, so a caller that knows
-   only the category gets a compile error rather than a silently wrong answer.
+   named lesson ids covers the case where the two come apart — AES and RSA are real ciphers, so
+   their category is Cryptography, and they are Pro all the same (ADR-049, ADR-050). Both rules
+   are read by one function in one object, and **both of its arguments are required**, so a
+   caller that knows only the category gets a compile error rather than a silently wrong
+   answer. Adding the second named lesson cost one line and touched nothing else, which is the
+   evidence that set is the right shape rather than a flag in disguise.
 
 **Play Billing is connected** — `com.android.billingclient:billing:8.0.0`, implemented in
 `PlayBillingGateway`, the only file in the app that knows the library exists. It acknowledges
