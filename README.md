@@ -145,8 +145,9 @@ dynamic-programming lessons [`fibonacci-dp.md`](docs/fibonacci-dp.md) and
 ## Access
 
 Fourteen lessons are free and complete — both stages, the full guidance ladder, progress.
-Fourteen are **AlgoKing Pro**, a Play subscription: tapping one opens a paywall rather than
-the lesson. Pro adds lessons and never takes anything away from a free one.
+Fourteen are **AlgoKing Pro**, a **one-time purchase** on Google Play — bought once, owned
+permanently, nothing to renew: tapping one opens a paywall rather than the lesson. Pro adds
+lessons and never takes anything away from a free one.
 
 Twelve of those fourteen are the **Advanced** shelf, and access derives from that category
 rather than from a flag — so a lesson filed there is protected the day it is added. **AES is
@@ -160,10 +161,11 @@ Pro subscribers see none at all. Google's UMP gathers consent before any ad is r
 and production ad units are configured — debug builds stay on Google's test units, so a
 developer's own device can never touch the real one ([`docs/ads.md`](docs/ads.md)).
 
-Play Billing **is** connected (`billing:8.0.0`); the `algoking_pro` subscription still has to
-be configured in Play Console before anything can be sold, and until it is the paywall shows
-no price and its CTA stays disabled. See [`docs/pro-access.md`](docs/pro-access.md)
-and ADR-041.
+Play Billing **is** connected (`billing:8.0.0`) against the one-time product `algoking_pro`
+and its `buy` purchase option, which are configured in Play Console. The price on the paywall
+is Google Play's own localised string and is never written down anywhere in this repository;
+until the store answers, the screen says so rather than guessing. See
+[`docs/pro-access.md`](docs/pro-access.md), ADR-041 and ADR-051.
 
 ## Status
 

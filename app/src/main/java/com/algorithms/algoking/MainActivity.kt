@@ -208,6 +208,19 @@ private fun AlgoKingApp() {
             LaunchedEffect(current.algorithm) {
                 analytics.log(MonetizationEvent.PaywallViewed(current.algorithm?.name))
             }
+
+            // **The paywall closes the moment the store says Pro is owned**, by
+            // whatever route that happened: a purchase just completed, a restore
+            // found one, a pending payment cleared, or the query that runs at
+            // startup simply arrived after the learner had already tapped a locked
+            // lesson. Entitlement is the trigger rather than the purchase flow's
+            // own answer, so there is still exactly one thing that opens a paid
+            // lesson — what the store owns (ADR-041).
+            LaunchedEffect(entitlement) {
+                if (!entitlement.isPro) return@LaunchedEffect
+                subscriptions.clearOutcome()
+                route = current.algorithm?.let(Route::Watch) ?: Route.Home
+            }
             PaywallScreen(
                 billing = billing,
                 triggeringAlgorithm = name,
@@ -234,6 +247,9 @@ private fun AlgoKingApp() {
                                 is PurchaseOutcome.Cancelled ->
                                     MonetizationEvent.PurchaseCancelled(current.algorithm?.name)
 
+                                is PurchaseOutcome.Pending ->
+                                    MonetizationEvent.PurchasePending(current.algorithm?.name)
+
                                 is PurchaseOutcome.Failed ->
                                     MonetizationEvent.PurchaseFailed(outcome.message)
 
@@ -241,12 +257,10 @@ private fun AlgoKingApp() {
                                     MonetizationEvent.PurchaseFailed("unavailable")
                             },
                         )
-                        // Only a store-verified entitlement opens the lesson, and
-                        // it is re-read rather than assumed from the outcome.
-                        val id = current.algorithm
-                        if (subscriptions.entitlement.value.isPro && id != null) {
-                            route = Route.Watch(id)
-                        }
+                        // Nothing is navigated from here. Only a store-verified
+                        // entitlement opens a paid lesson, and the effect above
+                        // does that the instant one arrives — from this purchase
+                        // or from anywhere else.
                     }
                 },
                 onRestore = {

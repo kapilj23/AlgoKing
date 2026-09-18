@@ -1052,7 +1052,8 @@ initialise only after UMP consent. No user-generated content ever leaves the dev
 
 ### 10.6 Monetization — entitlement, and the seam under it
 
-The ten Advanced lessons require an AlgoKing Pro subscription (ADR-041,
+The fourteen Pro lessons require AlgoKing Pro — a **one-time purchase**, `algoking_pro`,
+bought through purchase option `buy` (ADR-041, ADR-049, ADR-050, ADR-051,
 `docs/pro-access.md`). The layer is pure Kotlin with no Android and no Compose, for the
 reason `AdPolicy` was (ADR-008): rules about what a learner has paid for are worth more as a
 truth table than as conditions inside screens.
@@ -1086,13 +1087,15 @@ Three rules hold this together:
    evidence that set is the right shape rather than a flag in disguise.
 
 **Play Billing is connected** — `com.android.billingclient:billing:8.0.0`, implemented in
-`PlayBillingGateway`, the only file in the app that knows the library exists. It acknowledges
-every new receipt, treats `PENDING` as not entitled, and derives entitlement solely from
-`queryPurchasesAsync`. `UnconfiguredBillingGateway` remains for unit tests and Compose
-previews, and still cannot produce `Pro` in any build type.
+`PlayBillingGateway`, the only file in the app that knows the library exists. It queries
+`algoking_pro` as `ProductType.INAPP`, sells the `buy` purchase option and no other,
+acknowledges every new receipt, **never consumes one**, treats `PENDING` as not entitled, and
+derives entitlement solely from `queryPurchasesAsync`. `UnconfiguredBillingGateway` remains
+for unit tests and Compose previews, and still cannot produce `Pro` in any build type.
 
-The `algoking_pro` subscription has yet to be configured in Play Console; until it is, the
-store reports no such product, the paywall says so and its CTA stays disabled.
+The two decisions inside the gateway that are *rules* — which receipt entitles a learner, and
+which purchase option is sold — live in `BillingRules` as pure functions over the app's own
+types, because the gateway itself cannot be run without a store and a device (ADR-051).
 
 ### 10.5 Performance budget
 

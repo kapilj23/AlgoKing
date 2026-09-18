@@ -27,30 +27,40 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Above it, `SubscriptionRepository` sees two flows and two suspend functions;
  * below it, nothing knows what a lesson is.
  *
+ * ### What is sold
+ *
+ * **One one-time product** — [PRO_PRODUCT_ID], bought through purchase option
+ * [PRO_PURCHASE_OPTION_ID] — queried as [BillingClient.ProductType.INAPP], never
+ * as a subscription. Owning it is permanent, so:
+ *
+ *  - the purchase is **acknowledged** and **never consumed.** Consuming a
+ *    one-time product tells Play the learner has used it up and may buy it again,
+ *    which is the opposite of a permanent unlock and would make every reinstall a
+ *    second sale. There is no call to `consumeAsync` in this file and a test reads
+ *    the file to keep it that way;
+ *  - entitlement is still **read from the store every time** rather than latched
+ *    to disk, because a refund has to be able to take it back (ADR-041).
+ *
  * ### Entitlement is queried, never inferred
  *
  * [entitlement] changes in exactly one place — [applyPurchases], which is fed by
  * `queryPurchasesAsync`. A completed purchase flow does **not** set it; the flow
  * finishing triggers a re-query, and it is the query's answer that counts. That is
  * what makes "the store said success but owns nothing" a case that grants nothing
- * rather than a case nobody thought about (ADR-041).
+ * rather than a case nobody thought about.
  *
- * A purchase is entitling only when the store reports `PURCHASED`. `PENDING` — a
+ * A receipt is entitling only when the store reports `PURCHASED`. `PENDING` — a
  * cash payment or a parental approval still in flight — is not, and is left to
- * become one when it clears.
- *
- * ### Acknowledgement
- *
- * Play refunds any purchase that is not acknowledged within three days, so every
- * new `PURCHASED` receipt is acknowledged here as soon as it is seen — including
- * ones that arrive from outside a purchase flow, which is what the query on start
- * is for.
+ * become one when it clears. Both of those rules are [BillingRules]', where they
+ * can be tested without a store.
  */
 class PlayBillingGateway(
     context: Context,
     private val scope: CoroutineScope,
     /** The Play Console product this app sells. See [PRO_PRODUCT_ID]. */
     private val productId: String = PRO_PRODUCT_ID,
+    /** The purchase option to buy it through. See [PRO_PURCHASE_OPTION_ID]. */
+    private val purchaseOptionId: String = PRO_PURCHASE_OPTION_ID,
 ) : BillingGateway {
 
     private val _billing = MutableStateFlow<BillingState>(BillingState.Loading)
@@ -60,8 +70,11 @@ class PlayBillingGateway(
     private val _entitlement = MutableStateFlow<ProEntitlement>(ProEntitlement.Unknown)
     override val entitlement: StateFlow<ProEntitlement> = _entitlement.asStateFlow()
 
-    /** The offer being sold, kept only so the flow can be launched against it. */
-    private var offer: SelectedOffer? = null
+    /** The option being sold, kept only so the flow can be launched against it. */
+    private var option: PurchaseOption? = null
+
+    /** The details the flow is launched against, kept beside the option it came from. */
+    private var currentDetails: ProductDetails? = null
 
     /**
      * The activity the purchase flow is launched from. Held as long as the gateway
@@ -76,6 +89,8 @@ class PlayBillingGateway(
         // Play reconnects the service itself; without this every transient
         // disconnect becomes an error the learner has to retry past.
         .enableAutoServiceReconnection()
+        // Required before Play will report a PENDING one-time purchase at all.
+        // Without it a cash payment simply never arrives.
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
         .setListener { result, purchases ->
             // Every route into a new purchase comes through here: the flow this
@@ -102,6 +117,10 @@ class PlayBillingGateway(
             object : BillingClientStateListener {
                 override fun onBillingSetupFinished(result: BillingResult) {
                     if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                        // On every start: what is for sale, and what is already
+                        // owned. The second half is what restores Pro after a
+                        // reinstall, a new device, or cleared app data, with the
+                        // learner doing nothing at all.
                         refresh()
                     } else {
                         _billing.value = BillingState.Unavailable(result.toUnavailable())
@@ -138,7 +157,10 @@ class PlayBillingGateway(
                 listOf(
                     QueryProductDetailsParams.Product.newBuilder()
                         .setProductId(productId)
-                        .setProductType(BillingClient.ProductType.SUBS)
+                        // A one-time product. Querying this id as SUBS returns
+                        // nothing at all, which is how a paywall ends up
+                        // permanently unable to sell something Play is selling.
+                        .setProductType(BillingClient.ProductType.INAPP)
                         .build(),
                 ),
             )
@@ -150,51 +172,45 @@ class PlayBillingGateway(
                 return@queryProductDetailsAsync
             }
             val product = details.productDetailsList.firstOrNull { it.productId == productId }
-            val selected = product?.let(::selectOffer)
-            if (selected == null) {
-                // Connected, and the id is not configured or has no offer. Almost
-                // always a Play Console problem rather than a device one.
-                offer = null
+            val selected = product?.let {
+                BillingRules.selectPurchaseOption(it.purchaseOptions(), purchaseOptionId)
+            }
+            if (product == null || selected == null) {
+                // Connected, and the id is not configured, or is inactive, or has
+                // no option matching the one this app sells.
+                option = null
+                currentDetails = null
                 _billing.value = BillingState.Unavailable(BillingUnavailable.NO_PRODUCTS)
                 return@queryProductDetailsAsync
             }
-            offer = selected
+            option = selected
             currentDetails = product
             _billing.value = BillingState.Ready(selected.toProProduct(product))
         }
     }
 
     /**
-     * Picks the offer to sell.
+     * Every purchase option Play reports for this product, in one list.
      *
-     * An offer tagged `recommended` wins, so which plan is promoted is decided in
-     * Play Console rather than in this file; otherwise the first offer is used.
-     * **Nothing here invents a "best value" badge** — that flag is the tag's, and
-     * absent tags mean an unbadged plan.
+     * A product configured with purchase options reports them through
+     * `oneTimePurchaseOfferDetailsList`; a legacy one-time product predates that
+     * and reports a single offer with no option id. Reading both and letting
+     * [BillingRules.selectPurchaseOption] decide means the gateway does not have
+     * to know which shape Play Console happens to be using.
      */
-    private fun selectOffer(product: ProductDetails): SelectedOffer? {
-        val offers = product.subscriptionOfferDetails.orEmpty()
-        if (offers.isEmpty()) return null
-        val chosen = offers.firstOrNull { details ->
-            details.offerTags.any { it.equals(RECOMMENDED_TAG, ignoreCase = true) }
-        } ?: offers.first()
-
-        val phases = chosen.pricingPhases.pricingPhaseList
-        // The recurring phase is what the learner will actually be charged, every
-        // period, once any introductory phase has run out.
-        val recurring = phases.lastOrNull() ?: return null
-        // A phase that costs nothing before it is the trial, and it is described
-        // only because the store described it.
-        val free = phases.dropLast(1).firstOrNull { it.priceAmountMicros == 0L }
-
-        return SelectedOffer(
-            offerToken = chosen.offerToken,
-            formattedPrice = recurring.formattedPrice,
-            billingPeriod = periodLabel(recurring.billingPeriod),
-            recommended = chosen.offerTags.any { it.equals(RECOMMENDED_TAG, ignoreCase = true) },
-            trial = free?.let { "${periodPhrase(it.billingPeriod)} free, then" },
-        )
+    private fun ProductDetails.purchaseOptions(): List<PurchaseOption> {
+        val listed = oneTimePurchaseOfferDetailsList.orEmpty().map { it.toPurchaseOption() }
+        if (listed.isNotEmpty()) return listed
+        return listOfNotNull(oneTimePurchaseOfferDetails?.toPurchaseOption())
     }
+
+    private fun ProductDetails.OneTimePurchaseOfferDetails.toPurchaseOption() = PurchaseOption(
+        purchaseOptionId = purchaseOptionId,
+        offerToken = offerToken.orEmpty(),
+        // Play's own localised string, passed through untouched.
+        formattedPrice = formattedPrice,
+        offerTags = offerTags.orEmpty(),
+    )
 
     // -- What is owned --------------------------------------------------------
 
@@ -208,12 +224,13 @@ class PlayBillingGateway(
      *
      * Returns false when the store could not answer — which leaves entitlement
      * [ProEntitlement.Unknown] rather than downgrading it to Free, because a bad
-     * network is not evidence that a subscription ended.
+     * network is not evidence that a purchase was refunded.
      */
     private suspend fun queryPurchasesNow(): Boolean =
         kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             val params = QueryPurchasesParams.newBuilder()
-                .setProductType(BillingClient.ProductType.SUBS)
+                // One-time purchases. The half of this class that restores Pro.
+                .setProductType(BillingClient.ProductType.INAPP)
                 .build()
 
             client.queryPurchasesAsync(params) { result, purchases ->
@@ -230,20 +247,25 @@ class PlayBillingGateway(
     /**
      * **The only place entitlement is set.**
      *
-     * A receipt entitles the learner when the store says `PURCHASED` and it names
-     * this product. Anything else — pending, unspecified, a different product —
-     * does not.
+     * The rule itself is [BillingRules.entitlement]: a receipt entitles the
+     * learner when the store says `PURCHASED` and it names this product, and
+     * anything else — pending, unspecified, a different product — does not. This
+     * function is the wiring around it.
      */
     private fun applyPurchases(purchases: List<Purchase>) {
-        val owned = purchases.filter { purchase ->
-            purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-                productId in purchase.products
-        }
-        owned.filterNot { it.isAcknowledged }.forEach(::acknowledge)
-        _entitlement.value = if (owned.isEmpty()) ProEntitlement.Free else ProEntitlement.Pro
+        val receipts = purchases.map { it.toReceipt() }
+        val unacknowledged = BillingRules.toAcknowledge(receipts, productId).map { it.token }
+        purchases.filter { it.purchaseToken in unacknowledged }.forEach(::acknowledge)
+        _entitlement.value = BillingRules.entitlement(receipts, productId)
     }
 
-    /** Play refunds anything unacknowledged after three days. */
+    /**
+     * Play refunds anything unacknowledged after three days.
+     *
+     * Acknowledged, **never consumed**: consuming would tell Play the learner has
+     * used the product up and may buy it again, and this one is a permanent
+     * unlock.
+     */
     private fun acknowledge(purchase: Purchase) {
         val params = AcknowledgePurchaseParams.newBuilder()
             .setPurchaseToken(purchase.purchaseToken)
@@ -255,22 +277,24 @@ class PlayBillingGateway(
 
     override suspend fun purchase(): PurchaseOutcome {
         val activity = host ?: return PurchaseOutcome.Failed("no screen to open Google Play on")
-        val selected = offer ?: return PurchaseOutcome.Unavailable
+        val selected = option ?: return PurchaseOutcome.Unavailable
         val details = currentDetails ?: return PurchaseOutcome.Unavailable
 
         // Drain anything a previous flow left behind, so this attempt cannot read
         // the last one's answer.
         while (purchaseUpdates.tryReceive().isSuccess) Unit
 
+        val product = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(details)
+            .apply {
+                // A product with purchase options names the one being bought; a
+                // legacy one-time product has no token and must not be given one.
+                if (selected.offerToken.isNotBlank()) setOfferToken(selected.offerToken)
+            }
+            .build()
+
         val flowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(
-                listOf(
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                        .setProductDetails(details)
-                        .setOfferToken(selected.offerToken)
-                        .build(),
-                ),
-            )
+            .setProductDetailsParamsList(listOf(product))
             .build()
 
         val launch = client.launchBillingFlow(activity, flowParams)
@@ -299,8 +323,8 @@ class PlayBillingGateway(
 
         return when {
             _entitlement.value.isPro -> PurchaseOutcome.Purchased
-            update.purchases.any { it.purchaseState == Purchase.PurchaseState.PENDING } ->
-                PurchaseOutcome.Failed("payment is still pending with Google Play")
+            BillingRules.isPending(update.purchases.map { it.toReceipt() }, productId) ->
+                PurchaseOutcome.Pending
 
             else -> PurchaseOutcome.Failed("the purchase could not be confirmed")
         }
@@ -328,25 +352,24 @@ class PlayBillingGateway(
         client.endConnection()
     }
 
-    /** The details the flow is launched against, kept beside the offer it came from. */
-    private var currentDetails: ProductDetails? = null
+    private fun Purchase.toReceipt() = Receipt(
+        products = products,
+        state = when (purchaseState) {
+            Purchase.PurchaseState.PURCHASED -> ReceiptState.PURCHASED
+            Purchase.PurchaseState.PENDING -> ReceiptState.PENDING
+            else -> ReceiptState.UNSPECIFIED
+        },
+        acknowledged = isAcknowledged,
+        token = purchaseToken,
+    )
 
-    private fun SelectedOffer.toProProduct(details: ProductDetails) = ProProduct(
+    private fun PurchaseOption.toProProduct(details: ProductDetails) = ProProduct(
         id = productId,
         name = details.name.ifBlank { "AlgoKing Pro" },
         // Play's own localised string, passed through untouched.
         formattedPrice = formattedPrice,
-        billingPeriod = billingPeriod,
-        recommended = recommended,
-        trial = trial,
-    )
-
-    private data class SelectedOffer(
-        val offerToken: String,
-        val formattedPrice: String,
-        val billingPeriod: String,
-        val recommended: Boolean,
-        val trial: String?,
+        priceDetail = ONE_TIME_PURCHASE,
+        recommended = offerTags.any { it.equals(RECOMMENDED_TAG, ignoreCase = true) },
     )
 
     private data class PurchaseUpdate(
@@ -356,14 +379,30 @@ class PlayBillingGateway(
 
     companion object {
         /**
-         * **The subscription id, which must exist in Play Console with this exact
-         * spelling**, as a subscription (not an in-app product), with at least one
-         * base plan and an active offer.
+         * **The product id, which must exist in Play Console with this exact
+         * spelling**, as a **one-time product** (not a subscription), active, with
+         * a purchase option named [PRO_PURCHASE_OPTION_ID].
          *
          * Nothing else in the app names a product, so changing what is sold is
          * changing this string plus the Play Console configuration.
          */
         const val PRO_PRODUCT_ID: String = "algoking_pro"
+
+        /**
+         * The purchase option `algoking_pro` is bought through.
+         *
+         * The app sells this one or nothing: a product that comes back with other
+         * options and not this one is reported as unsellable rather than having
+         * one of them substituted (see [BillingRules.selectPurchaseOption]).
+         */
+        const val PRO_PURCHASE_OPTION_ID: String = "buy"
+
+        /**
+         * The line under the price. Not a billing period — there is not one, and
+         * a one-time product that implied a renewal would be a misrepresentation
+         * on the one screen where that costs the most.
+         */
+        const val ONE_TIME_PURCHASE: String = "one-time purchase"
 
         /**
          * An offer tagged this way in Play Console is the one promoted, and the
@@ -405,34 +444,4 @@ private fun BillingResult.toPurchaseOutcome(): PurchaseOutcome = when (responseC
     -> PurchaseOutcome.Failed("no connection to Google Play")
 
     else -> PurchaseOutcome.Failed(debugMessage.ifBlank { "Google Play returned $responseCode" })
-}
-
-/**
- * `P1Y` → `per year`. Play speaks ISO 8601 durations; a learner does not.
- *
- * Anything unrecognised falls back to the raw period rather than to a guess: a
- * wrong billing period on a paywall is a misrepresentation, and an odd-looking one
- * is merely ugly.
- */
-internal fun periodLabel(iso: String): String = when (iso) {
-    "P1W" -> "per week"
-    "P1M" -> "per month"
-    "P3M" -> "every 3 months"
-    "P6M" -> "every 6 months"
-    "P1Y" -> "per year"
-    else -> iso
-}
-
-/** `P2W` → `2 weeks`, for the trial phrase. */
-internal fun periodPhrase(iso: String): String {
-    val match = Regex("^P(\\d+)([DWMY])$").find(iso) ?: return iso
-    val (count, unit) = match.destructured
-    val name = when (unit) {
-        "D" -> "day"
-        "W" -> "week"
-        "M" -> "month"
-        "Y" -> "year"
-        else -> return iso
-    }
-    return if (count == "1") "1 $name" else "$count ${name}s"
 }

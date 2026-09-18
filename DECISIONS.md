@@ -3196,6 +3196,104 @@ All three are asserted against the resolved copy rather than trusted to review.
 
 ---
 
+## ADR-051 — Pro is a one-time purchase, and the gateway's rules move out of the gateway
+
+**Decision.** AlgoKing Pro is sold as a **one-time product** — `algoking_pro`, bought
+through purchase option **`buy`** — and no longer as a subscription. `PlayBillingGateway`
+queries and restores it as `ProductType.INAPP`, launches the flow against that option's
+offer token, acknowledges the receipt and **never consumes it**. The two decisions inside
+the gateway that are rules rather than plumbing move to a new pure `BillingRules`. Nothing
+else about access, the paywall or ads changed. Full detail: `docs/pro-access.md`.
+
+⚠ **Product-owner decision**, 2026-09-18: the product exists in Play Console as a one-time
+product with purchase option `buy`, and the app is to sell exactly that.
+
+### Why the type change is not a small one
+
+A subscription and a one-time product are different Play APIs end to end, and the failure
+mode is silent: `queryProductDetailsAsync` for a one-time id **as `SUBS` returns nothing at
+all**, and so does `queryPurchasesAsync`. An app left on the old type does not crash and
+does not warn — it simply reports "the product could not be loaded" forever, and a learner
+who already owns Pro is never restored. So this is not a flag: it is the product type on
+both queries, the offer the flow is launched against, and what a receipt is allowed to mean.
+
+**Two things did not change, and they are the two that carry the risk.** Entitlement still
+comes only from `queryPurchasesAsync` and is never inferred from a purchase flow's own
+report of success (ADR-041), and it is still never written to disk — a refund has to be able
+to take Pro away, which is exactly what makes a cached `isPro` boolean the wrong shape here
+even for a permanent unlock.
+
+### The purchase is acknowledged and never consumed
+
+The one new way to get this wrong. Consuming a one-time product tells Play the learner has
+used it up and may buy it again — so a consumed Pro unlock would be **re-sold on the next
+reinstall**, to someone who already paid. Acknowledgement is still required within three
+days or Play refunds it. Neither has an in-app symptom on the day it is written, so
+`BillingRulesTest` reads the gateway's source and fails if `consumeAsync` or `ConsumeParams`
+ever appears in it, the same call ADR-042's ad-id tests made about `build.gradle.kts`.
+
+### `PENDING` became its own outcome
+
+It was reported as `Failed("payment is still pending")`, which put *"That did not go
+through"* on the screen of someone whose cash payment is about to clear. A pending payment
+is neither a failure nor a success, and on an India-weighted audience (PRODUCT_SPEC.md §16)
+it is not a rare path — so `PurchaseOutcome.Pending` says so plainly, unlocks nothing, and
+the receipt becomes entitling if and when Play reports `PURCHASED`.
+
+### The rules left the gateway, because the gateway cannot be run
+
+`PlayBillingGateway` needs a store, a device and a signed build, so every rule inside it was
+untestable by construction. Two of them are not plumbing at all:
+
+- **which receipt entitles a learner** — `PURCHASED` and naming this product, and nothing
+  else, with `PENDING` and `UNSPECIFIED` explicitly not entitling;
+- **which purchase option is sold** — `buy`, or a legacy single unnamed offer, and
+  otherwise nothing.
+
+They now live in `BillingRules` over `Receipt` and `PurchaseOption`, this app's own types,
+which the gateway maps Play's classes into at its boundary. That is ADR-008's call for the
+ad rules applied to the billing ones, and it is what makes "a pending payment grants
+nothing" a test that runs in milliseconds on a laptop instead of a thing someone has to
+remember while reading a callback.
+
+**A near miss is refused rather than substituted.** If Play returns options and none is
+`buy`, the paywall reports that nothing can be sold. Quietly charging for a different
+purchase option than the app was built against — a rental, an upgrade at another price — is
+worse than not selling, because the learner is charged for it.
+
+### The paywall shows Play's price and closes on entitlement
+
+`formattedPrice` is Google Play's own localised string, passed through untouched; there is
+still no price, currency or amount written anywhere in the app, and a test asserts that
+across the whole billing package and the paywall. What was `ProProduct.billingPeriod` is now
+`priceDetail` and reads *one-time purchase*: a field of the old name holding that value is
+the sort of small untruth that eventually persuades someone to put a renewal date on a
+screen that has none.
+
+The paywall now closes **on entitlement rather than on the purchase call returning** — so it
+also closes for a restore, for a pending payment that clears, and for the query that runs at
+startup arriving after the learner has already tapped a locked lesson. One trigger, and it
+is still the store's answer.
+
+**Alternatives considered.**
+- *Keep `SUBS` and add an `INAPP` path beside it.* Rejected: two product models to keep in
+  step for a product that is one of them, and the dead half is the one that silently returns
+  nothing.
+- *Select the first purchase option when `buy` is missing.* Rejected above.
+- *Treat `PENDING` as entitling and reconcile later.* Rejected: it gives Pro away for a
+  payment that may never clear, and the reconciliation is a refund the learner experiences
+  as the app taking something back.
+- *Consume the purchase so it can be re-bought.* Rejected — it is a permanent unlock, and
+  this is how one gets sold twice.
+- *Cache the entitlement so a Pro learner is never briefly shown the paywall.* Rejected
+  (ADR-041): a cached boolean survives a refund, and the real fix was the paywall closing
+  the moment the store answers.
+- *Rename `SubscriptionRepository`.* Not done. It is one rename away from being accurate and
+  it touches the one call site, but it is churn in the middle of a product-type change;
+  noted here so the next person knows it is deliberate rather than missed.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

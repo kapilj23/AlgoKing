@@ -348,8 +348,8 @@ fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) 
                     "why they all work in airplane mode.\n\nTwo Google services are the " +
                     "exception. AlgoKing Pro: opening the paywall asks Google Play for the " +
                     "price, and buying or restoring goes through Google Play, which handles " +
-                    "the payment and tells this app one thing back — whether a subscription " +
-                    "is active. We never see your payment details.",
+                    "the payment and tells this app one thing back — whether you own Pro. " +
+                    "We never see your payment details.",
             ),
             InfoSection(
                 heading = "Advertising",
@@ -357,7 +357,7 @@ fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) 
                     "stage of a lesson, and nowhere else — no banners, no rewarded ads, and " +
                     "nothing during a lesson. Google's ad service uses your device's " +
                     "advertising ID to choose and measure those ads; you can reset or delete " +
-                    "that ID in Android's privacy settings.\n\nPro subscribers see no ads at " +
+                    "that ID in Android's privacy settings.\n\nPro learners see no ads at " +
                     "all.",
             ),
             InfoSection(
@@ -367,10 +367,11 @@ fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) 
                     "us to delete.",
             ),
             InfoSection(
-                heading = "Your subscription",
-                body = "A Pro subscription belongs to your Google account, not to this app, " +
-                    "and is managed and cancelled in the Play Store. Reinstalling restores it " +
-                    "with Restore purchases.",
+                heading = "Your purchase",
+                body = "AlgoKing Pro is a one-time purchase, not a subscription: it is bought " +
+                    "once and there is nothing to renew or cancel. It belongs to your Google " +
+                    "account rather than to this app, so reinstalling or moving to a new " +
+                    "device restores it with Restore purchases.",
             ),
             InfoSection(
                 heading = "Children",

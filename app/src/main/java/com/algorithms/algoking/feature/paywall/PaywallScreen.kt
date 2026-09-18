@@ -248,6 +248,9 @@ private fun Includes() {
             Gap(Spacing.sm)
             listOf(
                 "$proLessonCount Pro lessons",
+                // True of a one-time product, and worth saying on a screen where
+                // people have learned to expect a recurring charge.
+                "Bought once — not a subscription, and yours permanently",
                 "Interactive WATCH and TRY for every one",
                 "Graph, tree, dynamic-programming and cipher algorithms",
                 "Learn by driving the algorithm, not memorising it",
@@ -303,6 +306,8 @@ private fun PlanCard(billing: BillingState, onRetry: () -> Unit) {
                     )
                     Gap(Spacing.xxs)
                     Text(
+                        // The price is the store's and has not arrived yet.
+                        // Nothing here guesses at one in the meantime.
                         text = "Checking the price with Google Play…",
                         style = AlgoType.bodyMedium,
                         color = AlgoColors.textMuted,
@@ -367,20 +372,20 @@ private fun ReadyPlan(product: ProProduct) {
                     }
                 }
             }
-            product.trial?.let {
-                Gap(Spacing.xxs)
-                Text(it, style = AlgoType.bodyMedium, color = AlgoColors.textMuted)
-            }
         }
         Gap(Spacing.sm)
         Column(horizontalAlignment = Alignment.End) {
             Text(
+                // Google Play's own localised string. Never assembled here, and
+                // never a number written into this app.
                 text = product.formattedPrice,
                 style = AlgoType.numeralMedium,
                 color = AlgoColors.primary,
             )
             Text(
-                text = product.billingPeriod,
+                // "one-time purchase" — what kind of purchase it is, because it
+                // does not recur and must not look as though it might.
+                text = product.priceDetail,
                 style = AlgoType.labelSmall,
                 color = AlgoColors.textMuted,
             )
@@ -397,7 +402,7 @@ private fun unavailableLine(reason: BillingUnavailable): String = when (reason) 
         "Google Play is not available on this device, so Pro cannot be purchased here."
 
     BillingUnavailable.NO_PRODUCTS ->
-        "The subscription could not be loaded from Google Play. Please try again later."
+        "Pro could not be loaded from Google Play. Please try again later."
 
     BillingUnavailable.NETWORK ->
         "No connection to Google Play. Check your network and try again."
@@ -409,6 +414,12 @@ private fun OutcomeLine(outcome: PurchaseOutcome) {
     val (text, colour) = when (outcome) {
         is PurchaseOutcome.Purchased ->
             "Purchase complete — Pro is unlocked." to AlgoColors.onSuccessSoft
+
+        // Neither success nor failure, and said as neither. Nothing is unlocked
+        // until Google Play reports the payment as complete.
+        is PurchaseOutcome.Pending ->
+            "Google Play is still processing the payment. Pro unlocks as soon as " +
+                "it completes." to AlgoColors.textSecondary
 
         is PurchaseOutcome.Cancelled ->
             "Purchase cancelled. Nothing was charged." to AlgoColors.textMuted

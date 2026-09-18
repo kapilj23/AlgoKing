@@ -49,6 +49,16 @@ sealed interface MonetizationEvent {
 
     data class PurchaseCancelled(val algorithm: String?) : MonetizationEvent
 
+    /**
+     * The payment is in flight and has not completed.
+     *
+     * Its own event rather than a [PurchaseFailed] with a note, because the two
+     * mean opposite things to anyone reading the numbers later: a pending payment
+     * is a sale that has not landed yet, and filing it under failures would make
+     * the paywall look broken in exactly the market where cash payments are common.
+     */
+    data class PurchasePending(val algorithm: String?) : MonetizationEvent
+
     /** [reason] is a store-provided code or message, never the learner's words. */
     data class PurchaseFailed(val reason: String) : MonetizationEvent
 

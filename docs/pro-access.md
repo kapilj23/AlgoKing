@@ -1,8 +1,22 @@
 # AlgoKing Pro — access, paywall and billing
 
-**Status:** UI and **Play Billing both connected** · 2026-09-10 (shelf updated 2026-09-17, twice) · the product is not yet configured in Play Console
-**Decisions:** ADR-041 (the shelf) · ADR-049 and ADR-050 (lessons that are Pro without being on it)
-**Spec:** `PRODUCT_SPEC.md` §1, amended
+**Status:** UI and **Play Billing both connected**, against a **one-time product** · 2026-09-18 · unit-tested; **on-device pass still outstanding**
+**Decisions:** ADR-041 (the shelf) · ADR-049 and ADR-050 (lessons that are Pro without being on it) · **ADR-051 (one-time product, `buy`)**
+**Spec:** `PRODUCT_SPEC.md` §1, amended twice
+
+---
+
+## What is sold
+
+| | |
+|---|---|
+| Product id | **`algoking_pro`** — `PlayBillingGateway.PRO_PRODUCT_ID`, the only place a product is named |
+| Product type | **One-time product** (`ProductType.INAPP`). **Not a subscription** |
+| Purchase option | **`buy`** — `PlayBillingGateway.PRO_PURCHASE_OPTION_ID` |
+| What it is | a permanent unlock: bought once, nothing to renew, nothing to cancel |
+| Acknowledged | **yes**, every new `PURCHASED` receipt, within Play's three-day window |
+| Consumed | **never.** Consuming would tell Play the learner has used it up and may buy it again — a Pro unlock re-sold on the next reinstall |
+| Price | Google Play's own localised `formattedPrice`, passed through untouched. **No price, currency or amount is written anywhere in this repository**, and a test asserts it |
 
 ---
 
@@ -83,8 +97,8 @@ someone who does not is giving it away.
   trusting the outcome. A flow that reports success while the store owns nothing
   grants nothing — there is a test for exactly that.
 - Nothing is persisted. Progress is latched because it is earned (ADR-028); an
-  entitlement is the opposite and must be able to go away on a refund, an expiry or
-  a cancellation.
+  entitlement is the opposite and must be able to go away on a refund or a
+  revocation by Play.
 
 ## Billing status — **connected**
 
@@ -93,43 +107,60 @@ the only file in the app that knows the library exists. It:
 
 - connects with `enableAutoServiceReconnection`, so a transient disconnect is not
   an error the learner has to retry past;
-- queries the subscription product and picks the offer, preferring one tagged
-  `recommended` in Play Console — **the only thing that earns the "BEST VALUE"
-  badge**;
-- passes Play's **`formattedPrice` through untouched**, and turns only the ISO 8601
-  billing period into words (`P1Y` → *per year*), falling back to the raw value
-  rather than guessing at one it does not recognise;
-- launches the flow, and **acknowledges** every new `PURCHASED` receipt — Play
-  refunds anything unacknowledged after three days;
-- derives entitlement **only** from `queryPurchasesAsync`, treating `PENDING` — a
-  cash payment or a parental approval in flight — as not entitled;
+- enables pending one-time purchases (`enableOneTimeProducts()`), without which
+  Play never reports a `PENDING` receipt at all;
+- queries `algoking_pro` as **`ProductType.INAPP`** and selects the **`buy`**
+  purchase option — or, for a legacy one-time product with a single unnamed offer,
+  that one. **A near miss is never substituted**: options that exist but do not
+  include `buy` are reported as nothing sellable, because charging for a purchase
+  option the app was not built against is worse than not selling;
+- passes Play's **`formattedPrice` through untouched**, and prints *one-time
+  purchase* under it rather than a billing period, because there is not one;
+- launches the flow against that option's offer token, and **acknowledges** every
+  new `PURCHASED` receipt — Play refunds anything unacknowledged after three days;
+- **never consumes a purchase**, so the unlock stays permanent and cannot be
+  re-sold on a reinstall. `BillingRulesTest` reads this file and fails if
+  `consumeAsync` ever appears in it;
+- derives entitlement **only** from `queryPurchasesAsync` (`INAPP`), treating
+  `PENDING` — a cash payment or a parental approval in flight — as not entitled;
 - leaves entitlement `Unknown` rather than `Free` when the store cannot be reached,
   so a bad network never flickers a paying learner out of their lessons.
+
+The two decisions in there that are *rules* rather than plumbing — **which receipt
+entitles a learner**, and **which purchase option is sold** — live in
+`billing/BillingRules.kt` as pure functions over this app's own `Receipt` and
+`PurchaseOption` types, which the gateway maps Play's classes into at its boundary.
+The gateway cannot be run without a store and a device; the rules run in
+milliseconds on a laptop (ADR-051).
 
 `UnconfiguredBillingGateway` survives for unit tests and Compose previews, and
 still cannot produce `Pro`.
 
-### What is still needed in Play Console
+### What the app expects from Play Console
 
-The app sells the product id **`algoking_pro`** — `PlayBillingGateway.PRO_PRODUCT_ID`,
-the only place in the codebase a product is named. It must exist as a
-**subscription** (not an in-app product), with at least one base plan and an active
-offer.
+| | |
+|---|---|
+| Product id | `algoking_pro` |
+| Type | **One-time product**, not a subscription |
+| Purchase option id | `buy` |
+| State | active, and in a released track the test account can reach |
 
-Until it does, the store answers "no such product", the paywall reports
-`NO_PRODUCTS` and the CTA stays disabled. That is what an unconfigured product
-looks like from the device, and it is honest: no price is shown and nothing can be
-bought.
+If the id is missing, inactive, or carries no `buy` option, the store answers
+nothing sellable, the paywall reports `NO_PRODUCTS` and the CTA stays disabled —
+no price is shown and nothing can be bought, which is the honest state rather than
+a crash.
 
-Tag an offer **`recommended`** to promote it and give it the badge. Nothing in the
-app decides that.
+Tag an offer **`recommended`** to promote it and give it the "BEST VALUE" badge.
+Nothing in the app decides that, and with a single purchase option there is
+nothing to compare it against — the mechanism is kept because it is the store's to
+drive, not the app's.
 
 ### Known gap: refresh on resume
 
 Purchases made *inside* the app arrive through `PurchasesUpdatedListener`; the
 state is otherwise re-read when the app starts and when the paywall's retry is
-tapped. A subscription refunded or cancelled from the Play Store while the app sits
-in the background is therefore noticed on the next start rather than on resume.
+tapped. A purchase refunded or revoked from the Play Store while the app sits in
+the background is therefore noticed on the next start rather than on resume.
 Closing that needs a lifecycle-aware refresh (`lifecycle-runtime-compose`, which is
 not currently a dependency).
 
@@ -165,11 +196,17 @@ that looks broken sells nothing (DESIGN_SYSTEM.md §6.3a).
 | State | What happens |
 |---|---|
 | no entitlement | lessons locked, paywall on tap |
-| purchase succeeds | store re-read; if it owns Pro, the triggering lesson opens |
+| purchase succeeds | store re-read; the moment it owns Pro the paywall closes into the triggering lesson |
+| **pending** | **nothing unlocks.** *"Google Play is still processing the payment. Pro unlocks as soon as it completes."* — neither an error nor a success, and the receipt becomes entitling if and when Play reports `PURCHASED` |
 | cancelled | *"Purchase cancelled. Nothing was charged."* — no error styling, retry available |
 | failed | one quiet line carrying the store's message, retry available |
 | restored | entitlement re-read, lessons unlock |
 | billing unavailable | the reason is stated, CTA disabled, Try again where it can help |
+
+**The paywall closes on entitlement, not on the purchase call returning.** So it
+also closes for a restore, for a pending payment that clears while the screen is
+open, and for the startup query arriving after the learner has already tapped a
+locked lesson — one trigger, and it is still the store's answer (ADR-051).
 
 ## Analytics
 
@@ -184,7 +221,7 @@ No identifiers, no user properties, no free text.
 
 ## Tests
 
-66 JVM unit tests in `:app`, no device needed:
+89 JVM unit tests in `:app`, no device needed:
 
 - **`ProAccessTest`** — exactly fourteen Pro lessons, by name and without duplicates ·
   the whole Advanced shelf is Pro and no free lesson is Advanced · `PRO_LESSONS` names
@@ -194,7 +231,7 @@ No identifiers, no user properties, no free text.
   every real catalogue entry, locked and unlocked.
 - **AES access** — registered Pro, on the Cryptography shelf and **not** the Advanced
   one · a free learner and an `Unknown` entitlement both get the paywall, and neither
-  can resolve to `OpenLesson` · a subscriber opens the lesson · and a companion test
+  can resolve to `OpenLesson` · a Pro learner opens the lesson · and a companion test
   asserts **every other lesson stayed exactly where it was**, free and Pro alike
   (ADR-049).
 - **Caesar Cipher access** — it is filed under Cryptography, so it opens for every
@@ -210,35 +247,52 @@ No identifiers, no user properties, no free text.
   unchanged after it was added (ADR-048).
 - **RSA access** — registered Pro, on the Cryptography shelf and **not** the Advanced
   one · a free learner and an `Unknown` entitlement both get the paywall, and neither
-  can resolve to `OpenLesson` · a subscriber opens the lesson · and a companion test
+  can resolve to `OpenLesson` · a Pro learner opens the lesson · and a companion test
   asserts **every other lesson stayed exactly where it was**, including that AES still
   resolves all three ways. This is the first time rule 2 has covered more than one
   lesson, so the test reads the *set* rather than special-casing an id (ADR-050).
 - **Fibonacci access** — it is Advanced, so a free learner and an `Unknown`
-  entitlement both resolve to the existing paywall and a subscriber opens the
+  entitlement both resolve to the existing paywall and a Pro learner opens the
   lesson · and a companion test asserts **every other lesson stayed exactly where
   it was**, free and Pro alike (ADR-045).
 - **`SubscriptionRepositoryTest`** — a store-less build entitles nobody and therefore
   no entitlement · the unconfigured gateway cannot sell or restore · a real purchase
   grants Pro · **a purchase reporting success while the store owns nothing grants
-  nothing** · cancelled, failed and unavailable all grant nothing · restore works ·
-  a withdrawn entitlement is withdrawn here too · the price is the store's string.
+  nothing** · cancelled, failed and unavailable all grant nothing · **pending grants
+  nothing, and a pending payment that later clears grants Pro without a second
+  purchase** · restore works · **clearing local state cannot lose a purchase Play
+  still owns** · `Unknown` is neither Pro nor Free · a withdrawn entitlement is
+  withdrawn here too · the price is the store's string.
+- **`BillingRulesTest`** — the product id and purchase option are pinned to
+  `algoking_pro` / `buy` · only a `PURCHASED` receipt naming this product entitles
+  anyone, and `PENDING`, `UNSPECIFIED` and another product's receipt do not · an
+  unacknowledged purchase is acknowledged and an acknowledged one is not
+  acknowledged twice, and a pending one is not acknowledged at all · the `buy`
+  option is selected, **a non-matching option is never substituted for it**, a legacy
+  single unnamed offer is still sellable and two unnamed offers are refused as
+  ambiguous · whatever string Play returns is the price shown, in any currency · and,
+  read off the gateway's own source: **`consumeAsync` appears nowhere**,
+  `acknowledgePurchase` does, the query is `INAPP` and never `SUBS`, pending one-time
+  purchases are enabled, and **no price, currency or amount is written anywhere in
+  the billing package or the paywall**.
 
 Not covered: the paywall's own rendering, which needs a Compose UI test on a
 device, and the real Play Billing flow, which needs Play test tracks.
 
 ## Still required before release
 
-1. **Configure `algoking_pro` in Play Console** — a subscription, a base plan, an
-   active offer, and the plan shape (period, trial, whether an offer is tagged
-   `recommended`). None of it is in the app, and until it exists nothing can be
-   sold.
+1. **A device pass against Play.** The product is configured; nothing in this build
+   has met the real store. Needed: a licence-tested account on an internal track
+   buying `algoking_pro`, the price appearing in the account's own currency, the
+   paywall closing into the lesson, an app restart still Pro, a reinstall restored
+   by **Restore purchases**, a refund taking Pro away on the next start, and — with
+   a test instrument — a **pending** payment unlocking nothing until it clears.
 2. **A hosted privacy policy URL** for the Play listing. The in-app copy has been
    rewritten for billing — the lessons still send nothing, the paywall asks Google
    Play for the price, and Google handles payment and tells the app one thing back:
-   whether a subscription is active. The listing still needs a URL.
+   whether the learner owns Pro. The listing still needs a URL.
 4. **Terms of service.** The paywall links Privacy, which exists; there is no Terms
-   page, and a subscription needs one.
+   page, and a paid product needs one.
 5. **Decide what happens to existing progress on the fourteen Pro lessons.** Installs
    in the wild have completed some of them. This change locks them — the progress is
    kept and still shows on the card, but the lesson no longer opens. Grandfathering

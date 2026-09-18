@@ -36,7 +36,14 @@ V2:   WATCH → TRY → CHALLENGE → RESULT
 > **AlgoKing Pro**, a Play subscription, and the other eleven stay free. The rest of the
 > Never list stands unchanged. Recorded in full at ADR-041 and `docs/pro-access.md`.
 
-**Monetization:** fourteen free lessons, and a **Pro subscription** for fourteen
+> **⚠ PRODUCT-TYPE AMENDMENT — 2026-09-18, product owner.** Pro is a **one-time
+> purchase**, not a subscription: `algoking_pro`, purchase option `buy`, bought once
+> and owned permanently. Nothing else about access changed — the same fourteen
+> lessons, the same one paywall, the same one entitlement. Where this amendment and
+> the word "subscription" below disagree, the amendment wins (ADR-051,
+> `docs/pro-access.md`).
+
+**Monetization:** fourteen free lessons, and **Pro** for fourteen
 (0/1 Knapsack made it eleven, ADR-044; Fibonacci twelve, ADR-045; Caesar Cipher is
 free, under the Cryptography shelf, ADR-046; XOR Cipher joined it, ADR-047; and SHA-256
 Hashing is the third, ADR-048 — which is also why that shelf is called Cryptography rather

@@ -19,6 +19,15 @@ import kotlinx.coroutines.flow.StateFlow
  * [ProEntitlement.Pro]. A [BillingGateway] reports what Play says it owns, and
  * `PlayBillingGateway` derives that from `queryPurchasesAsync` rather than from a
  * purchase flow's own report of success.
+ *
+ * ### What is sold
+ *
+ * **One one-time product, `algoking_pro`, bought once and owned permanently.** It
+ * is not a subscription: there is no billing period, no renewal, no trial and no
+ * expiry, and the purchase is never consumed — consuming it would make Play forget
+ * the learner owns it, which is precisely the opposite of a permanent unlock. What
+ * ownership *can* still do is go away, on a refund, which is why entitlement is
+ * read from the store every time and never written to disk.
  */
 
 /** What the learner is entitled to, as reported by the store. */
@@ -42,10 +51,10 @@ sealed interface ProEntitlement {
 /**
  * What can be shown on the paywall right now.
  *
- * The product — its price, its billing period, whether it is the recommended plan
- * — is **always** the store's, never the app's. There is deliberately no default
- * price anywhere in this codebase: a hardcoded one would be wrong in every
- * currency, and wrong about tax, and wrong the first time it changed.
+ * The product — its price, and whether the store marks it as recommended — is
+ * **always** the store's, never the app's. There is deliberately no default price
+ * anywhere in this codebase: a hardcoded one would be wrong in every currency, and
+ * wrong about tax, and wrong the first time it changed.
  */
 sealed interface BillingState {
 
@@ -69,7 +78,11 @@ enum class BillingUnavailable {
     /** Play Billing is unreachable: no Play Store, or an out-of-date one. */
     PLAY_UNAVAILABLE,
 
-    /** Connected, but the store returned no products for the configured ids. */
+    /**
+     * Connected, and the store has nothing sellable for the configured id: the
+     * product is missing, inactive, or carries no purchase option matching the one
+     * this app sells. Almost always a Play Console problem rather than a device one.
+     */
     NO_PRODUCTS,
 
     /** A transient failure. Retrying is worth offering. */
@@ -77,34 +90,52 @@ enum class BillingUnavailable {
 }
 
 /**
- * One purchasable plan, exactly as the store describes it.
+ * The one purchasable thing, exactly as the store describes it.
  *
- * Every field is a passthrough of what Play returned. [formattedPrice] is Play's
- * own localised string — never assembled from a number and a currency symbol,
- * because that is how an app ends up showing "$4.99" to someone who will be
- * charged ₹399.
+ * [formattedPrice] is Play's own localised string — never assembled from a number
+ * and a currency symbol, because that is how an app ends up showing "$4.99" to
+ * someone who will be charged ₹399. **No price, currency or amount appears
+ * anywhere in this codebase**; until the store answers, the paywall says so rather
+ * than guessing.
  */
 data class ProProduct(
     val id: String,
     val name: String,
-    /** Play's localised price string, e.g. `₹399.00`. */
+    /** Play's localised price string, e.g. `₹299.00`. Passed through untouched. */
     val formattedPrice: String,
-    /** Play's billing period, already turned into words: "per year". */
-    val billingPeriod: String,
     /**
-     * Whether the store's own configuration marks this as the better-value plan.
-     * False unless the product configuration says otherwise — the app never
-     * invents a "best value" badge.
+     * The line under the price.
+     *
+     * For a one-time product this says what *kind* of purchase it is rather than
+     * how often it recurs, because it does not recur. It was `billingPeriod` while
+     * Pro was a subscription, and a field still called that while holding
+     * "one-time purchase" is the sort of small untruth that eventually persuades
+     * someone to put a renewal date on a screen that has none.
+     */
+    val priceDetail: String,
+    /**
+     * Whether the store's own configuration marks this as the recommended option.
+     * False unless an offer tag says so — the app never invents a badge.
      */
     val recommended: Boolean = false,
-    /** An offer's free-trial phrase, when the *store* reports one. */
-    val trial: String? = null,
 )
 
 /** What came back from a purchase attempt. */
 sealed interface PurchaseOutcome {
     /** Acknowledged by the store. The only outcome that can change entitlement. */
     data object Purchased : PurchaseOutcome
+
+    /**
+     * The payment is in flight and has not completed — cash at a counter, or a
+     * parental approval.
+     *
+     * **Neither a failure nor a success**, and its own case for exactly that
+     * reason: calling it a failure tells a learner who is about to be charged that
+     * nothing happened, and calling it a success hands out Pro for a payment that
+     * may never clear. Nothing is unlocked; the receipt becomes entitling if and
+     * when Play reports `PURCHASED`.
+     */
+    data object Pending : PurchaseOutcome
 
     /** The learner backed out. Not an error, and never worth an alarming message. */
     data object Cancelled : PurchaseOutcome

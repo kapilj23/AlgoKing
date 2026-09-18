@@ -3,6 +3,7 @@ package com.algorithms.algoking
 import com.algorithms.algoking.billing.BillingGateway
 import com.algorithms.algoking.billing.BillingState
 import com.algorithms.algoking.billing.BillingUnavailable
+import com.algorithms.algoking.billing.PlayBillingGateway
 import com.algorithms.algoking.billing.ProEntitlement
 import com.algorithms.algoking.billing.ProProduct
 import com.algorithms.algoking.billing.PurchaseOutcome
@@ -59,11 +60,16 @@ class SubscriptionRepositoryTest {
 
         companion object {
             val product = ProProduct(
-                id = "algoking_pro",
+                id = PlayBillingGateway.PRO_PRODUCT_ID,
                 name = "AlgoKing Pro",
-                formattedPrice = "₹399.00",
-                billingPeriod = "per year",
+                // Whatever Play returned for this device's locale. The app never
+                // writes one, so a test may not pretend it has a favourite.
+                formattedPrice = STORE_PRICE,
+                priceDetail = PlayBillingGateway.ONE_TIME_PURCHASE,
             )
+
+            /** Stands in for Play's localised string. Its value means nothing. */
+            const val STORE_PRICE = "TEST_PRICE_FROM_PLAY"
         }
     }
 
@@ -173,9 +179,9 @@ class SubscriptionRepositoryTest {
 
     @Test
     fun `an entitlement the store withdraws is withdrawn here too`() = runBlocking {
-        // A refund, an expiry, a cancelled subscription. Entitlement is read from
-        // the store every time rather than latched, so it can go down as well as up
-        // — which is the difference between this and progress (ADR-028).
+        // A refund, or a purchase revoked by Play. Entitlement is read from the
+        // store every time rather than latched, so it can go down as well as up —
+        // which is the difference between this and progress (ADR-028).
         val gateway = FakeGateway(
             purchaseOutcome = PurchaseOutcome.Purchased,
             ownedAfterPurchase = ProEntitlement.Pro,
@@ -207,10 +213,62 @@ class SubscriptionRepositoryTest {
     fun `the price shown is whatever the store said, and is never assembled here`() {
         val repository = SubscriptionRepository(FakeGateway())
         val ready = repository.billing.value as BillingState.Ready
-        assertEquals("₹399.00", ready.product.formattedPrice)
-        assertEquals("per year", ready.product.billingPeriod)
+        assertEquals(FakeGateway.STORE_PRICE, ready.product.formattedPrice)
+        // A one-time product: what kind of purchase it is, never how often it
+        // recurs, because it does not.
+        assertEquals("one-time purchase", ready.product.priceDetail)
+        assertEquals(PlayBillingGateway.PRO_PRODUCT_ID, ready.product.id)
         // Nothing is recommended unless the store's own configuration says so.
         assertFalse(ready.product.recommended)
-        assertNull(ready.product.trial)
+    }
+
+    @Test
+    fun `a pending payment grants nothing and is reported as pending, not as failure`() = runBlocking {
+        // Cash at a counter, or a parental approval. The learner may well be
+        // charged, so calling it a failure is wrong — and Pro stays locked until
+        // Play says the payment completed, so calling it a success is worse.
+        val gateway = FakeGateway(purchaseOutcome = PurchaseOutcome.Pending)
+        val repository = SubscriptionRepository(gateway)
+
+        assertEquals(PurchaseOutcome.Pending, repository.purchase())
+        assertFalse(repository.entitlement.value.isPro)
+        assertEquals(PurchaseOutcome.Pending, repository.lastOutcome.value)
+    }
+
+    @Test
+    fun `a pending payment that later clears grants Pro, without a second purchase`() = runBlocking {
+        val gateway = FakeGateway(purchaseOutcome = PurchaseOutcome.Pending)
+        val repository = SubscriptionRepository(gateway)
+        repository.purchase()
+        assertFalse(repository.entitlement.value.isPro)
+
+        // Play reports PURCHASED on a later query — the app asks again and the
+        // answer changes. Nothing had to be bought twice.
+        gateway.entitlement.value = ProEntitlement.Pro
+        repository.refresh()
+        assertTrue(repository.entitlement.value.isPro)
+    }
+
+    @Test
+    fun `clearing local state cannot lose a purchase Play still owns`() {
+        // A reinstall, cleared app data, a new device. There is no local flag to
+        // lose: entitlement is a passthrough of what the store answers, so a fresh
+        // repository over a store that owns Pro is Pro.
+        val gateway = FakeGateway(owned = ProEntitlement.Pro)
+        assertTrue(SubscriptionRepository(gateway).entitlement.value.isPro)
+
+        // And a fresh one, as at app start, before anything is tapped.
+        val afterRestart = SubscriptionRepository(gateway)
+        assertTrue(afterRestart.entitlement.value.isPro)
+    }
+
+    @Test
+    fun `an unanswered store is Unknown, which is not Pro and not Free`() {
+        // The state a paywall must not resolve permanently: the query is still in
+        // flight. `ProAccess` treats it as not entitled, and the paywall opens the
+        // lesson the moment a real answer arrives.
+        val repository = SubscriptionRepository(FakeGateway(owned = ProEntitlement.Unknown))
+        assertEquals(ProEntitlement.Unknown, repository.entitlement.value)
+        assertFalse(repository.entitlement.value.isPro)
     }
 }
