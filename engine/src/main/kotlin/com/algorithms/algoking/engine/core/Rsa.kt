@@ -183,6 +183,42 @@ data class RsaProblem(
     val message: Long,
     /** The judgements the learner makes, in order. */
     val questions: List<RsaQuestion>,
+    /**
+     * **What the learner actually came to see** — a message a person would send.
+     *
+     * The lesson opens on this rather than on `m = 4` (ADR-053). Nobody has ever
+     * needed to send the number four; the reason RSA matters is that two people who
+     * have never met can exchange something like *"MEET AT 7"*, and a lesson that
+     * opens on an integer has hidden its own subject.
+     *
+     * It belongs to the **concept layer** and is never run through [Rsa]. See
+     * [illustrativeCiphertext] for why that separation is load-bearing.
+     */
+    val plaintext: String = "MEET AT 7",
+    /**
+     * What a ciphertext *looks like* — authored, and deliberately not computed.
+     *
+     * ### This is the one place the lesson could have lied, and does not
+     *
+     * Textbook RSA with `n = 55` encrypts numbers below 55. It cannot encrypt
+     * *"MEET AT 7"*, and showing these bytes as though `p = 5, q = 11` had produced
+     * them would be teaching something false in order to make a picture tidier.
+     *
+     * So the lesson runs in **two layers that are labelled as two layers**:
+     *
+     *  - the **concept layer** — `"MEET AT 7" → public key → ciphertext → private
+     *    key → "MEET AT 7"` — which is a true account of what RSA is for, and whose
+     *    ciphertext is this string: an illustration of what encrypted bytes look
+     *    like, captioned as exactly that;
+     *  - the **toy layer** — `m = 4 → c = 9 → m = 4` — which is real arithmetic the
+     *    learner can check by hand, and is captioned as the mechanism rather than as
+     *    this message.
+     *
+     * Neither layer claims to be the other. That is the whole of ADR-053's honesty
+     * requirement, and `RsaLessonCopyTest` asserts the caption is on screen wherever
+     * these bytes are.
+     */
+    val illustrativeCiphertext: String = "8F 3A C1 D4 9B 22",
 ) {
     init {
         require(Rsa.isPrime(p)) { "p must be prime: $p." }
@@ -205,6 +241,16 @@ data class RsaProblem(
         require(p <= TOY_CEILING && q <= TOY_CEILING) {
             "This lesson's numbers are meant to be checkable by hand; " +
                 "$p and $q are not. Real RSA belongs to BigInteger, not here."
+        }
+        require(plaintext.isNotBlank()) {
+            "The concept layer opens on a message a person would send, and there is none."
+        }
+        require(illustrativeCiphertext.isNotBlank()) {
+            "The concept layer needs something unreadable to show; see the field's note."
+        }
+        require(!illustrativeCiphertext.contains(plaintext, ignoreCase = true)) {
+            "A ciphertext that contains its plaintext is not unreadable: " +
+                "$illustrativeCiphertext."
         }
     }
 
@@ -286,10 +332,23 @@ data class RsaKey(val role: RsaKeyRole, val exponent: Long, val modulus: Long) {
 /**
  * One thing a learner has to get right about RSA.
  *
- * Two of them are **concept judgements** and the rest walk the derivation chain —
- * which is the shape this lesson needs, because the chain *is* the content. Each
- * number is asked only once the ones it depends on are settled and on screen, so
- * every answer is read off the picture rather than recalled.
+ * ### The story ones come first, and that is the whole ordering rule
+ *
+ * Six of these are **concept judgements** — what RSA uses, which half may be handed
+ * out, which half may not, what a public key does to a message, what a private key
+ * does to a ciphertext, and what the pair is therefore *for*. The other six walk the
+ * arithmetic. The order the lesson asks them in puts **every concept judgement
+ * before the arithmetic that justifies it** (ADR-052): a learner who cannot yet say
+ * what RSA is doing has nothing to hang `φ(n) = (p − 1)(q − 1)` on.
+ *
+ * This enum's own order is **not** that order and is not meant to be. It is the
+ * order the entries were written in, and it is load-bearing for a different reason:
+ * [RsaOptions] rotates the correct answer by `ordinal`, so moving an entry re-seats
+ * the answer to every question after it. The asked order is data, and it lives in
+ * `RsaDatasets.EXERCISES`.
+ *
+ * Each number is asked only once the ones it depends on are settled and on screen,
+ * so every answer is read off the picture rather than recalled.
  *
  * The learner is never asked to *perform* the hard arithmetic: nobody computes
  * `9^27 mod 55` in their head, and PRODUCT_SPEC.md §3 gives the app the arithmetic.
@@ -326,4 +385,29 @@ enum class RsaQuestion {
 
     /** Which half must stay secret. The one that matters outside the arithmetic. */
     SECRET_KEY,
+
+    // ── The concept judgements the story half of the lesson asks (ADR-052) ──
+    //
+    // Appended rather than slotted in beside their kin. `RsaOptions` rotates the
+    // correct answer by `ordinal`, so inserting one in the middle would re-seat the
+    // answer to every question after it — and the order these are *asked* in is
+    // data, stated once in `RsaDatasets.EXERCISES`, not a property of this list.
+
+    /** Which half of the pair may be published. */
+    SHAREABLE_KEY,
+
+    /** Which key turns the message into a ciphertext. */
+    ENCRYPT_KEY,
+
+    /** Which key turns the ciphertext back into the message. */
+    DECRYPT_KEY,
+
+    /** What applying the public key to a message does. */
+    ENCRYPT_OPERATION,
+
+    /** What applying the private key to a ciphertext does. */
+    DECRYPT_OPERATION,
+
+    /** What having the pair lets you do. The lesson's closing idea. */
+    KEY_PAIR_PURPOSE,
 }

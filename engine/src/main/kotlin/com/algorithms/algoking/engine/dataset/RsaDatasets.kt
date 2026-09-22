@@ -28,8 +28,54 @@ import com.algorithms.algoking.engine.core.RsaQuestion
  */
 object RsaDatasets {
 
-    /** The ten judgements, in the order the lesson asks them. */
-    val EXERCISES: List<RsaQuestion> = RsaQuestion.entries.toList()
+    /**
+     * The twelve judgements, **in the order the lesson asks them** — story first,
+     * arithmetic second (ADR-052).
+     *
+     * ```
+     * ACT I   ASYMMETRIC · SHAREABLE_KEY · SECRET_KEY
+     *         ENCRYPT_OPERATION · ENCRYPT · DECRYPT_OPERATION · DECRYPT
+     *
+     * ACT II  MODULUS · TOTIENT · PUBLIC_EXPONENT · PRIVATE_EXPONENT
+     *         KEY_PAIR_PURPOSE
+     * ```
+     *
+     * Written out rather than taken from `RsaQuestion.entries`, which is what it used
+     * to be. The enum's order is an implementation detail that also seats each
+     * question's options; the asked order is a **pedagogical decision**, and the two
+     * being the same list was the thing that made it invisible when the lesson opened
+     * on `n = p × q`.
+     *
+     * ### What is deliberately not here
+     *
+     * `PUBLIC_KEY` and `PRIVATE_KEY`. Both pairs are on screen from the beat that
+     * hands the learner the keys, so *"which pair is the public key?"* in Act II is a
+     * reading exercise rather than a judgement. Their entries, options, distractors
+     * and copy are all still in place and a dataset that lists them gets them back —
+     * `RsaEncryption.stepsFor` turns any unasked question into a statement — but this
+     * lesson states them instead.
+     *
+     * The two exponents behind them, `e` and `d`, are still asked, and they are the
+     * part a learner could not have read anywhere.
+     */
+    val EXERCISES: List<RsaQuestion> = listOf(
+        // Layer 1 — the concept, on a message. Answerable with no arithmetic, and
+        // asked before any number is on screen (ADR-053).
+        RsaQuestion.ENCRYPT_OPERATION,
+        RsaQuestion.ASYMMETRIC,
+        RsaQuestion.ENCRYPT_KEY,
+        RsaQuestion.DECRYPT_KEY,
+        RsaQuestion.SECRET_KEY,
+
+        // Layer 2 — the mechanism, once the toy example has announced itself.
+        RsaQuestion.ENCRYPT,
+        RsaQuestion.DECRYPT,
+        RsaQuestion.MODULUS,
+        RsaQuestion.TOTIENT,
+        RsaQuestion.PUBLIC_EXPONENT,
+        RsaQuestion.PRIVATE_EXPONENT,
+        RsaQuestion.KEY_PAIR_PURPOSE,
+    )
 
     /**
      * WATCH — `p = 5`, `q = 11`, `e = 3`, `m = 4`.
@@ -58,6 +104,11 @@ object RsaDatasets {
             e = 3,
             message = 4,
             questions = EXERCISES,
+            // The lesson's hero, and what the learner meets first (ADR-053). Short
+            // enough to sit on one line at 360dp, and obviously something a person
+            // would actually want kept private — which `HELLO` is not.
+            plaintext = "MEET AT 7",
+            illustrativeCiphertext = "8F 3A C1 D4 9B 22",
         ),
     )
 
@@ -67,8 +118,8 @@ object RsaDatasets {
      * **A different key pair, and that is a deliberate departure from the brief.**
      *
      * §10 of the brief lists the TRY exercises using WATCH's numbers — *"Given p = 5,
-     * q = 11, what is n?"*. That would make six of the ten judgements answerable from
-     * memory: a learner who watched `n = 55` land does not have to multiply anything
+     * q = 11, what is n?"*. That would make four of the twelve judgements answerable
+     * from memory: a learner who watched `n = 55` land does not have to multiply anything
      * to answer it again. ADR-014 is explicit that a TRY dataset must not allow that,
      * and this project has replaced a brief-supplied dataset for exactly this reason
      * twice before — ADR-044, when 0/1 Knapsack's bag had an optimum both greedy
@@ -104,6 +155,11 @@ object RsaDatasets {
             e = 5,
             message = 4,
             questions = EXERCISES,
+            // A different message too, for the same reason the key pair differs: a
+            // learner who saw "MEET AT 7" encrypted should be applying the idea
+            // rather than recognising the picture (ADR-014).
+            plaintext = "SEND THE MAP",
+            illustrativeCiphertext = "2B 7E 05 A9 C3 61",
         ),
     )
 }

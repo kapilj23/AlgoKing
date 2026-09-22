@@ -22,19 +22,45 @@ import com.algorithms.algoking.engine.narration.NarrationKey
 /**
  * What happens in 0/1 Knapsack.
  *
- * The learner answers three questions, and only three:
+ * The lesson runs in **two acts** (ADR-053). The first one has no table in it at
+ * all: the learner meets a bag, packs it by hand, finds out that the bag they
+ * packed is not the best one, and only then is shown the question the table
+ * exists to answer. The second act builds the table.
  *
- * 1. **which cell does TAKE build on?** — a tap on the table ([PickSource])
- * 2. **TAKE or SKIP?** — two buttons ([Take], [Skip])
- * 3. **was this item taken?** — walking back up the table ([MarkTaken], [MarkLeftOut])
+ * The learner answers seven kinds of question:
  *
- * Everything else is the app's: posing the problem, the zeros that define the
- * table, row 1, moving between cells, and the arithmetic.
+ * *Act I — the problem*
+ * 1. **can you take all of it?** ([AnswerCapacity])
+ * 2. **how many times can one item go in?** ([AnswerTimes]) — the 0/1 in the name
+ * 3. **what still fits?** ([AnswerFits]) — the room an item leaves behind
+ * 4. **which of these two bags is worth more?** ([AnswerBetter]) — where grabbing
+ *    the most valuable thing first is refuted, by the learner rather than the copy
+ *
+ * *Act II — the table*
+ * 5. **which cell does TAKE build on?** — a tap on the table ([PickSource])
+ * 6. **TAKE or SKIP?** — two buttons ([Take], [Skip])
+ * 7. **was this item taken?** — walking back up the table ([MarkTaken], [MarkLeftOut])
+ *
+ * Everything else is the app's: the arithmetic, the zeros that define the table,
+ * row 1, moving between cells, and every cell whose answer repeats one the learner
+ * has already given.
  */
 sealed interface KnapsackAction : Action {
 
     /** The next beat of the problem, before any table exists. Mechanical. */
     data object Introduce : KnapsackAction
+
+    /** Whether everything together goes in the bag. */
+    data class AnswerCapacity(val all: Boolean) : KnapsackAction
+
+    /** How many times one item may go in — the 0/1 rule, stated three ways. */
+    data class AnswerTimes(val rule: TakeRule) : KnapsackAction
+
+    /** Which item still fits once the most valuable one is in. Null means none does. */
+    data class AnswerFits(val item: String?) : KnapsackAction
+
+    /** Which of the two packed bags is worth more. */
+    data class AnswerBetter(val optimal: Boolean) : KnapsackAction
 
     /** Row 0 and column 0 become 0: no items, or no room, is worth nothing. Mechanical. */
     data object FillBase : KnapsackAction
@@ -65,8 +91,20 @@ sealed interface KnapsackAction : Action {
     data object MarkLeftOut : KnapsackAction
 }
 
+/** The three knapsacks a learner might think they are being shown. Only one is this one. */
+enum class TakeRule {
+    /** 0/1: in once, or not at all. */
+    ONCE,
+
+    /** Unbounded: as many copies as fit. */
+    ANY_NUMBER,
+
+    /** Fractional: half an item, for half the value. */
+    FRACTION,
+}
+
 enum class KnapsackPhase {
-    /** The problem, posed in words and a bag — no table yet. */
+    /** The problem, posed in a bag and four things — no table yet. */
     PROBLEM,
 
     /** Filling the table, one cell at a time. */
@@ -78,8 +116,55 @@ enum class KnapsackPhase {
     DONE,
 }
 
-/** The beats of the problem, in the order they are shown. */
-enum class IntroBeat { ITEMS, RULE, GREEDY, SUBPROBLEM }
+/**
+ * The beats of the first act, in the order they are shown.
+ *
+ * Each names **what is on screen**, and poses the question that moves to the next
+ * one. Four of the nine ask the learner something; the rest are the app stating
+ * what was just settled, which is what gives every NEXT a real visual change
+ * (PRODUCT_SPEC.md §4).
+ */
+enum class IntroBeat {
+    /** A bag, and how much it holds. Nothing in it. */
+    BAG,
+
+    /** The things that could go in it, each with a weight and a value. */
+    ITEMS,
+
+    /** Everything at once is too heavy — so something has to be left behind. */
+    TOO_MUCH,
+
+    /** An item goes in once, or not at all. That is the 0/1. */
+    ONCE,
+
+    /** The most valuable item is in, and the room it left is the next question. */
+    PACKING,
+
+    /** A full bag, packed by hand, and what it is worth. */
+    PACKED,
+
+    /** A second full bag, worth more — so the obvious way of packing was wrong. */
+    COMPARED,
+
+    /** Every bag there is: 2 to the n of them, doubling with each new item. */
+    EVERY_BAG,
+
+    /** One item at a time: TAKE or SKIP, and keep the better. */
+    FORK,
+
+    // The table arrives here and is explained before it is filled. `dp[i][c]` is
+    // notation, and notation before meaning is the thing ADR-053 exists to stop —
+    // so the grid is shown, then what one box means, and only then its name.
+
+    /** An empty grid. Every box will hold one number. */
+    GRID,
+
+    /** A row and a column, crossing: what the box where they meet means. */
+    AXES,
+
+    /** The same box, and the shorthand that names it. */
+    NAME,
+}
 
 enum class Choice { TAKE, SKIP }
 
@@ -98,15 +183,15 @@ data class Resolution(
 /**
  * Immutable state — the single source of truth.
  *
- * [table] is the whole model. Everything a screen shows — the current item,
- * whether it fits, both candidates, the right answer, the bag — is derived below,
- * and **no Composable adds, compares or indexes anything**.
+ * [table] is the whole model of the second act. Everything a screen shows — the
+ * current item, whether it fits, both candidates, the right answer, the bag — is
+ * derived below, and **no Composable adds, compares or indexes anything**.
  */
 data class KnapsackState(
     val problem: KnapsackProblem,
     val phase: KnapsackPhase,
     val intro: IntroBeat,
-    /** `(items + 1) × (capacity + 1)`. Null means not computed yet. */
+    /** `(items + 1) x (capacity + 1)`. Null means not computed yet. */
     val table: List<List<Int?>>,
     /** The cell being decided while building. `row > items` once the table is full. */
     val row: Int,
@@ -133,6 +218,94 @@ data class KnapsackState(
 
     fun valueAt(row: Int, col: Int): Int? = table.getOrNull(row)?.getOrNull(col)
     fun valueAt(pos: TablePos): Int? = valueAt(pos.row, pos.col)
+
+    // -- Act I ----------------------------------------------------------------
+
+    val posing: Boolean get() = phase == KnapsackPhase.PROBLEM
+
+    /** What everything together weighs, against what the bag holds. */
+    val totalWeight: Int get() = problem.totalWeight
+
+    /** The most valuable item — what packing by hand reaches for first. */
+    val firstPick: KnapsackItem? get() = problem.greedyBag.firstOrNull()
+
+    /** The room left once [firstPick] is in. */
+    val roomLeft: Int get() = capacity - (firstPick?.weight ?: 0)
+
+    /**
+     * Everything that still fits in that room.
+     *
+     * The authored bags leave **exactly one**, so the question has exactly one
+     * answer; a test holds them to it.
+     */
+    val stillFits: List<KnapsackItem>
+        get() = items.filter { it != firstPick && it.weight <= roomLeft }
+
+    /** The bag being packed by hand, as far as the first act has got. */
+    val handBag: List<KnapsackItem>
+        get() = when {
+            !posing -> emptyList()
+            intro < IntroBeat.PACKING -> emptyList()
+            intro == IntroBeat.PACKING -> problem.greedyBag.take(1)
+            else -> problem.greedyBag
+        }
+
+    /** The bag the learner is asked to find, once the hand-packed one is on screen. */
+    val rivalBag: List<KnapsackItem>
+        get() = if (posing && intro >= IntroBeat.COMPARED) problem.bestBag else emptyList()
+
+    val handValue: Int get() = problem.greedyValue
+
+    val bestValue: Int get() = problem.bestValue
+
+    /** How many bags trying every combination would mean. */
+    val bagCount: Long get() = problem.bagCount
+
+    /** What grabbing the most valuable item first packs. */
+    val greedyPick: List<KnapsackItem> get() = problem.greedyBag
+
+    val greedyValue: Int get() = problem.greedyValue
+
+    /** True when everything together is too heavy — the fact the lesson exists for. */
+    val overloaded: Boolean get() = totalWeight > capacity
+
+    /**
+     * Whether the first act's packing story can honestly be told about this bag.
+     *
+     * It needs three things to be true, and the authored bags are chosen so that
+     * they are (a test holds them to it): something fits, **exactly one** other
+     * thing still fits beside it — so *"what else fits?"* has one answer — and the
+     * bag greed packs is beaten by a different one, so *"which is worth more?"* is
+     * a real question rather than the same bag twice.
+     *
+     * A bag that cannot support it, which in practice means a synthetic one, skips
+     * those three beats rather than asking a question with no answer. The rule is
+     * the one `KnapsackProblem` already follows for its own arguments: a lesson
+     * that cannot be taught is not taught, rather than taught wrongly.
+     */
+    val storyHolds: Boolean
+        get() = firstPick != null && stillFits.size == 1 &&
+            problem.greedyBag != problem.bestBag && problem.greedyValue < problem.bestValue
+
+    /**
+     * The box the table's introduction points at, and the row and column that
+     * cross there.
+     *
+     * Row 2 wherever there is one, because row 1 is the app's and a row that can
+     * only hold one item is a thin example of "which items you may use"; the last
+     * column, because a full bag is the one the learner already has in mind. It is
+     * also, in both authored bags, the cell the reuse beat comes back to.
+     */
+    val teachingCell: TablePos
+        get() = TablePos(minOf(2, itemCount).coerceAtLeast(1), capacity)
+
+    /** The items that row allows — the meaning of a row, as a list. */
+    val teachingItems: List<KnapsackItem> get() = items.take(teachingCell.row)
+
+    /** True while the table is on screen but has nothing in it yet. */
+    val explainingTable: Boolean get() = posing && intro >= IntroBeat.GRID
+
+    // -- Act II ---------------------------------------------------------------
 
     /** True while there is a real cell to decide. */
     val building: Boolean get() = phase == KnapsackPhase.BUILD && row in 1..itemCount
@@ -165,7 +338,8 @@ data class KnapsackState(
     /**
      * **The recurrence, in one line.** SKIP on a tie: the cell keeps the row above,
      * which is exactly what backtracking reads as "not taken" — one rule, used in
-     * both directions.
+     * both directions. The authored bags have no ties at all, so a learner is never
+     * marked wrong by it.
      */
     val bestChoice: Choice?
         get() {
@@ -202,11 +376,13 @@ data class KnapsackState(
     }
 
     /** The item whose row is being read during the walk back. */
-    val traceItem: KnapsackItem? get() = if (phase == KnapsackPhase.TRACE) items.getOrNull(traceRow - 1) else null
+    val traceItem: KnapsackItem?
+        get() = if (phase == KnapsackPhase.TRACE) items.getOrNull(traceRow - 1) else null
 
-    val tracePosition: TablePos? get() = if (phase == KnapsackPhase.TRACE) TablePos(traceRow, traceCap) else null
+    val tracePosition: TablePos?
+        get() = if (phase == KnapsackPhase.TRACE) TablePos(traceRow, traceCap) else null
 
-    /** Whether the row being read changed the value — the right answer to question 3. */
+    /** Whether the row being read changed the value — the right answer to question 7. */
     val traceTaken: Boolean?
         get() {
             if (phase != KnapsackPhase.TRACE) return null
@@ -230,29 +406,6 @@ data class KnapsackState(
 
     /** Everything marked taken so far. */
     val bag: List<KnapsackItem> get() = items.filterIndexed { i, _ -> taken.getOrNull(i) == true }
-
-    /**
-     * What grabbing the most valuable item first would pack. Computed here so the
-     * lesson's claim about greedy is the engine's, and is tested, rather than a
-     * sentence in the copy.
-     */
-    val greedyPick: List<KnapsackItem>
-        get() {
-            var left = capacity
-            val picked = mutableListOf<KnapsackItem>()
-            for (candidate in items.sortedByDescending { it.value }) {
-                if (candidate.weight <= left) {
-                    picked += candidate
-                    left -= candidate.weight
-                }
-            }
-            return picked
-        }
-
-    val greedyValue: Int get() = greedyPick.sumOf { it.value }
-
-    /** How many bags trying every combination would mean: 2ⁿ. */
-    val bagCount: Long get() = if (itemCount >= 62) Long.MAX_VALUE else 1L shl itemCount
 }
 
 /**
@@ -266,28 +419,41 @@ data class KnapsackState(
  * otherwise       ->  dp[i][c] = max(dp[i-1][c], value[i] + dp[i-1][c - weight[i]])
  * ```
  *
- * ### What the learner has to understand
+ * ### What the learner has to understand, in the order they meet it
  *
- * 1. **0/1 means once.** TAKE builds on the row *above*, which has never seen the
- *    item, so it can never go in twice. Building on the same row is the unbounded
- *    recurrence, and it is the one wrong tap the source question exists to catch.
- * 2. **A cell is a smaller bag, solved once.** `dp[2][5]` reads `dp[1][2]`, which
- *    row 1 already worked out — that reuse is the whole idea.
- * 3. **The last number is not the answer.** Which items were taken is recovered by
- *    walking back up the table.
+ * 1. **You cannot take everything**, so every item is a decision.
+ * 2. **0/1 means once.** Not twice, and not half of one.
+ * 3. **Taking an item spends room**, and the room left decides the rest.
+ * 4. **The obvious bag is not the best bag** — the learner packs one by hand and is
+ *    then shown a better one. This is the reason the method exists, and until
+ *    ADR-053 the lesson asserted it instead of demonstrating it.
+ * 5. **Trying every bag is 2^n**, so something cleverer is needed.
+ * 6. **TAKE or SKIP, keep the better** — the recurrence, in words, before symbols.
+ * 7. **A cell is a smaller bag, solved once**, and TAKE builds on the row *above*,
+ *    which has never seen this item — that is where 0/1 lives in the table.
+ * 8. **The last number is not the answer.** Which items were taken is recovered by
+ *    walking back up.
  *
  * ### Which beats the learner answers
  *
  * Rules, not a list of cells, so they hold for any dataset:
  *
+ * - **Act I asks four of its nine beats**, and states the rest;
  * - row 1 is the app's — the row above is all zeros, so TAKE-if-it-fits has one
  *   legal answer;
- * - a cell whose item does not fit is the app's, **except** the last one before the
- *   item fits, where "does it fit?" is a real judgement;
- * - naming TAKE's cell is the app's when the item fills the column exactly — the
- *   capacity left is 0, and column 0 is definition;
- * - TAKE or SKIP is always the learner's from row 2 on, and so is every row of the
- *   walk back.
+ * - a cell whose item does not fit is the app's, **except the first boundary in the
+ *   table**, where "does it fit?" is asked once;
+ * - naming TAKE's cell is asked **once**, at the first cell in the table whose TAKE
+ *   reads a value worth more than 0 — the moment a smaller answer is reused, which
+ *   is the only reason that question exists;
+ * - **TAKE or SKIP is asked on the cell that decides each row** — the last column,
+ *   which is where the answer is eventually read from — and on the cell where
+ *   TAKE's source was just named;
+ * - every row of the walk back is asked, because each one is a reading.
+ *
+ * Everything else fills itself, and that is ADR-053's other half: a learner who has
+ * answered TAKE or SKIP three times has understood the recurrence, and one who
+ * answers it twenty-five times has been drilled.
  *
  * A beat the learner is not taught is `Mechanical`; `LessonController` already
  * applies those, so WATCH and TRY run this one machine with no mode flag.
@@ -295,7 +461,7 @@ data class KnapsackState(
  * **A wrong action is refused**, never applied: a wrong value in one cell would
  * quietly poison every cell that reads it.
  *
- * **Time O(n × W), space O(n × W)** — `(n + 1) × (W + 1)` cells, each decided once.
+ * **Time O(n x W), space O(n x W)** — `(n + 1) x (W + 1)` cells, each decided once.
  */
 class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
 
@@ -306,7 +472,7 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         return KnapsackState(
             problem = problem,
             phase = KnapsackPhase.PROBLEM,
-            intro = IntroBeat.ITEMS,
+            intro = IntroBeat.BAG,
             table = List(problem.items.size + 1) { List<Int?>(problem.capacity + 1) { null } },
             row = 1,
             col = 1,
@@ -320,29 +486,296 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
     }
 
     override fun probe(state: KnapsackState): Probe<KnapsackAction> = when (state.phase) {
-        KnapsackPhase.PROBLEM ->
-            if (state.intro != IntroBeat.SUBPROBLEM) {
-                Probe.Mechanical(KnapsackAction.Introduce)
-            } else {
-                Probe.Mechanical(KnapsackAction.FillBase)
-            }
-
+        KnapsackPhase.PROBLEM -> probeProblem(state)
         KnapsackPhase.BUILD -> probeBuild(state)
         KnapsackPhase.TRACE -> Probe.Decide(traceDecision(state))
         KnapsackPhase.DONE -> Probe.Terminal(Outcome.Completed(correct = true))
     }
 
+    // -- Act I ----------------------------------------------------------------
+    /**
+     * A bag with no room, or nothing to put in it, has no story to tell: every
+     * question below would have no answer. It states what it can and goes straight
+     * to the table, where [fillBase] finishes it.
+     */
+    private fun probeProblem(state: KnapsackState): Probe<KnapsackAction> {
+        if (state.itemCount == 0 || state.capacity == 0) {
+            return Probe.Mechanical(KnapsackAction.FillBase)
+        }
+        return when (asksAt(state)) {
+            IntroBeat.ITEMS -> Probe.Decide(capacityDecision(state))
+            IntroBeat.TOO_MUCH -> Probe.Decide(timesDecision(state))
+            IntroBeat.ONCE -> Probe.Decide(fitsDecision(state))
+            IntroBeat.PACKED -> Probe.Decide(betterDecision(state))
+            else -> if (state.intro == IntroBeat.NAME) {
+                Probe.Mechanical(KnapsackAction.FillBase)
+            } else {
+                Probe.Mechanical(KnapsackAction.Introduce)
+            }
+        }
+    }
+
+    /**
+     * Which beat, if any, this state is asking about.
+     *
+     * The four questions of the first act each need something to be true of the
+     * bag: the first only means anything when everything together is too heavy, and
+     * the last two need the packing story to hold. A beat whose question cannot be
+     * asked is stated instead, which is the same move `stepsFor` makes in RSA
+     * (ADR-052) and for the same reason — a question with no answer is worse than
+     * a sentence.
+     */
+    private fun asksAt(state: KnapsackState): IntroBeat? = when (state.intro) {
+        IntroBeat.ITEMS -> IntroBeat.ITEMS.takeIf { state.overloaded }
+        IntroBeat.TOO_MUCH -> IntroBeat.TOO_MUCH
+        IntroBeat.ONCE -> IntroBeat.ONCE.takeIf { state.storyHolds }
+        IntroBeat.PACKED -> IntroBeat.PACKED.takeIf { state.storyHolds }
+        else -> null
+    }
+
+    /** The bag holds 5 kg and everything weighs 10. How much of it can you take? */
+    private fun capacityDecision(state: KnapsackState): Decision<KnapsackAction> {
+        val options = listOf(
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerCapacity(all = true),
+                NarrationKey(NarrationId.KN_OPTION_ALL),
+            ),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerCapacity(all = false),
+                NarrationKey(NarrationId.KN_OPTION_SOME),
+            ),
+        )
+        val look = NarrationKey(
+            NarrationId.KN_RETRY_CAPACITY_LOOK,
+            listOf(state.totalWeight, state.capacity),
+        )
+        return Decision(
+            kind = DecisionKind.OPTIONS,
+            prompt = NarrationKey(NarrationId.KN_ASK_CAPACITY, listOf(state.capacity)),
+            options = options,
+            correct = KnapsackAction.AnswerCapacity(all = false),
+            focus = emptyList(),
+            hint = NarrationKey(NarrationId.KN_HINT_CAPACITY),
+            guidance = listOf(
+                look,
+                NarrationKey(
+                    NarrationId.KN_RETRY_CAPACITY_ASK,
+                    listOf(state.totalWeight, state.capacity),
+                ),
+                NarrationKey(
+                    NarrationId.KN_RETRY_CAPACITY_EXPLAIN,
+                    listOf(state.totalWeight, state.capacity, state.totalWeight - state.capacity),
+                ),
+            ),
+            minimalFeedback = look,
+            whyWrong = mapOf(
+                KnapsackAction.AnswerCapacity(all = true) to NarrationKey(
+                    NarrationId.KN_WHY_ALL_FITS,
+                    listOf(state.totalWeight, state.capacity),
+                ),
+            ),
+            correctFeedback = NarrationKey(
+                NarrationId.KN_CORRECT_CAPACITY,
+                listOf(state.totalWeight, state.capacity),
+            ),
+            hintLadder = listOf(NarrationKey(NarrationId.KN_HINT_CAPACITY)),
+            autoInTry = false,
+        )
+    }
+
+    /**
+     * How many times can the Laptop go in?
+     *
+     * The two wrong answers are the two **other** knapsacks — unbounded and
+     * fractional — so the learner is told what this lesson is not, at the point
+     * where the name would otherwise be a piece of trivia.
+     */
+    private fun timesDecision(state: KnapsackState): Decision<KnapsackAction> {
+        val item = state.items.first()
+        val options = listOf(
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerTimes(TakeRule.ONCE),
+                NarrationKey(NarrationId.KN_OPTION_ONCE),
+            ),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerTimes(TakeRule.ANY_NUMBER),
+                NarrationKey(NarrationId.KN_OPTION_MANY),
+            ),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerTimes(TakeRule.FRACTION),
+                NarrationKey(NarrationId.KN_OPTION_FRACTION),
+            ),
+        )
+        val look = NarrationKey(NarrationId.KN_RETRY_TIMES_LOOK, listOf(item.name))
+        return Decision(
+            kind = DecisionKind.OPTIONS,
+            prompt = NarrationKey(NarrationId.KN_ASK_TIMES, listOf(item.name)),
+            options = options,
+            correct = KnapsackAction.AnswerTimes(TakeRule.ONCE),
+            focus = emptyList(),
+            hint = NarrationKey(NarrationId.KN_HINT_TIMES),
+            guidance = listOf(
+                look,
+                NarrationKey(NarrationId.KN_RETRY_TIMES_ASK),
+                NarrationKey(NarrationId.KN_RETRY_TIMES_EXPLAIN, listOf(item.name)),
+            ),
+            minimalFeedback = look,
+            whyWrong = mapOf(
+                KnapsackAction.AnswerTimes(TakeRule.ANY_NUMBER) to NarrationKey(
+                    NarrationId.KN_WHY_MANY,
+                    listOf(item.name),
+                ),
+                KnapsackAction.AnswerTimes(TakeRule.FRACTION) to NarrationKey(
+                    NarrationId.KN_WHY_FRACTION,
+                    listOf(item.name, item.value),
+                ),
+            ),
+            correctFeedback = NarrationKey(NarrationId.KN_CORRECT_TIMES, listOf(item.name)),
+            hintLadder = listOf(NarrationKey(NarrationId.KN_HINT_TIMES)),
+            autoInTry = false,
+        )
+    }
+
+    /**
+     * The Camera is in, 1 kg is left — what else still fits?
+     *
+     * Every other item is an option, and so is "nothing", so the learner has to
+     * read the weights rather than pick the only plausible-looking card.
+     */
+    private fun fitsDecision(state: KnapsackState): Decision<KnapsackAction> {
+        val picked = requireNotNull(state.firstPick)
+        val room = state.roomLeft
+        val answer = state.stillFits.firstOrNull()
+        val options = state.items.filter { it != picked }.map { item ->
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerFits(item.name),
+                NarrationKey(NarrationId.KN_OPTION_ITEM, listOf(item.name, item.weight)),
+            )
+        } + ActionOption<KnapsackAction>(
+            KnapsackAction.AnswerFits(null),
+            NarrationKey(NarrationId.KN_OPTION_NOTHING),
+        )
+        val look = NarrationKey(
+            NarrationId.KN_RETRY_FITS_LOOK,
+            listOf(state.capacity, picked.weight, room),
+        )
+        return Decision(
+            kind = DecisionKind.OPTIONS,
+            prompt = NarrationKey(NarrationId.KN_ASK_FITS, listOf(picked.name, room)),
+            options = options,
+            correct = KnapsackAction.AnswerFits(answer?.name),
+            focus = emptyList(),
+            hint = NarrationKey(NarrationId.KN_HINT_FITS, listOf(room)),
+            guidance = listOf(
+                look,
+                NarrationKey(NarrationId.KN_RETRY_FITS_ASK, listOf(room)),
+                NarrationKey(
+                    NarrationId.KN_RETRY_FITS_EXPLAIN,
+                    listOf(answer?.name ?: "Nothing", answer?.weight ?: 0, room),
+                ),
+            ),
+            minimalFeedback = look,
+            whyWrong = buildMap {
+                for (item in state.items) {
+                    if (item == picked || item.name == answer?.name) continue
+                    put(
+                        KnapsackAction.AnswerFits(item.name),
+                        NarrationKey(
+                            NarrationId.KN_WHY_TOO_HEAVY,
+                            listOf(item.name, item.weight, room),
+                        ),
+                    )
+                }
+                if (answer != null) {
+                    put(
+                        KnapsackAction.AnswerFits(null),
+                        NarrationKey(
+                            NarrationId.KN_WHY_SOMETHING_FITS,
+                            listOf(answer.name, answer.weight, room),
+                        ),
+                    )
+                }
+            },
+            correctFeedback = NarrationKey(
+                NarrationId.KN_CORRECT_FITS,
+                listOf(
+                    answer?.name ?: "Nothing",
+                    answer?.weight ?: 0,
+                    room - (answer?.weight ?: 0),
+                ),
+            ),
+            hintLadder = listOf(NarrationKey(NarrationId.KN_HINT_FITS, listOf(room))),
+            autoInTry = false,
+        )
+    }
+
+    /**
+     * Two bags. Which one is worth more?
+     *
+     * **The whole lesson turns on this beat.** The first bag is the one the learner
+     * has just packed by taking the most valuable thing first; the second is the
+     * best bag there is. Adding up two pairs of numbers is arithmetic a beginner
+     * can do, and it is the only honest way to establish that the obvious strategy
+     * is wrong — the alternative is a sentence asserting it, which is what ADR-053
+     * replaced.
+     */
+    private fun betterDecision(state: KnapsackState): Decision<KnapsackAction> {
+        val hand = state.problem.greedyBag
+        val best = state.problem.bestBag
+        val handNames = hand.joinToString(" + ") { it.name }
+        val bestNames = best.joinToString(" + ") { it.name }
+        val handSum = hand.joinToString(" + ") { it.value.toString() }
+        val bestSum = best.joinToString(" + ") { it.value.toString() }
+        val options = listOf(
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerBetter(optimal = false),
+                NarrationKey(NarrationId.KN_OPTION_BAG, listOf(handNames)),
+            ),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.AnswerBetter(optimal = true),
+                NarrationKey(NarrationId.KN_OPTION_BAG, listOf(bestNames)),
+            ),
+        )
+        val look = NarrationKey(NarrationId.KN_RETRY_BETTER_LOOK, listOf(handSum, bestSum))
+        return Decision(
+            kind = DecisionKind.OPTIONS,
+            prompt = NarrationKey(NarrationId.KN_ASK_BETTER),
+            options = options,
+            correct = KnapsackAction.AnswerBetter(optimal = true),
+            focus = emptyList(),
+            hint = NarrationKey(NarrationId.KN_HINT_BETTER),
+            guidance = listOf(
+                look,
+                NarrationKey(NarrationId.KN_RETRY_BETTER_ASK),
+                NarrationKey(
+                    NarrationId.KN_RETRY_BETTER_EXPLAIN,
+                    listOf(bestNames, state.bestValue, handNames, state.handValue),
+                ),
+            ),
+            minimalFeedback = look,
+            whyWrong = mapOf(
+                KnapsackAction.AnswerBetter(optimal = false) to NarrationKey(
+                    NarrationId.KN_WHY_WORSE_BAG,
+                    listOf(handNames, state.handValue, bestNames, state.bestValue),
+                ),
+            ),
+            correctFeedback = NarrationKey(
+                NarrationId.KN_CORRECT_BETTER,
+                listOf(bestNames, state.bestValue, state.handValue),
+            ),
+            hintLadder = listOf(NarrationKey(NarrationId.KN_HINT_BETTER)),
+            autoInTry = false,
+        )
+    }
+
+    // -- Act II ---------------------------------------------------------------
+
     private fun probeBuild(state: KnapsackState): Probe<KnapsackAction> {
         val item = state.item ?: return Probe.Mechanical(KnapsackAction.BeginTrace)
         if (!state.focused) return Probe.Mechanical(KnapsackAction.Focus)
 
-        val row = state.row
-        val col = state.col
-
         if (!state.fits) {
-            // The last capacity before the item fits is where "does it fit?" is a
-            // judgement. Every smaller one is the same answer again.
-            return if (row >= 2 && col == item.weight - 1) {
+            return if (state.position == fitBoundaryCell(state)) {
                 Probe.Decide(choiceDecision(state))
             } else {
                 Probe.Mechanical(KnapsackAction.Skip)
@@ -351,29 +784,76 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
 
         val source = requireNotNull(state.takeSource)
         if (state.source == null) {
-            return if (row >= 2 && col > item.weight) {
+            return if (state.position == sourceCell(state)) {
                 Probe.Decide(sourceDecision(state))
             } else {
                 Probe.Mechanical(KnapsackAction.PickSource(source.row, source.col))
             }
         }
 
-        return if (row >= 2) {
+        return if (isChoiceAsked(state)) {
             Probe.Decide(choiceDecision(state))
         } else {
             Probe.Mechanical(actionFor(requireNotNull(state.bestChoice)))
         }
     }
 
+    /**
+     * The one cell where "does it fit?" is a judgement: the first column in the
+     * table where an item is one kilo too heavy.
+     *
+     * Every smaller column is the same answer again and every later row asks the
+     * same thing about a different number, so it is asked once and then becomes a
+     * rule the learner has seen — ADR-025's standard, show the shape and then stop.
+     */
+    private fun fitBoundaryCell(state: KnapsackState): TablePos? {
+        for (r in 2..state.itemCount) {
+            val boundary = state.items[r - 1].weight - 1
+            if (boundary in 1..state.capacity) return TablePos(r, boundary)
+        }
+        return null
+    }
+
+    /**
+     * The one cell where naming TAKE's cell is a judgement: the first TAKE, in
+     * reading order, that builds on a cell worth more than 0.
+     *
+     * Before that the question is "which zero?", which teaches nothing; at that
+     * cell it is "which smaller answer does this reuse?", which is the whole idea.
+     * A cell its item exactly fills is skipped for the same reason — the room left
+     * is 0, and column 0 is a definition rather than a result.
+     *
+     * The rows it reads are always computed by the time the scan reaches them, so
+     * the answer stops changing once row 1 is filled and never moves again.
+     */
+    private fun sourceCell(state: KnapsackState): TablePos? {
+        for (r in 2..state.itemCount) {
+            val weight = state.items[r - 1].weight
+            for (c in weight..state.capacity) {
+                if (c == weight) continue
+                val sub = state.valueAt(r - 1, c - weight) ?: return null
+                if (sub > 0) return TablePos(r, c)
+            }
+        }
+        return null
+    }
+
+    /**
+     * TAKE or SKIP is the learner's on the cell that decides a row — the last
+     * column, which is where the answer is eventually read from — and on the cell
+     * where they have just named TAKE's source, because having named it they should
+     * be the one to finish it.
+     */
+    private fun isChoiceAsked(state: KnapsackState): Boolean =
+        state.row >= 2 && (state.col == state.capacity || state.position == sourceCell(state))
+
     private fun actionFor(choice: Choice): KnapsackAction = when (choice) {
         Choice.TAKE -> KnapsackAction.Take
         Choice.SKIP -> KnapsackAction.Skip
     }
 
-    // -- Decisions ------------------------------------------------------------
-
     /**
-     * *If you TAKE this item, which cell holds the best for what is left?*
+     * If you TAKE this item, which cell holds the best for what is left?
      *
      * Every computed cell is tappable — a shortlist would do the reasoning — and
      * each wrong one is a named mistake.
@@ -458,15 +938,21 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         )
     }
 
-    /** *SKIP or TAKE?* — the recurrence's `max`, and at a boundary, whether it fits at all. */
+    /** SKIP or TAKE? The recurrence's max — and at a boundary, whether it fits at all. */
     private fun choiceDecision(state: KnapsackState): Decision<KnapsackAction> {
         val item = requireNotNull(state.item)
         val col = state.col
         val exclude = requireNotNull(state.exclude)
         val correct = actionFor(requireNotNull(state.bestChoice))
         val options = listOf(
-            ActionOption<KnapsackAction>(KnapsackAction.Take, NarrationKey(NarrationId.KN_OPTION_TAKE)),
-            ActionOption<KnapsackAction>(KnapsackAction.Skip, NarrationKey(NarrationId.KN_OPTION_SKIP)),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.Take,
+                NarrationKey(NarrationId.KN_OPTION_TAKE),
+            ),
+            ActionOption<KnapsackAction>(
+                KnapsackAction.Skip,
+                NarrationKey(NarrationId.KN_OPTION_SKIP),
+            ),
         )
         val focus = listOfNotNull(
             state.slotOf(state.row - 1, col),
@@ -563,7 +1049,7 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         )
     }
 
-    /** *Was this item taken?* — the same question as TAKE or SKIP, asked backwards. */
+    /** Was this item taken? The same question as TAKE or SKIP, asked backwards. */
     private fun traceDecision(state: KnapsackState): Decision<KnapsackAction> {
         val item = requireNotNull(state.traceItem)
         val r = state.traceRow
@@ -637,6 +1123,10 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         action: KnapsackAction,
     ): Transition<KnapsackState> = when (action) {
         KnapsackAction.Introduce -> introduce(state)
+        is KnapsackAction.AnswerCapacity -> answerCapacity(state, action)
+        is KnapsackAction.AnswerTimes -> answerTimes(state, action)
+        is KnapsackAction.AnswerFits -> answerFits(state, action)
+        is KnapsackAction.AnswerBetter -> answerBetter(state, action)
         KnapsackAction.FillBase -> fillBase(state)
         KnapsackAction.Focus -> focus(state)
         is KnapsackAction.PickSource -> pickSource(state, TablePos(action.row, action.col))
@@ -647,50 +1137,147 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         KnapsackAction.MarkLeftOut -> mark(state, taken = false)
     }
 
+    /** The beats of the first act the app states rather than asks. */
     private fun introduce(state: KnapsackState): Transition<KnapsackState> {
-        if (state.phase != KnapsackPhase.PROBLEM || state.intro == IntroBeat.SUBPROBLEM) {
+        if (!state.posing || state.intro == IntroBeat.NAME || asksAt(state) != null) {
             return refuse(state)
         }
-        val next = state.copy(intro = IntroBeat.entries[state.intro.ordinal + 1])
-        val narration = when (next.intro) {
-            IntroBeat.RULE -> NarrationKey(NarrationId.KN_INTRO_RULE)
-            IntroBeat.GREEDY -> {
-                val pick = next.greedyPick
-                if (pick.isEmpty()) {
-                    NarrationKey(NarrationId.KN_INTRO_GREEDY_NONE)
-                } else {
-                    NarrationKey(
-                        NarrationId.KN_INTRO_GREEDY,
-                        listOf(pick.first().name, next.greedyValue, next.capacity - pick.sumOf { it.weight }),
-                    )
-                }
-            }
-            IntroBeat.SUBPROBLEM -> NarrationKey(NarrationId.KN_INTRO_SUBPROBLEM, listOf(next.bagCount))
-            IntroBeat.ITEMS -> null
+        return advance(state)
+    }
+
+    private fun answerCapacity(
+        state: KnapsackState,
+        action: KnapsackAction.AnswerCapacity,
+    ): Transition<KnapsackState> {
+        if (!state.posing || asksAt(state) != IntroBeat.ITEMS || action.all) return refuse(state)
+        return advance(state)
+    }
+
+    private fun answerTimes(
+        state: KnapsackState,
+        action: KnapsackAction.AnswerTimes,
+    ): Transition<KnapsackState> {
+        if (!state.posing || asksAt(state) != IntroBeat.TOO_MUCH || action.rule != TakeRule.ONCE) {
+            return refuse(state)
         }
-        return Transition(next, emptyList(), narration, correct = true)
+        return advance(state)
+    }
+
+    private fun answerFits(
+        state: KnapsackState,
+        action: KnapsackAction.AnswerFits,
+    ): Transition<KnapsackState> {
+        if (!state.posing || asksAt(state) != IntroBeat.ONCE) return refuse(state)
+        if (action.item != state.stillFits.firstOrNull()?.name) return refuse(state)
+        return advance(state)
+    }
+
+    private fun answerBetter(
+        state: KnapsackState,
+        action: KnapsackAction.AnswerBetter,
+    ): Transition<KnapsackState> {
+        if (!state.posing || asksAt(state) != IntroBeat.PACKED || !action.optimal) {
+            return refuse(state)
+        }
+        return advance(state)
+    }
+
+    /**
+     * One beat forward, with the sentence that beat is for.
+     *
+     * The narration is attached here rather than at each caller because every beat
+     * of the first act makes the same move: settle what was just answered, and show
+     * the next thing.
+     */
+    private fun advance(state: KnapsackState): Transition<KnapsackState> {
+        // A beat whose question this bag cannot support is skipped, not asked with
+        // no answer. FORK is last and is never skipped, so this always terminates.
+        var beat = IntroBeat.entries[state.intro.ordinal + 1]
+        while (beat in STORY_BEATS && !state.storyHolds) beat = IntroBeat.entries[beat.ordinal + 1]
+        val next = state.copy(intro = beat)
+        val narration = when (next.intro) {
+            IntroBeat.BAG -> null
+            IntroBeat.ITEMS -> NarrationKey(
+                NarrationId.KN_INTRO_ITEMS,
+                listOf(next.itemCount, next.capacity),
+            )
+            IntroBeat.TOO_MUCH -> NarrationKey(
+                NarrationId.KN_INTRO_TOO_MUCH,
+                listOf(next.totalWeight, next.capacity),
+            )
+            IntroBeat.ONCE -> NarrationKey(NarrationId.KN_INTRO_ONCE)
+            IntroBeat.PACKING -> {
+                val picked = requireNotNull(next.firstPick)
+                NarrationKey(
+                    NarrationId.KN_INTRO_PACKING,
+                    listOf(picked.name, picked.value, picked.weight, next.roomLeft),
+                )
+            }
+            IntroBeat.PACKED -> NarrationKey(
+                NarrationId.KN_INTRO_PACKED,
+                listOf(
+                    next.handBag.joinToString(" + ") { it.name },
+                    next.handBag.sumOf { it.weight },
+                    next.handValue,
+                ),
+            )
+            IntroBeat.COMPARED -> NarrationKey(
+                NarrationId.KN_INTRO_COMPARED,
+                listOf(
+                    next.rivalBag.joinToString(" + ") { it.name },
+                    next.bestValue,
+                    next.handValue,
+                ),
+            )
+            IntroBeat.EVERY_BAG -> NarrationKey(
+                NarrationId.KN_INTRO_EVERY_BAG,
+                listOf(next.bagCount, next.itemCount),
+            )
+            IntroBeat.FORK -> NarrationKey(NarrationId.KN_INTRO_FORK)
+            IntroBeat.GRID -> NarrationKey(
+                NarrationId.KN_INTRO_GRID,
+                listOf((next.itemCount + 1) * (next.capacity + 1)),
+            )
+            IntroBeat.AXES -> NarrationKey(
+                NarrationId.KN_INTRO_AXES,
+                listOf(
+                    next.teachingItems.joinToString(" and ") { it.name },
+                    next.teachingCell.col,
+                ),
+            )
+            IntroBeat.NAME -> NarrationKey(
+                NarrationId.KN_INTRO_NAME,
+                listOf(next.teachingCell.row, next.teachingCell.col),
+            )
+        }
+        val packed = next.handBag.sumOf { it.weight }
+        val events = when (next.intro) {
+            IntroBeat.PACKING, IntroBeat.PACKED ->
+                listOf(VizEvent.Meter(MeterId.REMAINING, (next.capacity - packed).toLong()))
+            else -> emptyList()
+        }
+        return Transition(next, events, narration, correct = true)
     }
 
     private fun fillBase(state: KnapsackState): Transition<KnapsackState> {
-        if (state.phase != KnapsackPhase.PROBLEM || state.intro != IntroBeat.SUBPROBLEM) {
-            return refuse(state)
-        }
+        val degenerate = state.itemCount == 0 || state.capacity == 0
+        if (!state.posing || (state.intro != IntroBeat.NAME && !degenerate)) return refuse(state)
         val table = List(state.itemCount + 1) { r ->
             List(state.columns) { c -> if (r == 0 || c == 0) 0 else null }
         }
         // No items, or no room: every cell is a base case and there is nothing to
         // decide. A finished lesson, not an error.
-        val nothingToBuild = state.itemCount == 0 || state.capacity == 0
         val next = state.copy(
-            phase = if (nothingToBuild) KnapsackPhase.DONE else KnapsackPhase.BUILD,
+            phase = if (degenerate) KnapsackPhase.DONE else KnapsackPhase.BUILD,
+            intro = IntroBeat.NAME,
             table = table,
-            taken = if (nothingToBuild) List(state.itemCount) { false } else state.taken,
+            taken = if (degenerate) List(state.itemCount) { false } else state.taken,
         )
         return Transition(
             next = next,
             events = buildList {
                 add(VizEvent.Meter(MeterId.REMAINING, state.capacity.toLong()))
-                if (nothingToBuild) add(VizEvent.Terminal(Outcome.Completed(correct = true)))
+                if (degenerate) add(VizEvent.Terminal(Outcome.Completed(correct = true)))
             },
             narration = NarrationKey(NarrationId.KN_BASE),
             correct = true,
@@ -702,11 +1289,18 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         return Transition(
             next = state.copy(focused = true, source = null, resolved = null),
             events = listOf(
-                VizEvent.Examine(listOf(state.slotOf(state.row - 1, state.col)), ExamineRole.CANDIDATE),
+                VizEvent.Examine(
+                    listOf(state.slotOf(state.row - 1, state.col)),
+                    ExamineRole.CANDIDATE,
+                ),
             ),
             narration = NarrationKey(
                 NarrationId.KN_FOCUS,
-                listOf(state.row, state.col, state.items.take(state.row).joinToString(", ") { it.name }),
+                listOf(
+                    state.row,
+                    state.col,
+                    state.items.take(state.row).joinToString(", ") { it.name },
+                ),
             ),
             correct = true,
         )
@@ -747,7 +1341,11 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         val value = if (choice == Choice.TAKE) requireNotNull(include) else exclude
 
         val table = state.table.mapIndexed { r, cells ->
-            if (r != state.row) cells else cells.mapIndexed { c, v -> if (c == state.col) value else v }
+            if (r != state.row) {
+                cells
+            } else {
+                cells.mapIndexed { c, v -> if (c == state.col) value else v }
+            }
         }
         val lastColumn = state.col >= state.capacity
         val nextRow = if (lastColumn) state.row + 1 else state.row
@@ -839,7 +1437,12 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
         return Transition(
             next = next,
             events = buildList {
-                add(VizEvent.Examine(listOf(state.slotOf(r, c), state.slotOf(r - 1, c)), ExamineRole.COMPARING))
+                add(
+                    VizEvent.Examine(
+                        listOf(state.slotOf(r, c), state.slotOf(r - 1, c)),
+                        ExamineRole.COMPARING,
+                    ),
+                )
                 add(VizEvent.Meter(MeterId.REMAINING, left.toLong()))
                 if (done) add(VizEvent.Terminal(Outcome.Completed(correct = true)))
             },
@@ -860,4 +1463,13 @@ class KnapsackAlgorithm : Algorithm<KnapsackState, KnapsackAction> {
 
     private fun refuse(state: KnapsackState) =
         Transition(state, emptyList(), null, correct = false)
+
+    private companion object {
+        /** The beats that only exist when a bag can be packed by hand and then beaten. */
+        val STORY_BEATS = setOf(
+            IntroBeat.PACKING,
+            IntroBeat.PACKED,
+            IntroBeat.COMPARED,
+        )
+    }
 }

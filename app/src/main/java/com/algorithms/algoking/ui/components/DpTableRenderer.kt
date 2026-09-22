@@ -40,6 +40,14 @@ import com.algorithms.algoking.ui.theme.Spacing
  * a `numeralMedium` value that `PrefixTable` uses, and every colour is an existing
  * token.
  *
+ * ### The table is the second half of the lesson, not the whole of it
+ *
+ * ADR-053 gave 0/1 Knapsack a first act with no table in it: a bag, some cards, a
+ * caption and the two-sided strip. All four were already fields on the scene, so
+ * this file gained no new data — what it gained is the arrangement for when
+ * `tableVisible` is false, where the caption and the strip sit directly under the
+ * bag rather than under a grid. A scene with no table is drawn, not skipped.
+ *
  * ### Fitting a phone
  *
  * The row names take the 64dp gutter the Stack-vs-Queue table already names rows
@@ -64,12 +72,10 @@ fun DpTable(
         }
         scene.bag?.let { bag ->
             BagMeterRow(bag)
-            if (scene.tableVisible) Gap(Spacing.md)
+            Gap(Spacing.md)
         }
 
-        if (!scene.tableVisible) return@Column
-
-        TableGrid(scene, selectableSlots, onSelectSlot)
+        if (scene.tableVisible) TableGrid(scene, selectableSlots, onSelectSlot)
 
         scene.focusCaption?.let { caption ->
             Gap(Spacing.xs)
@@ -216,10 +222,21 @@ private fun ItemCardView(item: ItemCard, modifier: Modifier = Modifier) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        // Spelled out, not `w3 · v8`. The two numbers on this card are the whole
+        // problem — what an item costs you and what it is worth — and a learner
+        // meeting them for the first time should not also have to decode an
+        // abbreviation. The gutter beside the table still shortens them, because
+        // 64dp cannot hold this and by then the words have been read.
         Text(
-            text = "w${item.weight} · v${item.value}",
+            text = "weight = ${item.weight} kg",
             style = AlgoType.labelSmall,
-            color = AlgoColors.textMuted,
+            color = AlgoColors.textSecondary,
+            maxLines = 1,
+        )
+        Text(
+            text = "value = ${item.value}",
+            style = AlgoType.labelSmall,
+            color = AlgoColors.textSecondary,
             maxLines = 1,
         )
         item.bitLabel?.let { bit ->
@@ -283,15 +300,83 @@ private fun BagMeterRow(bag: BagMeter) {
  * The two outcomes side by side. The first side takes the first decision tone and
  * the second the second — the pairing `DecisionTone.forIndex` gives the buttons
  * underneath, so each side is the colour of the button that chooses it.
+ *
+ * With a [ChoiceStrip.stem] the same two cards are drawn as a **fork**: the one
+ * thing both sides are about, a short drop, and then the branches. 0/1 Knapsack
+ * states the recurrence that way before there is any table to state it in
+ * (ADR-053), and every other lesson leaves the stem null and gets the two cards
+ * unchanged.
  */
 @Composable
 private fun ChoiceStripRow(strip: ChoiceStrip) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-    ) {
-        ChoiceCard(strip.first, DecisionTone.First.hue, Modifier.weight(1f))
-        ChoiceCard(strip.second, DecisionTone.Second.hue, Modifier.weight(1f))
+    Column(Modifier.fillMaxWidth()) {
+        strip.stem?.let { stem ->
+            Text(
+                text = stem,
+                style = AlgoType.labelMedium,
+                color = AlgoColors.textPrimary,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            ForkDrop()
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        ) {
+            ChoiceCard(strip.first, DecisionTone.First.hue, Modifier.weight(1f))
+            ChoiceCard(strip.second, DecisionTone.Second.hue, Modifier.weight(1f))
+        }
+    }
+}
+
+/**
+ * The drop from a stem to two branches: down, across, and down again into each
+ * card. Hairlines in `borderStrong`, the same weight the table's empty slots use,
+ * because this is a connector rather than something to read.
+ */
+@Composable
+private fun ForkDrop() {
+    val half = Dimens.forkDrop / 2
+    Column(Modifier.fillMaxWidth()) {
+        Box(
+            Modifier
+                .align(Alignment.CenterHorizontally)
+                .width(Dimens.hairline)
+                .height(half)
+                .background(AlgoColors.borderStrong),
+        )
+        Row(Modifier.fillMaxWidth()) {
+            Box(Modifier.weight(1f))
+            Box(
+                Modifier
+                    .weight(2f)
+                    .height(Dimens.hairline)
+                    .background(AlgoColors.borderStrong),
+            )
+            Box(Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth()) {
+            Box(Modifier.weight(1f)) {
+                Box(
+                    Modifier
+                        .align(Alignment.Center)
+                        .width(Dimens.hairline)
+                        .height(half)
+                        .background(AlgoColors.borderStrong),
+                )
+            }
+            Box(Modifier.weight(1f)) {
+                Box(
+                    Modifier
+                        .align(Alignment.Center)
+                        .width(Dimens.hairline)
+                        .height(half)
+                        .background(AlgoColors.borderStrong),
+                )
+            }
+        }
     }
 }
 

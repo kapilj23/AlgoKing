@@ -13,19 +13,28 @@ import com.algorithms.algoking.engine.walkthrough.WatchNarrator
 import com.algorithms.algoking.engine.walkthrough.WatchStepKind
 
 /**
- * The 0/1 Knapsack walkthrough — twenty beats on the teaching bag.
+ * The 0/1 Knapsack walkthrough — twenty-six beats, in two acts.
  *
- * The engine runs one transition per cell and per step of the walk back; this
- * narrator decides which of them teach. The rules are about *where* a cell sits,
- * not which dataset is loaded, so a different bag still gets a coherent script:
+ * The engine runs one transition per beat of the problem, per cell, and per step of
+ * the walk back; this narrator decides which of them teach. The rules are about
+ * *where* a beat sits, not which dataset is loaded, so a different bag still gets a
+ * coherent script:
  *
- * - **the problem first** — the items, the 0/1 rule, greedy's bag, and why a
- *   smaller question is needed — before any table exists;
+ * **Act I — nine beats, and no table.** Every beat of the problem is narrated,
+ * because that act *is* the explanation ADR-053 was written to add: the bag, the
+ * things, the overflow, the 0/1 rule, the bag packed by hand, the better bag that
+ * refutes it, the size of the brute force, and the fork the table is about to
+ * mechanise.
+ *
+ * **Act II — the table**, narrated as sparsely as it was before:
+ *
  * - **row 1 is one beat**: the row above is all zeros, so nothing is compared;
  * - **the first cell in row 2 where the item fits is shown in full**, one term of
  *   the recurrence per beat: SKIP, TAKE, then the larger;
  * - **the first TAKE that reads a non-zero cell** is where dynamic programming is
  *   named — an answer worked out once, read back;
+ * - **one later row is summarised**, once the rule is familiar, rather than all of
+ *   them;
  * - **the last cell is shown in full**, because it is the answer;
  * - **every row of the walk back** is a beat, because each one is a reading.
  *
@@ -38,8 +47,8 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
         PartialStep(
             kind = WatchStepKind.SETUP,
             scene = scene,
-            headline = NarrationKey(NarrationId.KN_WATCH_SETUP, listOf(state.capacity)),
-            support = NarrationKey(NarrationId.KN_WATCH_SETUP_SUPPORT, listOf(state.itemCount)),
+            headline = NarrationKey(NarrationId.KN_WATCH_BAG, listOf(state.capacity)),
+            support = NarrationKey(NarrationId.KN_WATCH_BAG_SUPPORT),
         ),
     )
 
@@ -50,13 +59,13 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
     ): List<PartialStep> {
         val state = frame.state
 
-        // -- The problem, before the method -----------------------------------
-        if (state.phase == KnapsackPhase.PROBLEM && state.intro != previous.intro) {
+        // -- Act I: the problem, before the method ----------------------------
+        if (state.posing && state.intro != previous.intro) {
             return listOfNotNull(intro(state, scene))
         }
 
         // -- The table exists -------------------------------------------------
-        if (previous.phase == KnapsackPhase.PROBLEM && state.phase != KnapsackPhase.PROBLEM) {
+        if (previous.posing && !state.posing) {
             return listOf(
                 PartialStep(
                     kind = WatchStepKind.EXAMINE,
@@ -107,7 +116,7 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
                 } else {
                     NarrationKey(NarrationId.KN_WATCH_INSIGHT_SUPPORT_PLAIN)
                 },
-                // `8 > 7` — the table against greedy, once both have been watched.
+                // `14 > 13` — the table against the bag packed by hand.
                 comparison = if (beatsGreedy) {
                     ComparisonReadout(best, Relation.GREATER, state.greedyValue)
                 } else {
@@ -130,6 +139,126 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
                     NarrationKey(NarrationId.KN_IDEA_5),
                 ),
             ),
+        )
+    }
+
+    // -- Act I ----------------------------------------------------------------
+
+    /**
+     * One beat per step of the problem.
+     *
+     * Two of them carry a comparison chip, and both are comparisons the lesson
+     * turns on: everything against the bag, and the bag packed by hand against the
+     * best one there is.
+     */
+    private fun intro(state: KnapsackState, scene: Scene): PartialStep? = when (state.intro) {
+        IntroBeat.BAG -> null
+        IntroBeat.ITEMS -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_ITEMS, listOf(state.itemCount)),
+            support = NarrationKey(NarrationId.KN_WATCH_ITEMS_SUPPORT),
+        )
+        IntroBeat.TOO_MUCH -> PartialStep(
+            kind = WatchStepKind.COMPARE,
+            scene = scene,
+            headline = NarrationKey(
+                NarrationId.KN_WATCH_TOO_MUCH,
+                listOf(state.totalWeight, state.capacity),
+            ),
+            support = NarrationKey(NarrationId.KN_WATCH_TOO_MUCH_SUPPORT),
+            comparison = ComparisonReadout(state.totalWeight, Relation.GREATER, state.capacity),
+        )
+        IntroBeat.ONCE -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_ONCE),
+            support = NarrationKey(NarrationId.KN_WATCH_ONCE_SUPPORT),
+        )
+        IntroBeat.PACKING -> {
+            val picked = requireNotNull(state.firstPick)
+            PartialStep(
+                kind = WatchStepKind.ADD,
+                scene = scene,
+                headline = NarrationKey(
+                    NarrationId.KN_WATCH_PACKING,
+                    listOf(picked.name, picked.value),
+                ),
+                support = NarrationKey(
+                    NarrationId.KN_WATCH_PACKING_SUPPORT,
+                    listOf(picked.weight, state.capacity, picked.weight, state.roomLeft),
+                ),
+            )
+        }
+        IntroBeat.PACKED -> {
+            val bag = state.handBag
+            PartialStep(
+                kind = WatchStepKind.ADD,
+                scene = scene,
+                headline = NarrationKey(
+                    NarrationId.KN_WATCH_PACKED,
+                    listOf(bag.joinToString(" + ") { it.name }, bag.sumOf { it.weight }, state.handValue),
+                ),
+                support = NarrationKey(NarrationId.KN_WATCH_PACKED_SUPPORT, listOf(state.handValue)),
+            )
+        }
+        IntroBeat.COMPARED -> PartialStep(
+            kind = WatchStepKind.COMPARE,
+            scene = scene,
+            headline = NarrationKey(
+                NarrationId.KN_WATCH_COMPARED,
+                listOf(state.rivalBag.joinToString(" + ") { it.name }, state.bestValue),
+            ),
+            support = NarrationKey(
+                NarrationId.KN_WATCH_COMPARED_SUPPORT,
+                listOf(state.rivalBag.sumOf { it.weight }, state.handValue),
+            ),
+            comparison = ComparisonReadout(state.bestValue, Relation.GREATER, state.handValue),
+        )
+        IntroBeat.EVERY_BAG -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_EVERY_BAG, listOf(state.bagCount)),
+            support = NarrationKey(
+                NarrationId.KN_WATCH_EVERY_BAG_SUPPORT,
+                listOf(state.itemCount, state.bagCount),
+            ),
+        )
+        IntroBeat.FORK -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_FORK),
+            support = NarrationKey(NarrationId.KN_WATCH_FORK_SUPPORT),
+        )
+        IntroBeat.GRID -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_GRID),
+            support = NarrationKey(
+                NarrationId.KN_WATCH_GRID_SUPPORT,
+                listOf((state.itemCount + 1) * (state.capacity + 1)),
+            ),
+        )
+        IntroBeat.AXES -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(NarrationId.KN_WATCH_AXES),
+            support = NarrationKey(
+                NarrationId.KN_WATCH_AXES_SUPPORT,
+                listOf(
+                    state.teachingItems.joinToString(" and ") { it.name },
+                    state.teachingCell.col,
+                ),
+            ),
+        )
+        IntroBeat.NAME -> PartialStep(
+            kind = WatchStepKind.EXAMINE,
+            scene = scene,
+            headline = NarrationKey(
+                NarrationId.KN_WATCH_NAME,
+                listOf(state.teachingCell.row, state.teachingCell.col),
+            ),
+            support = NarrationKey(NarrationId.KN_WATCH_NAME_SUPPORT),
         )
     }
 
@@ -164,45 +293,6 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
     }
 
     // -- Beats ----------------------------------------------------------------
-
-    private fun intro(state: KnapsackState, scene: Scene): PartialStep? = when (state.intro) {
-        IntroBeat.ITEMS -> null
-        IntroBeat.RULE -> PartialStep(
-            kind = WatchStepKind.EXAMINE,
-            scene = scene,
-            headline = NarrationKey(NarrationId.KN_WATCH_RULE),
-            support = NarrationKey(NarrationId.KN_WATCH_RULE_SUPPORT),
-        )
-        IntroBeat.GREEDY -> {
-            val pick = state.greedyPick
-            if (pick.isEmpty()) {
-                PartialStep(
-                    kind = WatchStepKind.COMPARE,
-                    scene = scene,
-                    headline = NarrationKey(NarrationId.KN_WATCH_GREEDY_NONE),
-                )
-            } else {
-                PartialStep(
-                    kind = WatchStepKind.COMPARE,
-                    scene = scene,
-                    headline = NarrationKey(
-                        NarrationId.KN_WATCH_GREEDY,
-                        listOf(pick.first().name, pick.first().value),
-                    ),
-                    support = NarrationKey(
-                        NarrationId.KN_WATCH_GREEDY_SUPPORT,
-                        listOf(state.greedyValue, state.capacity - pick.sumOf { it.weight }),
-                    ),
-                )
-            }
-        }
-        IntroBeat.SUBPROBLEM -> PartialStep(
-            kind = WatchStepKind.EXAMINE,
-            scene = scene,
-            headline = NarrationKey(NarrationId.KN_WATCH_SUBPROBLEM),
-            support = NarrationKey(NarrationId.KN_WATCH_SUBPROBLEM_SUPPORT, listOf(state.bagCount)),
-        )
-    }
 
     private fun skipSide(state: KnapsackState, scene: Scene): PartialStep {
         val item = requireNotNull(state.item)
@@ -318,8 +408,8 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
                 support = NarrationKey(NarrationId.KN_WATCH_NO_FIT_SUPPORT),
             )
 
-            // Later rows, once the rule is familiar: one beat, just short of the end.
-            pos.row >= 3 && pos.col == state.capacity - 1 -> PartialStep(
+            // One later row, once the rule is familiar — not every one of them.
+            pos.row == 3 && pos.col == state.capacity - 1 -> PartialStep(
                 kind = WatchStepKind.EXAMINE,
                 scene = scene,
                 headline = NarrationKey(
@@ -352,8 +442,8 @@ class KnapsackWatchNarrator : WatchNarrator<KnapsackState> {
 
     private fun answer(state: KnapsackState, r: Resolution, item: KnapsackItem, scene: Scene): PartialStep {
         val best = state.best ?: 0
-        // Where greedy's own pick is the item the table leaves out, say so: that is
-        // the refutation, found inside the table rather than argued beside it.
+        // Where the hand-packed bag's own item is the one the table leaves out, say
+        // so: the refutation, found inside the table rather than argued beside it.
         val support = if (r.choice == Choice.SKIP && item in state.greedyPick && state.greedyValue < best) {
             NarrationKey(NarrationId.KN_WATCH_ANSWER_GREEDY_SUPPORT, listOf(item.name))
         } else {

@@ -1,5 +1,12 @@
 # 0/1 Knapsack — design plan
 
+> **⚠ SUPERSEDED IN PART — 2026-09-22, ADR-053.** The recurrence, the walk back and the
+> scene shape below are what shipped. **The teaching order is not.** This plan builds the
+> table first and explains it afterwards; the lesson now poses the problem in a first act
+> with no table in it, and the datasets have changed with it. Where this plan and
+> [`zero-one-knapsack.md`](zero-one-knapsack.md) disagree, the lesson doc wins. Retained as
+> the reasoning trail for everything the rewrite kept.
+
 > **⚠ SUPERSEDED BY THE BUILD — 2026-09-14.** Approved with option (a) and built; the live
 > description is [`zero-one-knapsack.md`](zero-one-knapsack.md) and the reasoning is ADR-044.
 > The datasets, the three questions, the 13 TRY decisions, the 20 WATCH beats, the states and

@@ -15,6 +15,27 @@ import com.algorithms.algoking.engine.scene.TableHeader
 /**
  * 0/1 Knapsack presentation knowledge — ARCHITECTURE.md §7.2.
  *
+ * ### The first act draws a bag, not a table
+ *
+ * ADR-053 put a whole act in front of the table, and it added **no field to the
+ * scene**: `items`, `bag`, `choice` and `focusCaption` were already there for the
+ * cards and the strip the second act ends on, and `tableVisible` was already the
+ * switch that says a table does not exist yet. So the first act is those four
+ * fields with no `cells` under them, and the renderer's only new job is to draw
+ * them when there is no table below.
+ *
+ * | Beat | What is on screen |
+ * |---|---|
+ * | `BAG` | an empty bag, and how much it holds |
+ * | `ITEMS` | the cards, and what they weigh together |
+ * | `TOO_MUCH` | the same, with the overflow stated |
+ * | `ONCE` | every card marked `0 or 1` |
+ * | `PACKING` | the most valuable item in the bag, and the room it left |
+ * | `PACKED` | a full bag — and a second one beside it, both totals hidden |
+ * | `COMPARED` | both totals, and the better bag is not the obvious one |
+ * | `EVERY_BAG` | the cards again, and how many bags they make |
+ * | `FORK` | TAKE and SKIP under one item — the rule, before the table |
+ *
  * ### The states — every one already exists
  *
  * | Means | State |
@@ -32,14 +53,15 @@ import com.algorithms.algoking.engine.scene.TableHeader
  *
  * ### Nothing answers a question before it is asked
  *
- * While TAKE's cell is being picked, TAKE's side reads `?` (ADR-030). When the item
- * does not fit, TAKE's side states the weight and the column header states the
- * capacity, and the comparison is the learner's.
+ * While TAKE's cell is being picked, TAKE's side reads `?` (ADR-030). While the two
+ * bags are being compared, **both** totals read `?`, because a learner who can see
+ * 14 beside 13 is reading rather than adding. When the item does not fit, TAKE's
+ * side states the weight and the column header states the capacity, and the
+ * comparison is the learner's.
  */
 class KnapsackProjector : SceneProjector<KnapsackState> {
 
     override fun project(state: KnapsackState, activeEvents: List<VizEvent>): DpTableScene {
-        val tableVisible = state.phase != KnapsackPhase.PROBLEM || state.intro == IntroBeat.SUBPROBLEM
         val tracing = state.phase == KnapsackPhase.TRACE || state.phase == KnapsackPhase.DONE
 
         return DpTableScene(
@@ -48,12 +70,14 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
                 TableHeader(
                     label = c.toString(),
                     active = (state.building && c == state.col) ||
+                        (state.explainingTable && state.intro >= IntroBeat.AXES &&
+                            c == state.teachingCell.col) ||
                         (state.phase == KnapsackPhase.TRACE && c == state.traceCap),
                 )
             },
             columnCaption = "Capacity",
             cells = cells(state),
-            tableVisible = tableVisible,
+            tableVisible = !state.posing || state.explainingTable,
             choice = choice(state),
             focusCaption = focusCaption(state),
             items = itemCards(state),
@@ -84,13 +108,22 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
                 label = item.name,
                 detail = "w${item.weight} · v${item.value}",
                 active = (state.building && row == state.row) ||
+                    (state.explainingTable && state.intro >= IntroBeat.AXES &&
+                        row == state.teachingCell.row) ||
                     (state.phase == KnapsackPhase.TRACE && row == state.traceRow),
             )
         }
 
     private fun cells(state: KnapsackState): List<List<Cell?>> {
-        val current = if (state.building && state.focused) state.position else null
-        val skipCell = current?.let { TablePos(it.row - 1, it.col) }
+        val current = when {
+            state.building && state.focused -> state.position
+            // The box the introduction is pointing at, before anything is in it.
+            state.intro >= IntroBeat.AXES && state.explainingTable -> state.teachingCell
+            else -> null
+        }
+        // Only while building: during the introduction the box is a hole being
+        // pointed at, and nothing else on the empty grid should be lit.
+        val skipCell = if (state.building) current?.let { TablePos(it.row - 1, it.col) } else null
         val takeCell = if (current != null) state.source else null
 
         // The cell just written keeps its winning side lit, so the learner sees
@@ -140,6 +173,8 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
     }
 
     private fun choice(state: KnapsackState): ChoiceStrip? {
+        if (state.posing) return introChoice(state)
+
         if (state.building && state.focused) {
             val item = requireNotNull(state.item)
             val source = state.source
@@ -183,7 +218,49 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
         )
     }
 
+    /**
+     * The first act uses the strip twice, for the two beats that are a comparison.
+     *
+     * On `PACKED` the two bags are side by side with **both totals hidden**, which
+     * is what makes it a question; on `COMPARED` they are shown and the better one
+     * is lit. On `FORK` the same strip draws the rule itself — one item above, TAKE
+     * and SKIP below it, and no numbers at all, because there is nothing yet to put
+     * in them.
+     */
+    private fun introChoice(state: KnapsackState): ChoiceStrip? {
+        val hand = state.problem.greedyBag
+        val best = state.problem.bestBag
+        return when (state.intro) {
+            IntroBeat.PACKED -> ChoiceStrip(
+                bagSide(hand, value = null),
+                bagSide(best, value = null),
+            )
+            IntroBeat.COMPARED -> ChoiceStrip(
+                bagSide(hand, state.handValue, ChoiceEmphasis.PASSED),
+                bagSide(best, state.bestValue, ChoiceEmphasis.CHOSEN),
+            )
+            IntroBeat.FORK -> ChoiceStrip(
+                first = ChoiceSide("Take", "its value + the best of the room left", value = null),
+                second = ChoiceSide("Skip", "the best without it", value = null),
+                stem = "Every item, one at a time",
+            )
+            else -> null
+        }
+    }
+
+    private fun bagSide(
+        bag: List<com.algorithms.algoking.engine.core.KnapsackItem>,
+        value: Int?,
+        emphasis: ChoiceEmphasis = ChoiceEmphasis.OPEN,
+    ) = ChoiceSide(
+        caption = bag.joinToString(" + ") { it.name },
+        formula = bag.joinToString(" + ") { it.value.toString() },
+        value = value,
+        emphasis = emphasis,
+    )
+
     private fun focusCaption(state: KnapsackState): String? = when {
+        state.posing -> introCaption(state)
         state.building && state.focused -> {
             val names = state.items.take(state.row).joinToString(", ") { it.name }
             "dp[${state.row}][${state.col}] — the best using $names, with capacity ${state.col}"
@@ -197,25 +274,58 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
         else -> null
     }
 
+    /** The working of the first act, printed where the table's caption goes. */
+    private fun introCaption(state: KnapsackState): String? = when (state.intro) {
+        // Not on ITEMS: the cards arriving is that beat, and the sum arriving is
+        // this one. Two beats that drew the same thing would be one beat.
+        IntroBeat.TOO_MUCH ->
+            "Everything together: ${state.items.joinToString(" + ") { it.weight.toString() }} = " +
+                "${state.totalWeight} kg, into a bag that holds ${state.capacity}"
+        IntroBeat.PACKING -> {
+            val picked = requireNotNull(state.firstPick)
+            "${state.capacity} − ${picked.weight} = ${state.roomLeft} kg left"
+        }
+        IntroBeat.EVERY_BAG ->
+            "${List(state.itemCount) { "2" }.joinToString(" × ")} = ${state.bagCount} bags to check"
+        IntroBeat.AXES ->
+            "This box: the best you can do with " +
+                "${state.teachingItems.joinToString(" and ") { it.name }}, " +
+                "and ${state.teachingCell.col} kg of room"
+        IntroBeat.NAME ->
+            "dp[${state.teachingCell.row}][${state.teachingCell.col}] — row " +
+                "${state.teachingCell.row}, column ${state.teachingCell.col}"
+        else -> null
+    }
+
+    /**
+     * The cards carry the 0/1 themselves: `1` for what is in the bag on screen and
+     * `0` for what is not, which is the encoding the lesson is named after, shown
+     * rather than defined.
+     */
     private fun itemCards(state: KnapsackState): List<ItemCard> = when (state.phase) {
         KnapsackPhase.PROBLEM -> {
-            if (state.intro == IntroBeat.SUBPROBLEM) {
+            val inBag = when (state.intro) {
+                IntroBeat.PACKING, IntroBeat.PACKED -> state.handBag
+                IntroBeat.COMPARED -> state.rivalBag
+                else -> emptyList()
+            }
+            if (state.intro == IntroBeat.BAG || state.explainingTable) {
                 emptyList()
-            } else {
-                val greedy = if (state.intro == IntroBeat.GREEDY) state.greedyPick.toSet() else emptySet()
-                state.items.map { item ->
-                    ItemCard(
-                        name = item.name,
-                        weight = item.weight,
-                        value = item.value,
-                        state = if (item in greedy) CellState.FINALIZED else CellState.IDLE,
-                        bitLabel = when (state.intro) {
-                            IntroBeat.ITEMS -> null
-                            IntroBeat.RULE -> "0 or 1"
-                            else -> if (item in greedy) "1" else "0"
-                        },
-                    )
-                }
+            } else state.items.map { item ->
+                val taken = item in inBag
+                ItemCard(
+                    name = item.name,
+                    weight = item.weight,
+                    value = item.value,
+                    state = if (taken) CellState.FINALIZED else CellState.IDLE,
+                    bitLabel = when {
+                        state.intro < IntroBeat.ONCE -> null
+                        state.intro == IntroBeat.ONCE || state.intro == IntroBeat.EVERY_BAG ||
+                            state.intro == IntroBeat.FORK -> "0 or 1"
+                        taken -> "1"
+                        else -> "0"
+                    },
+                )
             }
         }
 
@@ -245,8 +355,10 @@ class KnapsackProjector : SceneProjector<KnapsackState> {
     private fun bag(state: KnapsackState): BagMeter? {
         val contents = when (state.phase) {
             KnapsackPhase.PROBLEM -> when (state.intro) {
-                IntroBeat.SUBPROBLEM -> return null
-                IntroBeat.GREEDY -> state.greedyPick
+                IntroBeat.EVERY_BAG, IntroBeat.FORK, IntroBeat.GRID, IntroBeat.AXES, IntroBeat.NAME ->
+                    return null
+                IntroBeat.PACKING, IntroBeat.PACKED -> state.handBag
+                IntroBeat.COMPARED -> state.rivalBag
                 else -> emptyList()
             }
             KnapsackPhase.BUILD -> return null

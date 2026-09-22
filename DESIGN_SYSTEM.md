@@ -711,6 +711,65 @@ Camera     [0] [0] [3] [ ] [ ] [ ]      ← [ ] is the cell being decided
 **Fit a phone by the gutter, never the cell.** Six capacity columns get about 35dp each
 at 360dp — wider than Counting Sort's buckets — at `sceneCellHeight`. Nothing scrolls.
 
+
+#### The first act has no table under it (ADR-053)
+
+0/1 Knapsack poses its problem before it draws a grid, and it does so with parts this
+system already has: the `BagMeter`, the `ItemCard` row, the `focusCaption` line and
+the two-sided strip. When `tableVisible` is false they simply stack without a grid
+between them — the caption and the strip move up under the bag. Nothing else changes,
+and no other lesson is affected.
+
+```
+🎒 BAG                               2 / 5     value 10
+   ████████░░░░░░░░░░░░
+   Camera
+
+   5 − 4 = 1 kg left
+```
+
+Two beats use the strip for something other than a cell:
+
+**Two bags weighed against each other.** Both sides carry a name and a sum, and
+**both values read `?` while the question is open** — a learner who can see 14 beside
+13 is reading rather than adding. The next beat shows both, with the winner in
+`ChoiceEmphasis.CHOSEN`.
+
+```
+ ┌─────────────────────┐  ┌─────────────────────┐
+ │ CAMERA + WATCH      │  │ LAPTOP + HEADPHONES │
+ │ 10 + 3              │  │ 8 + 6               │
+ │ ?                   │  │ ?                   │
+ └─────────────────────┘  └─────────────────────┘
+```
+
+**The fork.** A `ChoiceStrip` with a `stem` draws as a fork rather than two cards: the
+one thing both sides are about, a `Dimens.forkDrop` connector in hairline
+`borderStrong`, and the two branches. It states the recurrence in words before there
+is a table to state it in.
+
+```
+              Every item, one at a time
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+ ┌───────────────────┐  ┌───────────────────┐
+ │ TAKE              │  │ SKIP              │
+ │ its value + the   │  │ the best without  │
+ │ best of the room  │  │ it                │
+ │ left              │  │                   │
+ └───────────────────┘  └───────────────────┘
+```
+
+| Element | Treatment |
+|---|---|
+| stem | `labelMedium` / `textPrimary`, centred over both cards |
+| connector | `Dimens.hairline` in `borderStrong` — a connector, not something to read |
+| drop height | `Dimens.forkDrop`, split evenly above and below the crossbar |
+| branches | the ordinary `ChoiceCard`s, in the two decision tones |
+
+The stem is null for every other lesson and for every other beat of this one, so the
+strip is two cards everywhere else.
 ### 6.16l A pipeline and a fingerprint — `HashTable`
 
 The ninth scene shape (ADR-048), for SHA-256. It is the first stage whose subject is a
@@ -836,6 +895,53 @@ The eleventh scene shape (ADR-050), for RSA. It is the first stage whose subject
 **dependency**: a short list of named values where each is produced from earlier ones
 by a printed formula, and where the arrow between two rows is the lesson.
 
+> **⚠ AMENDED — 2026-09-21 (ADR-052).** The stage now draws **two pictures, never both
+> at once**. RSA runs story-first: its first act is a *flow* — what goes in, what acts
+> on it, what comes out — with the worked arithmetic beside it, and the derivation
+> chain below is its **second** act. The chain is empty for the whole of the first.
+
+#### The flow, and the arithmetic beside it
+
+```
+┌ ENCRYPTING ─────────┬ THE MATHEMATICS ────────┐
+│  MESSAGE      4     │  c = m^e mod n          │
+│      ↓              │  m = 4                  │
+│  PUBLIC KEY (3,55)  │  e = 3                  │
+│      ↓              │  n = 55                 │
+│  ENCRYPT            │  c = 4³ mod 55          │
+│      ↓              │  c = 64 mod 55          │
+│  CIPHERTEXT   9     │  c = 9        ← settled │
+└─────────────────────┴─────────────────────────┘
+```
+
+| Element | Treatment |
+|---|---|
+| flow card | `surfaceVariant`, `Radius.card`, captioned `ENCRYPTING` / `DECRYPTING` / `THE ROUND TRIP` |
+| a node | `Radius.cell`, 48dp minimum: the label in `labelSmall`, the value in `numeralMedium` at the end |
+| a key node | the colour that half carries everywhere else — `primarySoft` for public, `goldSoft` + 14dp lock for private |
+| an operation node | `surface`, label in `secondaryDark`, **no value** — it is a verb, and printing a number beside it would read as one |
+| the arrow between nodes | `↓` in `titleSmall`/`primary`, inset to the gutter |
+| maths card | `surfaceVariant`, captioned `THE MATHEMATICS` |
+| the formula line | `titleSmall` in `primary` — the rule, before any number goes into it |
+| a substitution | `bodyLarge` in `textSecondary` |
+| a step | `bodyLarge` in `textPrimary` |
+| the result | `titleSmall` in `onSuccessSoft` on a `successSoft` `Radius.cell` ground — the only line drawn as one, and green because green is *settled* and never an action (§0.1) |
+
+**Side by side above `Dimens.twoColumnMinWidth` (520dp), stacked below it.** On every
+phone in the target range that means stacked; a tablet or a landscape phone gets the
+two-column reading. The order is the same either way — visual first, arithmetic second
+— because that is the lesson's claim in miniature. Two 140dp columns at 360dp would
+make the lesson's numbers a squint, and legibility wins.
+
+**A blank verb is a question.** The operation node reads `?` while the learner is being
+asked which operation it is. That is the `?` rule below, applied to a flow.
+
+**The arithmetic's last line is withheld while that value is the question.** While `c`
+is being asked the panel ends at `c = 4³ mod 55`; the reduction and the answer arrive
+together once it is settled.
+
+#### The derivation chain
+
 ```
 ┌ KEY GENERATION ─────────────────────────┐
 │  p, q    two different primes    5, 11  │
@@ -888,7 +994,8 @@ rather than as a rule.
 than numbers they become full-width stacked cards. Four `DecisionButton`s share a row
 at about 76dp each — enough for `(3, 55)` and nothing like enough for "Asymmetric
 cryptography" — which is the wall ADR-032 and ADR-037 each hit, and the move AES made
-with its round strip (§6.16m).
+with its round strip (§6.16m). Six of RSA's twelve judgements take that path, and they
+are exactly its six concept judgements (ADR-052).
 
 **The layout gives way, never the numbers.** A row's formula wraps; the symbol and the
 value do not. Every value is two digits by construction, which is the point of the

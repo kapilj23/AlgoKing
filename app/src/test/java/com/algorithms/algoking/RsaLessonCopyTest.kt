@@ -7,7 +7,9 @@ import com.algorithms.algoking.engine.dataset.RsaDatasets
 import com.algorithms.algoking.engine.decision.DecisionKind
 import com.algorithms.algoking.engine.narration.NarrationId
 import com.algorithms.algoking.engine.narration.NarrationKey
+import com.algorithms.algoking.engine.scene.LessonLayer
 import com.algorithms.algoking.feature.lesson.Narration
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -118,6 +120,121 @@ class RsaLessonCopyTest {
         )
     }
 
+    /**
+     * **Act I never says a symbol** — the claim the whole re-ordering rests on
+     * (ADR-052), checked against the resolved sentences rather than the step list.
+     *
+     * A learner reaching the round trip has been told what RSA does, what each key
+     * is for and which one to keep, and has met **no key generation at all**: no
+     * primes, no `φ(n)`, no `gcd`, no `p × q`.
+     *
+     * What Act I *is* allowed to say is `c = m^e mod n` with its numbers filled in,
+     * because the brief asks for exactly that — the arithmetic of a transformation
+     * the learner has already watched happen. So `e` and `n` appear as the two
+     * numbers inside the public key they have been handed, and the question of where
+     * those numbers came from is the one Act II exists to answer. The line being
+     * drawn here is **key generation**, not arithmetic.
+     */
+    @Test
+    fun `the concept layer is told with no arithmetic in it at all`() {
+        val steps = AlgorithmCatalog.rsa().watchScript().steps
+        val bridge = steps.indexOfFirst {
+            it.headline.id == NarrationId.RSA_WATCH_TEXT_AS_NUMBERS
+        }
+        assertTrue("the lesson never crosses from text to numbers", bridge > 0)
+
+        val concept = steps.take(bridge).joinToString(" ") { step ->
+            Narration.resolve(step.headline) + " " + Narration.resolve(step.support)
+        }
+
+        listOf(
+            "φ" to "the totient's symbol",
+            "totient" to "the totient by name",
+            "prime" to "the primes",
+            "p × q" to "the modulus formula",
+            "gcd" to "the coprimality condition",
+            "mod " to "modular arithmetic",
+            "exponent" to "the exponents",
+        ).forEach { (needle, what) ->
+            assertFalse(
+                "the concept layer mentions $what before the learner knows what RSA " +
+                    "is for:\n$concept",
+                needle in concept.lowercase(),
+            )
+        }
+
+        // Not one digit of the toy example, either — the whole point of ADR-053.
+        val problem = requireNotNull(RsaDatasets.watch.rsa)
+        listOf(problem.p, problem.q, problem.e, problem.d, problem.modulus, problem.totient)
+            .forEach { number ->
+                assertFalse(
+                    "the concept layer printed $number:\n$concept",
+                    Regex("\\b$number\\b").containsMatchIn(concept),
+                )
+            }
+
+        // What it *does* say, by the time the round trip lands.
+        val told = concept.lowercase()
+        assertTrue("the message is never shown", "meet at 7" in told)
+        assertTrue("the public key is never named", "public key" in told)
+        assertTrue("the private key is never named", "private key" in told)
+        assertTrue("nothing is ever encrypted", "encrypt" in told)
+        assertTrue("nothing is ever sent", "send" in told || "sent" in told)
+    }
+
+    /**
+     * **The lesson never claims the toy numbers encrypted the message** — §6 of the
+     * brief, and the reason ADR-053 splits the lesson into two labelled layers.
+     *
+     * `n = 55` cannot encrypt *"MEET AT 7"*. The beat that introduces the toy example
+     * says so in as many words, before a single one of its numbers is shown.
+     */
+    @Test
+    fun `the toy layer says it is a toy, and says what it is not`() {
+        val steps = AlgorithmCatalog.rsa().watchScript().steps
+        val toy = steps.single { it.headline.id == NarrationId.RSA_WATCH_TOY_EXAMPLE }
+        val said = Narration.resolve(toy.headline) + " " + Narration.resolve(toy.support)
+
+        assertTrue("the toy beat never calls itself a toy", "toy" in said.lowercase())
+        assertTrue("the toy beat never names the message it is not", "MEET AT 7" in said)
+        assertTrue(
+            "the toy beat never denies encrypting the message:\n$said",
+            "not" in said.lowercase() && "mechanism" in said.lowercase(),
+        )
+
+        // And the banner on every toy frame says the same thing.
+        assertTrue("NOT SECURE" in LessonLayer.TOY.label)
+        assertTrue("mechanism" in LessonLayer.TOY.note)
+        // While the concept layer's caption owns the other half of the honesty:
+        // its ciphertext is an illustration, not a computation.
+        assertTrue(
+            "the concept layer never says its bytes are an illustration",
+            "stands for" in LessonLayer.CONCEPT.note,
+        )
+    }
+
+    /**
+     * The mathematics arrives as the explanation of something already shown.
+     *
+     * Both formulas are on screen in Act I, and both are attached to a transformation
+     * the learner has watched happen — which is the distinction the brief draws
+     * between *showing* the arithmetic and *opening* with it.
+     */
+    @Test
+    fun `both formulas are explained where they are used`() {
+        val steps = AlgorithmCatalog.rsa().watchScript().steps
+
+        val encrypt = steps.single { it.headline.id == NarrationId.RSA_WATCH_ENCRYPT }
+        assertEquals("c = 4^3 mod 55 = 9.", Narration.resolve(encrypt.headline))
+
+        val decrypt = steps.single { it.headline.id == NarrationId.RSA_WATCH_DECRYPT }
+        assertEquals("m = 9^27 mod 55 = 4.", Narration.resolve(decrypt.headline))
+
+        // And the encryption beat comes before the primes are ever mentioned.
+        val primes = steps.indexOfFirst { it.headline.id == NarrationId.RSA_WATCH_PRIMES }
+        assertTrue("the primes arrive before the message is encrypted", primes > encrypt.index)
+    }
+
     /** The mathematics the lesson teaches, as the learner reads it in the recap. */
     @Test
     fun `the recap states the whole key-generation chain`() {
@@ -163,9 +280,13 @@ class RsaLessonCopyTest {
      *
      * Four `DecisionButton`s share a row at 360dp — about 76dp each — and a label
      * that wraps is the wall Two Pointers hit with "Move RIGHT" (ADR-032) and AVL
-     * with its four case names (ADR-037). The two judgements whose options are
+     * with its four case names (ADR-037). The six judgements whose options are
      * sentences are deliberately **not** buttons: they are tapped on stacked cards,
      * which is why nothing here has to be abbreviated.
+     *
+     * Six button rows, not the eight there were before ADR-052: the two that asked
+     * the learner to assemble `(e, n)` and `(d, n)` are now stated, because both
+     * pairs are on screen from the start of the lesson.
      */
     @Test
     fun `no button label is long enough to wrap a decision button`() {
@@ -194,7 +315,7 @@ class RsaLessonCopyTest {
                 }
             }
         }
-        assertTrue("there were button rows to check", buttonRows == 8)
+        assertEquals("the arithmetic judgements, and only those", 6, buttonRows)
     }
 
     private companion object {

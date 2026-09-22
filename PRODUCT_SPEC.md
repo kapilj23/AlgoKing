@@ -120,7 +120,7 @@ advancement is performed by the app, never by the user.
 | Binary Tree — Preorder | the same | the same question, NODE → LEFT → RIGHT |
 | Binary Tree — Postorder | the same | the same question, LEFT → RIGHT → NODE |
 | Fibonacci | gives `dp[0] = 0` and `dp[1] = 1`, and moves the cursor | **what is `dp[i]`?** — every entry, all the way to `F(n)` |
-| 0/1 Knapsack | fills row 1 and the zeros, adds `value + dp`, moves between cells | **which cell TAKE builds on**, **TAKE or SKIP?**, then **was each item taken?** |
+| 0/1 Knapsack | fills row 1 and the zeros, adds `value + dp`, moves between cells, and fills every cell whose answer repeats one already given | **can you take all of it**, **how many times can one item go in**, **what else still fits**, **which of these two bags is worth more** — and only then **which cell TAKE builds on**, **TAKE or SKIP?**, and **was each item taken?** |
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
 | Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |
@@ -133,7 +133,7 @@ advancement is performed by the app, never by the user.
 | XOR Cipher | nothing — every column is the learner's | **what is `a ⊕ b`?** — every bit, and then every bit again on the way back |
 | SHA-256 Hashing | hashes every message, because nobody runs 64 compression rounds by hand | **which statement about hashing is true?** — five times, with the real digests on screen to read the answer off |
 | AES | runs the whole cipher, because nobody performs a MixColumns by hand — and every State it draws is the one AES really produces | **how big is a block, what does the State hold, what comes next in a round, what does the last round leave out, how many rounds does each variant run, and what makes the round keys** |
-| RSA | does every modular exponentiation — nobody computes `9^27 mod 55` by hand — and states the two primes | **every link in the chain**: `n`, `φ(n)`, a legal `e`, `d`, both keys, the ciphertext, the message back, and which key stays secret |
+| RSA | does every modular exponentiation — nobody computes `9^27 mod 55` by hand — states the two primes, and assembles the two keys once their parts are derived | **the story, then the arithmetic** (ADR-052): what RSA uses, which key is shared, which is secret, what each key does to a message, the ciphertext, the message back — and only then `n`, `φ(n)`, a legal `e`, `d`, and what the pair is for |
 
 > **Explicitly rejected:** "Which pair should we compare?" in Bubble Sort. The next pair is
 > always the next pair — there is no decision, and tapping the only legal target teaches a

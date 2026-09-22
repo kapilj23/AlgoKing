@@ -3294,6 +3294,280 @@ is still the store's answer.
 
 ---
 
+## ADR-052 — RSA tells the story first, and explains the keys second
+
+**Decision.** The RSA lesson runs in **two acts**. Act I shows a message being encrypted with a
+public key and decrypted with a private one, with the two keys handed over as `(3, 55)` and
+`(27, 55)` — things that exist and have opposite jobs. Act II then answers the question Act I
+leaves standing: *where did those two pairs come from?* — and only there does `p`, `q`, `φ(n)`,
+`e` or `d` appear. The engine, the toy key pair, the arithmetic, the Pro gate and the TRY
+architecture are unchanged; what moved is the order, the picture, and four new judgements.
+
+⚠ **Product-owner decision**, 2026-09-21: the lesson introduced key generation before the
+learner knew what RSA was for, and is to be re-ordered story-first.
+
+### What was wrong with the old order
+
+The first thing the old lesson did after its opening was ask for `n = p × q`, and its fourth
+beat asked for `φ(n)`. Every one of those numbers is correct, derived at the point it is
+computed, and drawn with a `?` until it is settled — ADR-050 got all of that right. What it got
+wrong is that **a learner on beat four cannot yet say what RSA does**, and a totient without a
+purpose is a fact to be memorised rather than a step in an argument. The lesson reached
+`4 → 9 → 4` on beat twelve, which is where its point lives.
+
+The test that now guards this is `the story is asked before the arithmetic`: every judgement
+answerable with no arithmetic comes before every judgement that needs some.
+
+### The story half is asked, not told
+
+Four judgements are new — which key may be shared, what the public key does to a message, what
+the private key does to a ciphertext, and what the pair is therefore *for*. They could all have
+been statements, because the answer is on the card in front of the learner. They are questions
+because a learner who taps *"the public key"* has committed to something, and PRODUCT_SPEC.md
+§5's ladder then has something to teach against when they do not. A story told at someone is a
+video, which is the one thing this app is not (ADR-020).
+
+That makes six card judgements where there were two, and it is what forced the narrator change
+below.
+
+### `PUBLIC_KEY` and `PRIVATE_KEY` became statements, and that is forced
+
+Both pairs are on screen from the beat that hands them over, so asking *"which pair is the
+public key?"* in Act II is asking a learner to read a card. They were dropped from the asked
+list — **not deleted**: the questions, their four distractors each, and all their copy are
+untouched, `stepsFor` turns any unasked question into a statement, and a test builds a dataset
+that asks them both and checks they still work. The two exponents behind them, `e` and `d`, are
+still asked, and they are the part nobody could have read off the screen.
+
+### Act I draws a flow; Act II draws the chain
+
+The derivation chain is **empty for the whole of Act I**. The alternative — five rows of `?` —
+was tried first and is worse than it sounds: it puts every symbol the re-ordering exists to
+delay on the very first screen, wearing a question mark. So `KeyPairScene` gained two defaulted
+fields, the move every scene addition in this project has made (ADR-037, ADR-039):
+
+- **`flow`** — `message → public key → encrypt → ciphertext`, and the same shape backwards. A
+  node whose value the lesson has not produced is null and drawn `?`, which is the chain's own
+  rule applied to a flow, and it is what makes *"what does the public key do to this?"* askable:
+  the verb node is blank while the learner is choosing which verb it is.
+- **`maths`** — the worked arithmetic beside it, whose **last line is withheld while that value
+  is the question**. `c = 4³ mod 55` while asking; `c = 64 mod 55` and `c = 9` once settled.
+  That `64 mod 55` line is the one that makes `mod` mean something rather than being a symbol,
+  and it is deliberately not shown early, because anyone who can subtract would read the answer
+  off it.
+
+They are never on screen together, because they answer two different questions and the lesson
+only asks the second once the learner can answer the first.
+
+**The flow turns round one beat before the arithmetic does.** On the beat that pauses on the
+ciphertext, the flow already shows `9 → private key → ?` — because that is the picture the next
+judgement is about — while the panel still shows how `9` was produced. Turning both at once
+wipes `c = 9` one beat after earning it.
+
+### The narrator now captions two things at once
+
+A frame is drawn from the state *after* its transition, so the frame that passes a beat is also
+the frame the next question is pending on. For a card judgement that means the cards land on the
+previous beat's frame. ADR-050 handled this by sacrificing the landed beat's caption, which was
+affordable when the two beats before a card question had nothing of their own to say.
+
+With six card judgements, all six of those beats do. So a frame with cards on it is now
+captioned by **both** — the landed beat's headline, and a support line introducing the choice
+underneath. That is not a compromise: it is what the frame honestly shows, and it is ADR-048's
+rule (*a frame is captioned by what its own scene shows*) applied to a scene showing two things.
+Each beat keeps its own two-sentence caption for the statement path, and a test drives a dataset
+that asks nothing to prove those captions are correct rather than dead.
+
+### What did not change
+
+The toy key pair, `Rsa`, `RsaProblem`, every `BigInteger` and 2048-bit check in `RsaMathTest`,
+`ProAccess`, `PlayBillingGateway`, the paywall, the one interstitial, `ProgressRepository`, the
+`LessonPack` shape, `LessonController`, and every other lesson. The diff touches RSA's four
+engine files, its scene, its copy, its renderer and its two test files.
+
+WATCH went from 16 beats to 24. That is the cost of telling the story and then explaining it,
+and every added beat is a real visual change rather than a pause — the round trip, the two
+operation judgements, the pause on the ciphertext, and the beat that asks where the keys came
+from. The bound in `WATCH is long enough to teach and short enough to finish` moved with it.
+
+**Alternatives considered.**
+- *Keep the order and rewrite the copy.* Rejected. The complaint is not that `φ(n) = 40` is
+  badly worded; it is that it arrives before the learner has a reason to care.
+- *Split into two lessons — "RSA" and "RSA key generation".* Rejected: the round trip only means
+  something once you know one key undoes the other, and key generation only means something once
+  you have seen the round trip. Splitting them puts a paywall-shaped gap in the middle of one
+  idea.
+- *Show the chain greyed out through Act I so the learner knows it is coming.* Rejected above —
+  it is the thing being fixed, with a question mark on it.
+- *Drop `PUBLIC_KEY`/`PRIVATE_KEY` entirely.* Rejected: they cost nothing to keep, they are the
+  right questions for a dataset that does not hand the keys over first, and deleting working
+  authored copy to make a list shorter is not a saving.
+- *Ask both operation judgements before either formula, as §13 of the brief lists them.*
+  Rejected: §1 of the same brief interleaves them — story, then the mathematics behind **that**
+  step — and §16's acceptance criteria list the interleaved order. Interleaving also keeps WATCH
+  and TRY on one script, which `WATCH and TRY ask the same exercises in the same order` pins.
+
+
+---
+
+## ADR-053 — 0/1 Knapsack poses the problem before it draws the table
+
+**Decision.** The 0/1 Knapsack lesson runs in **two acts**. Act I has no table in it
+at all: a bag, four things, the fact that they will not all fit, the 0/1 rule, a bag
+packed by hand for 13, a better one worth 14, the size of the brute force, and the
+TAKE-or-SKIP fork. Act II then builds `dp[i][c]` as the tool that answers the fork
+reliably. The recurrence, the walk back, the scene shape, the Pro gate and the
+`LessonPack` are unchanged; what moved is the order, the picture before the table,
+and how much of the table the learner fills.
+
+⚠ **Product-owner decision**, 2026-09-22: the lesson was *"look at this table and
+understand it"*, and is to be re-ordered problem-first.
+
+### What was wrong with the old order
+
+The old lesson spent four beats on the problem and sixteen inside the table. Those
+four beats were correct and none of them was a question: the items, the 0/1 rule,
+a sentence asserting that greedy loses, and `2ⁿ`. Then `dp[i][c]` was defined and the
+learner filled cells.
+
+The complaint is not that any of it was false. It is that **a learner on beat five
+cannot yet say what problem the table is for**, and a cell defined before the problem
+is a definition to be memorised rather than a step in an argument. Every question the
+old lesson asked was about the table; none was about the bag.
+
+The test that now guards this is `the story is asked before the table`: every
+question answerable with no table comes before every question about one.
+
+### The refutation is performed, not asserted
+
+The old lesson's third beat said, in copy, that taking the most valuable item first
+loses. Act I makes the learner do it instead: pack the most valuable thing, find the
+one item that still fits, and then meet a second full bag with **both totals hidden**
+and pick the larger. Adding `10 + 3` against `8 + 6` is arithmetic a beginner can do,
+and being wrong about it is the moment the method becomes worth having.
+
+That is four new judgements — can you take all of it, how many times can one item go
+in, what else still fits, which bag is worth more. All four could have been
+statements. They are questions because a learner who taps *"Camera + Watch"* has
+committed to something, and PRODUCT_SPEC.md §5's ladder then has something to teach
+against — the argument ADR-052 made for RSA, applied to a bag.
+
+**The 0/1 question is the one that earns its place most cheaply.** Its two wrong
+answers are the two *other* knapsacks: "as many as fit" is the unbounded problem and
+"any fraction of it" is the fractional one. Both are named in the why-wrong copy, so
+the learner is told what this lesson is not at the point where the name would
+otherwise be trivia. The old lesson never mentioned either.
+
+### The brief's dataset was rejected once, and one number brings it back
+
+The product owner specified Laptop 3/8 · Headphones 2/5 · Camera 4/10 · Watch 1/3 at
+capacity 5. ADR-044 had already rejected that exact set, and the reason survives:
+it has **two** optimal bags worth 13, `Laptop + Headphones` and `Camera + Watch`.
+They are disjoint, so whichever item goes in the last row, `dp[n][5]` is a tie — the
+final and most important question of the lesson would mark a learner wrong on a
+convention. There is no row order that avoids it; the tie is a property of the bag,
+not of the layout.
+
+**Headphones 5 → 6 fixes all of it**, and nothing else changes: the capacity, the
+four names, the Laptop, the Camera and the Watch are the brief's. The optimum becomes
+14 and unique, no cell in the table ties, and taking the most valuable item first now
+genuinely loses — which is what §6 of the brief wanted and what its own numbers could
+not deliver, since `Camera + Watch` also reached 13.
+
+Every one of those properties is a test over a brute-force enumerator rather than a
+claim in a comment, and there are six of them, because Act I asks four questions that
+only have single answers if the data cooperates.
+
+### The learner fills five cells of thirty
+
+The old rule asked about every cell where the item fitted. The bag grew from three
+items to four, which would have taken TRY from 13 questions to 25 — and answering
+*"TAKE or SKIP?"* twenty-five times is a drill, not a lesson. So the build now asks:
+
+- one *does it fit?*, at the **first** boundary in the table;
+- one *which cell does TAKE build on?*, at the **first** cell whose TAKE reads a
+  value worth more than 0 — the reuse, which is the only reason that question exists;
+- one *TAKE or SKIP?* per row, on the **last column**, which is the cell the answer
+  is eventually read from, plus the cell whose source was just named.
+
+The rules are about where a cell sits rather than which dataset is loaded, so they
+hold for any bag. TRY is 13 questions again — four about the problem, five about the
+table, four walking back up it — and a test pins the five, so it cannot creep back up
+without somebody deciding to.
+
+This is the half of the decision most likely to be argued with later, so: a learner
+who has answered *"TAKE or SKIP?"* three times **after** understanding what the
+question means has learnt more than one who answered it twenty-five times before.
+
+### The first act added no scene shape and no scene field
+
+`DpTableScene` already carried `items`, `bag`, `focusCaption` and `choice` — the
+cards and the strip the second act ends on — and `tableVisible` already meant *there
+is no table yet*. So Act I is those four fields with no `cells` under them, and the
+renderer's only new work is the arrangement for when there is no grid to sit beneath.
+The union did not grow, which is what ADR-036 refused a shape for the Binary Search
+Tree to protect.
+
+One defaulted field joined `ChoiceStrip`: **`stem`**, naming the one thing both sides
+are about. With it the same two cards draw as a fork — the item, a short drop, TAKE
+and SKIP — which is how the recurrence is stated before there is a table to state it
+in. Null everywhere else, so no other lesson changed: the additive move ADR-037,
+ADR-039 and ADR-052 each made.
+
+### Nothing answers a question before it is asked
+
+While the two bags are side by side, **both totals read `?`**. Showing 13 and hiding
+14 would make the question "read the other one"; showing both would make it "compare
+two printed numbers". They appear together on the following beat with the winner lit.
+That is ADR-030's rule applied to a comparison rather than to a cell, and it is
+tested.
+
+### A bag the story does not fit is not asked about
+
+Act I's questions each need something to be true: everything must not fit, exactly
+one thing must still fit after the first pick, and greed must lose. The authored bags
+satisfy all of it. A synthetic one — nothing fits, or greed is already optimal —
+cannot, so `storyHolds` is false and those beats are **stated instead of asked**.
+This is the rule `KnapsackProblem` already applies to its own arguments: a lesson that
+cannot be taught is not taught, rather than taught wrongly. The exhaustive
+three-item sweep in `KnapsackTest` drives hundreds of such bags, and it was that sweep
+that found the crash this paragraph describes the fix for.
+
+### What did not change
+
+The recurrence, `KnapsackProblem`'s validation, the walk back, `DpTableScene`'s
+shape, the projector's cell states, `ProAccess`, progress, the one interstitial, the
+`LessonPack` shape, `LessonController`, and every other lesson. The diff touches
+knapsack's four engine files, its dataset, its scene's one field, its copy, the DP
+renderer, one design token and its test file.
+
+WATCH went from 20 beats to 26, and TRY stayed at 13. That is the cost of explaining
+the problem before the method, and every added beat is a real visual change rather
+than a pause — the adjacent-steps test caught two beats that drew the same thing and
+they were separated before this was written.
+
+**Alternatives considered.**
+- *Keep the order and rewrite the copy.* Rejected. The complaint is not that the
+  table was badly worded; it is that it arrives before the learner has a reason to
+  want it.
+- *Keep the brief's numbers and teach the tie.* Rejected: the tie lands on the final
+  question, and "both choices give 13, and the rule keeps the row above" is a
+  convention, not knapsack. A beginner-friendly rewrite cannot end on an arbitrary
+  wrong answer.
+- *Change Camera 10 → 9 instead.* Rejected: it also gives one optimum, but leaves a
+  tie at `dp[4][3]`. Raising the Headphones is the only single-number fix that
+  removes every tie.
+- *Shrink the table instead of the questions* — three items rather than four.
+  Rejected: the brief names four things, and the fourth is what makes `2ⁿ = 16` worth
+  saying.
+- *Give the fork its own scene shape.* Rejected on ADR-036's grounds. A fork is two
+  outcomes weighed against each other, which is what `ChoiceStrip` already is; what
+  was missing was the thing they are about, and that is one string.
+- *Keep asking every fitting cell, and let TRY be 25 questions.* Rejected — see
+  above. It is the drill the rewrite exists to remove.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

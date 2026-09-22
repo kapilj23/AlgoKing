@@ -126,6 +126,15 @@ object Dimens {
     val compareLabelWidth = 64.dp
 
     /**
+     * The drop from the stem of a fork to the two branches under it — 0/1
+     * Knapsack draws TAKE and SKIP this way before any table exists (ADR-053).
+     *
+     * Short on purpose: the fork is a caption for the two cards beneath it, not a
+     * diagram competing with them.
+     */
+    val forkDrop = 14.dp
+
+    /**
      * The gutter that names each round key in the AES key schedule — `K0`, `K1`.
      *
      * Narrow on purpose: the label is two or three characters and the hex beside it
@@ -140,6 +149,19 @@ object Dimens {
      * and wide enough for `φ(n)`, which is the longest of them.
      */
     val derivationSymbolWidth = 44.dp
+
+    /**
+     * The width at which RSA's flow and its arithmetic sit side by side rather than
+     * stacked — DESIGN_SYSTEM.md §6.16n.
+     *
+     * Measured rather than picked: the two columns need about 180dp each to hold
+     * `c = 4³ mod 55` and `PUBLIC KEY (3, 55)` on one line, plus the gutters and the
+     * gap between them. Below it they stack, because two 140dp columns would put the
+     * lesson's numbers at a size nobody should have to squint at — every phone in the
+     * target range (PRODUCT_SPEC.md §16) stacks, and a tablet or a landscape phone
+     * gets the two-column reading the brief asks for.
+     */
+    val twoColumnMinWidth = 520.dp
 
     val legendSwatch = 14.dp
     val legendGap = Spacing.sm

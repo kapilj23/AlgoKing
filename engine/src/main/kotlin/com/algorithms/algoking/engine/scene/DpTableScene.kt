@@ -66,8 +66,17 @@ data class TableHeader(
  * [first] is drawn in the first decision tone and [second] in the second — the
  * same positional pairing `DecisionTone.forIndex` gives the option buttons, so
  * each side is the colour of the button that chooses it.
+ *
+ * [stem] names the one thing both sides are about, and is what turns the strip
+ * from two cards into a fork: 0/1 Knapsack draws the recurrence with it before any
+ * table exists (ADR-053). Null is the ordinary two-card strip, which is what every
+ * other use of this type is.
  */
-data class ChoiceStrip(val first: ChoiceSide, val second: ChoiceSide)
+data class ChoiceStrip(
+    val first: ChoiceSide,
+    val second: ChoiceSide,
+    val stem: String? = null,
+)
 
 data class ChoiceSide(
     val caption: String,

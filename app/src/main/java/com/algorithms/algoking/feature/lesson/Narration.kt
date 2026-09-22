@@ -943,12 +943,143 @@ object Narration {
                 "If you TAKE the ${arg(0)}, which cell holds the best for the room that is left?"
             NarrationId.KN_ASK_CHOICE -> "SKIP or TAKE the ${arg(0)}?"
             NarrationId.KN_ASK_TRACE -> "Was the ${arg(0)} taken?"
-            NarrationId.KN_INTRO_RULE -> "Each item goes in once, or not at all."
-            NarrationId.KN_INTRO_GREEDY ->
-                "Greedy takes the ${arg(0)} first: ${arg(1)} in the bag, ${arg(2)} capacity left."
-            NarrationId.KN_INTRO_GREEDY_NONE -> "Nothing fits in this bag at all."
-            NarrationId.KN_INTRO_SUBPROBLEM ->
-                "${arg(0)} possible bags. Ask a smaller question instead."
+
+            // Act I — the problem, before any table exists (ADR-053). The numbers
+            // in every line are the engine's, so a different bag says different
+            // things rather than the same things wrongly.
+            NarrationId.KN_OPTION_ALL -> "All of it"
+            NarrationId.KN_OPTION_SOME -> "Only some of it"
+            NarrationId.KN_OPTION_ONCE -> "Once, or not at all"
+            NarrationId.KN_OPTION_MANY -> "As many as fit"
+            NarrationId.KN_OPTION_FRACTION -> "Any fraction of it"
+            NarrationId.KN_OPTION_ITEM -> "${arg(0)} · ${arg(1)} kg"
+            NarrationId.KN_OPTION_NOTHING -> "Nothing else fits"
+            NarrationId.KN_OPTION_BAG -> "${arg(0)}"
+            NarrationId.KN_ASK_CAPACITY -> "The bag holds ${arg(0)} kg. How much of this can you take?"
+            NarrationId.KN_ASK_TIMES -> "How many times can the ${arg(0)} go in the bag?"
+            NarrationId.KN_ASK_FITS ->
+                "The ${arg(0)} is in, and ${arg(1)} kg is left. What else still fits?"
+            NarrationId.KN_ASK_BETTER -> "Two bags. Which one is worth more?"
+            NarrationId.KN_INTRO_ITEMS ->
+                "${arg(0)} things you could take, and a bag that holds ${arg(1)} kg."
+            NarrationId.KN_INTRO_TOO_MUCH ->
+                "${arg(0)} kg of things, ${arg(1)} kg of bag. Something stays behind."
+            NarrationId.KN_INTRO_ONCE -> "Each item goes in once, or not at all."
+            NarrationId.KN_INTRO_PACKING ->
+                "The ${arg(0)} is the most valuable: ${arg(1)}. It weighs ${arg(2)}, so ${arg(3)} kg " +
+                    "is left."
+            NarrationId.KN_INTRO_PACKED -> "${arg(0)}: ${arg(1)} kg, worth ${arg(2)}."
+            NarrationId.KN_INTRO_COMPARED ->
+                "${arg(0)} is worth ${arg(1)} — more than ${arg(2)}."
+            NarrationId.KN_INTRO_EVERY_BAG ->
+                "${arg(0)} possible bags from ${arg(1)} items, and each new item doubles it."
+            NarrationId.KN_INTRO_FORK ->
+                "So take the items one at a time: TAKE or SKIP, and keep the better bag."
+            // The table arrives and is explained before it is filled: what a box
+            // holds, what a box means, and only then what a box is called. The
+            // shorthand is introduced as a name for something already understood.
+            NarrationId.KN_INTRO_GRID -> "A grid of ${arg(0)} boxes. Each one holds a single number."
+            NarrationId.KN_INTRO_AXES ->
+                "A row is which items you may use; a column is how much room you have."
+            NarrationId.KN_INTRO_NAME ->
+                "That box is called dp[${arg(0)}][${arg(1)}] — row ${arg(0)}, column ${arg(1)}."
+            NarrationId.KN_WATCH_GRID -> "Now a table. Every box will hold one number."
+            NarrationId.KN_WATCH_GRID_SUPPORT ->
+                "${arg(0)} boxes, and every one of them answers the same question: what is the " +
+                    "best value you can fit? Not which items — just what the best bag is worth."
+            NarrationId.KN_WATCH_AXES ->
+                "A row is which items you may use. A column is how much room you have."
+            NarrationId.KN_WATCH_AXES_SUPPORT ->
+                "So the box where they cross means: the best you can do using only ${arg(0)}, " +
+                    "with ${arg(1)} kg of room."
+            NarrationId.KN_WATCH_NAME -> "That box has a short name: dp[${arg(0)}][${arg(1)}]."
+            NarrationId.KN_WATCH_NAME_SUPPORT ->
+                "dp[row][column], and nothing more. The name says which box; the sentence above " +
+                    "says what it means."
+            NarrationId.KN_HINT_CAPACITY -> "Add up what the items weigh, and compare it with the bag."
+            NarrationId.KN_HINT_TIMES -> "The lesson is called 0/1. That is the answer, as two numbers."
+            NarrationId.KN_HINT_FITS -> "Only ${arg(0)} kg is left. Which weights are small enough?"
+            NarrationId.KN_HINT_BETTER -> "Add up the values in each bag."
+            NarrationId.KN_RETRY_CAPACITY_LOOK ->
+                "The items weigh ${arg(0)} kg. The bag holds ${arg(1)}."
+            NarrationId.KN_RETRY_CAPACITY_ASK ->
+                "Does ${arg(0)} kg go into a bag that holds ${arg(1)}?"
+            NarrationId.KN_RETRY_CAPACITY_EXPLAIN ->
+                "${arg(0)} is ${arg(2)} more than ${arg(1)}, so only some of it can go in. That is " +
+                    "what makes this a problem at all."
+            NarrationId.KN_RETRY_TIMES_LOOK ->
+                "There is one ${arg(0)}, and it is either in the bag or it is not."
+            NarrationId.KN_RETRY_TIMES_ASK ->
+                "The lesson is called 0/1 Knapsack. What could the 0 and the 1 be counting?"
+            NarrationId.KN_RETRY_TIMES_EXPLAIN ->
+                "Once, or not at all: 1 means the ${arg(0)} is in, 0 means it is out. That is the 0/1."
+            NarrationId.KN_RETRY_FITS_LOOK ->
+                "${arg(0)} kg of bag, minus the ${arg(1)} already used, leaves ${arg(2)}."
+            NarrationId.KN_RETRY_FITS_ASK -> "Which of the others weighs ${arg(0)} kg or less?"
+            NarrationId.KN_RETRY_FITS_EXPLAIN ->
+                "The ${arg(0)} weighs ${arg(1)}, and ${arg(2)} kg is left. It is the only one that fits."
+            NarrationId.KN_RETRY_BETTER_LOOK -> "One bag is ${arg(0)}. The other is ${arg(1)}."
+            NarrationId.KN_RETRY_BETTER_ASK -> "Add each one up. Which total is larger?"
+            NarrationId.KN_RETRY_BETTER_EXPLAIN ->
+                "${arg(0)} is worth ${arg(1)}, and ${arg(2)} is worth ${arg(3)}."
+            NarrationId.KN_WHY_ALL_FITS ->
+                "${arg(0)} kg will not go into a bag that holds ${arg(1)}. If everything fitted " +
+                    "there would be nothing to decide."
+            NarrationId.KN_WHY_MANY ->
+                "There is only one ${arg(0)}. Taking a second copy of it is a different problem — " +
+                    "the unbounded knapsack, not this one."
+            NarrationId.KN_WHY_FRACTION ->
+                "Half a ${arg(0)} is not worth ${arg(1)} — it is not worth anything. Splitting " +
+                    "items is the fractional knapsack, and this is not it."
+            NarrationId.KN_WHY_TOO_HEAVY ->
+                "The ${arg(0)} weighs ${arg(1)}, and only ${arg(2)} kg is left."
+            NarrationId.KN_WHY_SOMETHING_FITS ->
+                "The ${arg(0)} weighs ${arg(1)}, and ${arg(2)} kg is left. It fits."
+            NarrationId.KN_WHY_WORSE_BAG ->
+                "${arg(0)} is worth ${arg(1)}. ${arg(2)} is worth ${arg(3)}, and it fits too."
+            NarrationId.KN_CORRECT_CAPACITY ->
+                "Right — ${arg(0)} kg will not go into ${arg(1)}. So every item is a decision."
+            NarrationId.KN_CORRECT_TIMES ->
+                "Right. One ${arg(0)}, in or out: 1 or 0. That is the 0/1 in the name."
+            NarrationId.KN_CORRECT_FITS ->
+                "Right — the ${arg(0)} weighs ${arg(1)}, and that leaves ${arg(2)} kg."
+            NarrationId.KN_CORRECT_BETTER ->
+                "Right: ${arg(0)} is worth ${arg(1)}, and the bag you packed was worth ${arg(2)}. " +
+                    "Taking the most valuable thing first is not enough."
+            NarrationId.KN_WATCH_BAG -> "A bag that holds ${arg(0)} kg."
+            NarrationId.KN_WATCH_BAG_SUPPORT -> "The job: put the most value into it."
+            NarrationId.KN_WATCH_ITEMS -> "${arg(0)} things you could take."
+            NarrationId.KN_WATCH_ITEMS_SUPPORT ->
+                "Each has a weight and a value. The weight is what it costs you; the value is " +
+                    "what it is worth."
+            NarrationId.KN_WATCH_TOO_MUCH ->
+                "Together they weigh ${arg(0)} kg, and the bag holds ${arg(1)}."
+            NarrationId.KN_WATCH_TOO_MUCH_SUPPORT ->
+                "So you cannot take everything, and every item becomes a decision."
+            NarrationId.KN_WATCH_ONCE -> "Each item goes in once, or not at all."
+            NarrationId.KN_WATCH_ONCE_SUPPORT ->
+                "1 means take it, 0 means leave it — that is the 0/1 in the name. No second copy, " +
+                    "and no half an item."
+            NarrationId.KN_WATCH_PACKING ->
+                "Start with the most valuable: the ${arg(0)}, worth ${arg(1)}."
+            NarrationId.KN_WATCH_PACKING_SUPPORT ->
+                "It weighs ${arg(0)}, so ${arg(1)} − ${arg(2)} = ${arg(3)} kg is left."
+            NarrationId.KN_WATCH_PACKED -> "${arg(0)} — ${arg(1)} kg, worth ${arg(2)}."
+            NarrationId.KN_WATCH_PACKED_SUPPORT ->
+                "The bag is full. Is ${arg(0)} the best it can do?"
+            NarrationId.KN_WATCH_COMPARED -> "${arg(0)} is worth ${arg(1)}."
+            NarrationId.KN_WATCH_COMPARED_SUPPORT ->
+                "It weighs ${arg(0)} kg and is worth more than ${arg(1)}. Taking the most " +
+                    "valuable thing first was wrong."
+            NarrationId.KN_WATCH_EVERY_BAG -> "Why not try every bag? There are ${arg(0)}."
+            NarrationId.KN_WATCH_EVERY_BAG_SUPPORT ->
+                "${arg(0)} items make ${arg(1)} bags, and each new item doubles it. At 30 items " +
+                    "that is over a billion."
+            NarrationId.KN_WATCH_FORK -> "So ask one item at a time: TAKE it, or SKIP it?"
+            NarrationId.KN_WATCH_FORK_SUPPORT ->
+                "TAKE spends its weight and adds its value. SKIP keeps what you had. Keep " +
+                    "whichever bag is worth more — and write the answer down, so it is never " +
+                    "worked out twice."
             NarrationId.KN_BASE -> "No items, or no room, is worth 0."
             NarrationId.KN_FOCUS ->
                 "dp[${arg(0)}][${arg(1)}]: the best using ${arg(2)}, with capacity ${arg(1)}."
@@ -1043,23 +1174,10 @@ object Narration {
             NarrationId.KN_WATCH_SETUP -> "Pack the most value into a bag that holds ${arg(0)}."
             NarrationId.KN_WATCH_SETUP_SUPPORT ->
                 "${arg(0)} ${plural(0, "item", "items")}, each with a weight and a value."
-            NarrationId.KN_WATCH_RULE -> "Each item goes in once, or not at all."
-            NarrationId.KN_WATCH_RULE_SUPPORT ->
-                "1 means take it, 0 means leave it — that is the 0/1 in the name. No second " +
-                    "copy, and no half an item."
-            NarrationId.KN_WATCH_GREEDY -> "Take the most valuable first? The ${arg(0)}, worth ${arg(1)}."
-            NarrationId.KN_WATCH_GREEDY_SUPPORT ->
-                "That bag is worth ${arg(0)}, with ${arg(1)} capacity it can't use. Is that the " +
-                    "best this bag can do?"
-            NarrationId.KN_WATCH_GREEDY_NONE -> "Nothing fits in this bag at all."
-            NarrationId.KN_WATCH_SUBPROBLEM -> "Ask a smaller question instead."
-            NarrationId.KN_WATCH_SUBPROBLEM_SUPPORT ->
-                "Trying every bag means ${arg(0)} bags here, and twice as many with each new item. " +
-                    "Instead: what is the best value using only the first few items, with less room?"
-            NarrationId.KN_WATCH_DEFINE ->
-                "dp[i][c]: the best value using the first i items, with capacity c."
+            NarrationId.KN_WATCH_DEFINE -> "Row 0 and column 0 are all 0."
             NarrationId.KN_WATCH_DEFINE_SUPPORT ->
-                "No items, or no room, is worth 0 — so row 0 and column 0 are all zeros."
+                "No items, or no room, is worth nothing. Every other box gets worked out from " +
+                    "the boxes above it."
             NarrationId.KN_WATCH_FIRST_ROW -> "Row 1 — only the ${arg(0)}."
             NarrationId.KN_WATCH_FIRST_ROW_SUPPORT ->
                 "0 while it doesn't fit, then ${arg(0)} from capacity ${arg(1)} up."
@@ -1102,8 +1220,8 @@ object Narration {
             NarrationId.KN_WATCH_ANSWER_COPY ->
                 "The ${arg(0)} doesn't fit, so the answer is the cell above: ${arg(1)}."
             NarrationId.KN_WATCH_ANSWER_GREEDY_SUPPORT ->
-                "This is where taking the most valuable item first loses: the ${arg(0)} leaves " +
-                    "room nothing can use."
+                "Taking the most valuable thing first put the ${arg(0)} in. The table leaves it " +
+                    "out, and that is the whole difference."
             NarrationId.KN_WATCH_ANSWER_SUPPORT ->
                 "The best bag for the whole problem is worth ${arg(0)}."
             NarrationId.KN_WATCH_TRACE_START -> "The best bag is worth ${arg(0)}. But which items?"
@@ -3122,8 +3240,23 @@ object Narration {
             NarrationId.RSA_OPTION_TEXT -> arg(0)
 
             // -- What the app says as each beat lands ---------------------------
-            NarrationId.RSA_STEP_SETUP -> "Two keys, not one."
+            NarrationId.RSA_STEP_MESSAGE -> "The message is “${arg(0)}”."
             NarrationId.RSA_STEP_ASYMMETRIC -> "Asymmetric cryptography."
+            NarrationId.RSA_STEP_KEY_REVEAL -> "A public key and a private key."
+            NarrationId.RSA_STEP_SHAREABLE_KEY -> "The public key is the one you share."
+            NarrationId.RSA_STEP_ENCRYPT_OPERATION -> "RSA encrypts it."
+            NarrationId.RSA_STEP_ENCRYPT_KEY -> "The public key encrypts."
+            NarrationId.RSA_STEP_DECRYPT_KEY -> "The private key decrypts."
+            NarrationId.RSA_STEP_CIPHERTEXT -> "The ciphertext is ${arg(0)}."
+            NarrationId.RSA_STEP_RECOVERED -> "“${arg(0)}” is back."
+            NarrationId.RSA_STEP_DECRYPT_OPERATION -> "The private key decrypts."
+            NarrationId.RSA_STEP_TEXT_AS_NUMBERS -> "Text is stored as numbers."
+            NarrationId.RSA_STEP_TOY_EXAMPLE -> "A toy example: m = ${arg(0)}."
+            NarrationId.RSA_STEP_TOY_CIPHERTEXT -> "${arg(0)} has become ${arg(1)}."
+            NarrationId.RSA_STEP_CLOSING_FLOW -> "“${arg(0)}”, out and back."
+            NarrationId.RSA_STEP_KEY_ORIGIN -> "Now — where did those keys come from?"
+            NarrationId.RSA_STEP_KEY_PAIR_PURPOSE ->
+                "Encrypt with one, decrypt with the other."
             NarrationId.RSA_STEP_PRIMES -> "p = ${arg(0)}, q = ${arg(1)}."
             NarrationId.RSA_STEP_MODULUS -> "n = ${arg(0)} × ${arg(1)} = ${arg(2)}."
             NarrationId.RSA_STEP_TOTIENT ->
@@ -3135,7 +3268,6 @@ object Narration {
                     "1 more than a multiple of ${arg(3)}."
             NarrationId.RSA_STEP_PUBLIC_KEY -> "Public key ${arg(0)}."
             NarrationId.RSA_STEP_PRIVATE_KEY -> "Private key ${arg(0)}."
-            NarrationId.RSA_STEP_KEY_ROLES -> "One encrypts, the other decrypts."
             NarrationId.RSA_STEP_ENCRYPT ->
                 "c = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
             NarrationId.RSA_STEP_DECRYPT ->
@@ -3378,16 +3510,280 @@ object Narration {
                     "Because they are a pair, giving one away does not give away the " +
                     "other — as long as the numbers are large enough."
 
+            // -- The story judgements, asked before any arithmetic --------------
+            //
+            // Every rung here names the two key cards on screen, because at this
+            // point in the lesson there is no arithmetic to point at yet.
+
+            NarrationId.RSA_ASK_SHAREABLE_KEY -> "Which of these two can you share?"
+            NarrationId.RSA_HINT_SHAREABLE_KEY ->
+                "One of them is called *public*. That is not a coincidence."
+            NarrationId.RSA_RETRY_LOOK_SHAREABLE_KEY ->
+                "Look at the two cards again, and at what each one is named."
+            NarrationId.RSA_RETRY_ASK_SHAREABLE_KEY ->
+                "If someone is going to send you a message, which half do they " +
+                    "need to have?"
+            NarrationId.RSA_RETRY_EXPLAIN_SHAREABLE_KEY ->
+                "The public key, ${arg(0)}, is the half you hand out. Anyone who " +
+                    "has it can encrypt something for you, and that is the whole " +
+                    "point of publishing it."
+            NarrationId.RSA_WHY_SHARE_PRIVATE ->
+                "The private key is the half that undoes the encryption. Hand it " +
+                    "out and anyone could read what was sent to you."
+            NarrationId.RSA_WHY_SHARE_BOTH ->
+                "Sharing both is the same as sharing the private one, and the " +
+                    "pair would protect nothing."
+            NarrationId.RSA_WHY_SHARE_NEITHER ->
+                "Then nobody could encrypt anything for you. Publishing one half " +
+                    "is what makes this worth doing."
+            NarrationId.RSA_CORRECT_SHAREABLE_KEY ->
+                "Correct. ${arg(0)} is the public key, and it is meant to be given " +
+                    "away — printed on a website, handed to a stranger, anything."
+
+            NarrationId.RSA_ASK_ENCRYPT_OPERATION ->
+                "You want to send “${arg(0)}” so that only one person can read it. " +
+                    "What does RSA do to it?"
+            NarrationId.RSA_HINT_ENCRYPT_OPERATION ->
+                "Something readable goes in. What has to come out for this to be " +
+                    "worth doing?"
+            NarrationId.RSA_RETRY_LOOK_ENCRYPT_OPERATION ->
+                "Read the message again, and think about what has to happen to it " +
+                    "before it is safe to send."
+            NarrationId.RSA_RETRY_ASK_ENCRYPT_OPERATION ->
+                "Only one of these makes a message unreadable to everyone except " +
+                    "its intended reader. Which one?"
+            NarrationId.RSA_RETRY_EXPLAIN_ENCRYPT_OPERATION ->
+                "RSA encrypts. “${arg(0)}” goes in readable and comes out as " +
+                    "something nobody can read without the right key."
+            NarrationId.RSA_CORRECT_ENCRYPT_OPERATION ->
+                "Correct. “${arg(0)}” is about to become unreadable to everyone " +
+                    "except the person it is for."
+
+            NarrationId.RSA_ASK_ENCRYPT_KEY ->
+                "“${arg(0)}” is about to be encrypted. Which key does that?"
+            NarrationId.RSA_HINT_ENCRYPT_KEY ->
+                "The sender does not have the recipient's private key — nobody does " +
+                    "but the recipient. So which half can they possibly use?"
+            NarrationId.RSA_RETRY_LOOK_ENCRYPT_KEY ->
+                "Look at the two cards. One of them is published; one never leaves."
+            NarrationId.RSA_RETRY_ASK_ENCRYPT_KEY ->
+                "A stranger wants to write to you. Which half of your pair do they " +
+                    "have?"
+            NarrationId.RSA_RETRY_EXPLAIN_ENCRYPT_KEY ->
+                "The public key encrypts. That is the whole reason it is published: " +
+                    "anyone can use it to write to you, and only you can read the result."
+            NarrationId.RSA_CORRECT_ENCRYPT_KEY ->
+                "Correct. The public key encrypts — which is why handing it out is " +
+                    "safe, and useful."
+
+            NarrationId.RSA_ASK_DECRYPT_KEY ->
+                "${arg(0)} arrives, and has to become “${arg(1)}” again. Which key " +
+                    "does that?"
+            NarrationId.RSA_HINT_DECRYPT_KEY ->
+                "The public key did the scrambling, and everyone has it. If it could " +
+                    "also unscramble, what would have been the point?"
+            NarrationId.RSA_RETRY_LOOK_DECRYPT_KEY ->
+                "Look at what each card says it does."
+            NarrationId.RSA_RETRY_ASK_DECRYPT_KEY ->
+                "Everyone has the public key. Which half does only the recipient have?"
+            NarrationId.RSA_RETRY_EXPLAIN_DECRYPT_KEY ->
+                "The private key decrypts. Only the recipient has it, so only the " +
+                    "recipient can read what was sent to them."
+            NarrationId.RSA_CORRECT_DECRYPT_KEY ->
+                "Correct. The private key turns it back into “${arg(0)}”, and nothing " +
+                    "else can."
+
+            NarrationId.RSA_WHY_ENCRYPT_WITH_PRIVATE ->
+                "The sender does not have your private key — that is the point of it. " +
+                    "They could not use it even if they wanted to."
+            NarrationId.RSA_WHY_ENCRYPT_WITH_BOTH ->
+                "Using both would mean the sender needed your private key, and then " +
+                    "it would not be private."
+            NarrationId.RSA_WHY_ENCRYPT_WITH_NEITHER ->
+                "A fixed rule with no key is a cipher anyone can undo once they know " +
+                    "the rule. That was the Caesar lesson."
+            NarrationId.RSA_WHY_DECRYPT_WITH_PUBLIC ->
+                "Everyone has the public key. If it could undo the encryption, " +
+                    "everyone could read the message."
+            NarrationId.RSA_WHY_DECRYPT_WITH_SAME ->
+                "Applying the same key twice is what XOR does, and it is what makes " +
+                    "XOR symmetric. RSA's two keys are different numbers."
+            NarrationId.RSA_WHY_DECRYPT_IMPOSSIBLE ->
+                "Then it would be a hash, not encryption. The whole point is that the " +
+                    "right person can get the message back."
+
+            NarrationId.RSA_ASK_DECRYPT_OPERATION ->
+                "Now ${arg(0)} goes through the private key. What happens to it?"
+            NarrationId.RSA_HINT_DECRYPT_OPERATION ->
+                "The public key scrambled it. What would the other half of the " +
+                    "pair be for?"
+            NarrationId.RSA_RETRY_LOOK_DECRYPT_OPERATION ->
+                "Look at what went in at the top — it is the ciphertext, not the " +
+                    "message."
+            NarrationId.RSA_RETRY_ASK_DECRYPT_OPERATION ->
+                "If the public key encrypts, what is left for the private key to do?"
+            NarrationId.RSA_RETRY_EXPLAIN_DECRYPT_OPERATION ->
+                "The private key decrypts. ${arg(0)} goes in and ${arg(1)} — the " +
+                    "original message — comes back out."
+            NarrationId.RSA_CORRECT_DECRYPT_OPERATION ->
+                "Correct. The private key decrypts, so ${arg(0)} is about to turn " +
+                    "back into ${arg(1)}."
+
+            // Shared by both operation judgements: the same two misconceptions.
+            NarrationId.RSA_WHY_OP_DECRYPT_FIRST ->
+                "There is nothing to decrypt yet — the message has not been " +
+                    "encrypted. Decryption is what the *other* key does, afterwards."
+            NarrationId.RSA_WHY_OP_ENCRYPT_AGAIN ->
+                "Encrypting a second time would take it further away, not back. " +
+                    "The private key is the half that undoes the first step."
+            NarrationId.RSA_WHY_OP_HASH ->
+                "Hashing has no key and no way back, so nothing could be recovered " +
+                    "at the other end. That was the SHA-256 lesson."
+            NarrationId.RSA_WHY_OP_COMPRESS ->
+                "Compression makes data smaller and hides nothing. Anyone who " +
+                    "receives it can read it straight back."
+            NarrationId.RSA_WHY_OP_SORT ->
+                "Sorting the characters would scramble the message, but anyone could " +
+                    "unscramble it — and you could not get the original order back."
+
+            NarrationId.RSA_ASK_KEY_PAIR_PURPOSE ->
+                "So what does having this pair of keys let you do?"
+            NarrationId.RSA_HINT_KEY_PAIR_PURPOSE ->
+                "Look back at what each half did: one scrambled the message, the " +
+                    "other brought it back."
+            NarrationId.RSA_RETRY_LOOK_KEY_PAIR_PURPOSE ->
+                "The two keys did two different jobs. Look at which did which."
+            NarrationId.RSA_RETRY_ASK_KEY_PAIR_PURPOSE ->
+                "One key was published and one was kept. What does that make " +
+                    "possible that a single shared key does not?"
+            NarrationId.RSA_RETRY_EXPLAIN_KEY_PAIR_PURPOSE ->
+                "One key encrypts, the other decrypts. Because only one of them " +
+                    "has to be kept, a stranger can send you something that only " +
+                    "you can read — without the two of you ever agreeing a secret."
+            NarrationId.RSA_CORRECT_KEY_PAIR_PURPOSE ->
+                "Correct. ${arg(0)} became ${arg(1)} with one key and came back " +
+                    "with the other. That is the whole of what asymmetric means."
+            NarrationId.RSA_WHY_PURPOSE_SHARED ->
+                "That is symmetric cryptography — one key both ways, which is what " +
+                    "Caesar, XOR and AES do. RSA's two keys are different numbers."
+            NarrationId.RSA_WHY_PURPOSE_INTEGRITY ->
+                "Detecting a change is a hash's job, and a hash hides nothing. " +
+                    "Here the message was genuinely unreadable in between."
+            NarrationId.RSA_WHY_PURPOSE_STORAGE ->
+                "Storing something irreversibly is hashing again. This message " +
+                    "came back — that is the opposite of irreversible."
+
             // -- WATCH -----------------------------------------------------------
-            NarrationId.RSA_WATCH_SETUP -> "RSA uses two keys, not one."
+            // The opening states the *problem*, not the answer — the answer is what
+            // the next two beats are for (ADR-052).
+            NarrationId.RSA_WATCH_SETUP -> "Two strangers need to agree a secret."
             NarrationId.RSA_WATCH_SETUP_SUPPORT ->
                 "Caesar, XOR and AES all share one key between both sides, which " +
                     "leaves a question none of them answers: how do two people who " +
                     "have never met agree on it?"
+            // -- Layer 1: the concept, told on a message, with no numbers -------
+            NarrationId.RSA_WATCH_MESSAGE -> "Let's send a secret message."
+            NarrationId.RSA_WATCH_MESSAGE_SUPPORT ->
+                "“${arg(0)}” — something you would not want read on the way. " +
+                    "Everything in this lesson happens to this message."
+            NarrationId.RSA_WATCH_ENCRYPT_OPERATION -> "RSA encrypts it."
+            NarrationId.RSA_WATCH_ENCRYPT_OPERATION_SUPPORT ->
+                "Readable goes in; something nobody else can read comes out. That " +
+                    "is the whole job."
+            NarrationId.RSA_WATCH_KEY_REVEAL -> "RSA uses two related keys."
+            NarrationId.RSA_WATCH_KEY_REVEAL_SUPPORT ->
+                "One you can hand to anyone, one you never share. Where they come " +
+                    "from is the second half of this lesson; what they do is this half."
             NarrationId.RSA_WATCH_ASYMMETRIC -> "This is asymmetric cryptography."
             NarrationId.RSA_WATCH_ASYMMETRIC_SUPPORT ->
-                "A public key and a private key, mathematically related. What one " +
-                    "does, the other undoes — so one of them can be published."
+                "Two different keys, mathematically related. What one does, the " +
+                    "other undoes — which is why one of them can be published."
+            NarrationId.RSA_WATCH_ENCRYPT_KEY ->
+                "The sender uses the recipient's public key."
+            NarrationId.RSA_WATCH_ENCRYPT_KEY_SUPPORT ->
+                "They do not need to know the recipient, meet them, or agree " +
+                    "anything with them first. The public key is already out there."
+            NarrationId.RSA_WATCH_CIPHERTEXT -> "Now it reads ${arg(0)}."
+            NarrationId.RSA_WATCH_CIPHERTEXT_SUPPORT ->
+                "This can be sent over anything. Intercept it and you have bytes " +
+                    "and no way to get the message out of them."
+            NarrationId.RSA_WATCH_DECRYPT_KEY ->
+                "The recipient uses their private key."
+            NarrationId.RSA_WATCH_DECRYPT_KEY_SUPPORT ->
+                "The half that never left their device. Nobody else has it, so " +
+                    "nobody else can do this."
+            NarrationId.RSA_WATCH_RECOVERED -> "“${arg(0)}”, back again."
+            NarrationId.RSA_WATCH_RECOVERED_SUPPORT ->
+                "The message arrived, and at no point did the two of them share a " +
+                    "secret. That is what the other ciphers could not do."
+            NarrationId.RSA_WATCH_ROUND_TRIP -> "That is RSA, end to end."
+            NarrationId.RSA_WATCH_ROUND_TRIP_SUPPORT ->
+                "“${arg(0)}” out through one key and back through the other. " +
+                    "Everything after this is *how*."
+
+            // -- The bridge: text becomes numbers, and the toy admits it is one --
+            NarrationId.RSA_WATCH_TEXT_AS_NUMBERS -> "Computers store text as numbers."
+            NarrationId.RSA_WATCH_TEXT_AS_NUMBERS_SUPPORT ->
+                "M is 77, E is 69, and so on. That is what gives RSA something to " +
+                    "do arithmetic on — it never sees letters."
+            NarrationId.RSA_WATCH_TOY_EXAMPLE -> "Now a toy example."
+            NarrationId.RSA_WATCH_TOY_EXAMPLE_SUPPORT ->
+                "From here the lesson uses one tiny number, m = ${arg(0)}, so every " +
+                    "step can be checked by hand. It is the mechanism — **not** " +
+                    "“${arg(1)}” being encrypted, which needs numbers far larger " +
+                    "than these."
+
+            NarrationId.RSA_WATCH_TOY_CIPHERTEXT -> "${arg(0)} is now ${arg(1)}."
+            NarrationId.RSA_WATCH_TOY_CIPHERTEXT_SUPPORT ->
+                "One number in, a different number out — and nothing about it says " +
+                    "what it started as. Now the other key has to undo it."
+
+            // -- Layer 2: the mechanism, and where the keys came from -----------
+            NarrationId.RSA_WATCH_SHAREABLE_KEY ->
+                "The public key is the one you publish."
+            NarrationId.RSA_WATCH_SHAREABLE_KEY_SUPPORT ->
+                "Print it, email it, hand it to a stranger. Giving it away is what " +
+                    "it is for."
+            NarrationId.RSA_WATCH_DECRYPT_OPERATION ->
+                "The private key decrypts ${arg(0)}."
+            NarrationId.RSA_WATCH_DECRYPT_OPERATION_SUPPORT ->
+                "The other half of the pair, doing the opposite job. This is the " +
+                    "half that never leaves your device."
+            NarrationId.RSA_WATCH_CLOSING_FLOW -> "And that is the whole journey."
+            NarrationId.RSA_WATCH_CLOSING_FLOW_SUPPORT ->
+                "“${arg(0)}” out through the public key, back through the private " +
+                    "one — and now you know what every arrow on it is doing."
+            NarrationId.RSA_WATCH_KEY_ORIGIN ->
+                "So where did ${arg(0)} and ${arg(1)} come from?"
+            NarrationId.RSA_WATCH_KEY_ORIGIN_SUPPORT ->
+                "You have watched them work. Now here is how they were built — " +
+                    "five numbers, each one worked out from the ones before it."
+            NarrationId.RSA_WATCH_KEY_PAIR_PURPOSE ->
+                "Encrypt with one, decrypt with the other."
+            NarrationId.RSA_WATCH_KEY_PAIR_PURPOSE_SUPPORT ->
+                "Because only one half has to be kept, a stranger can send you " +
+                    "something only you can read — with no shared secret between you."
+
+            // -- The line that introduces the cards, when one is pending --------
+            NarrationId.RSA_WATCH_ASK_ASYMMETRIC ->
+                "RSA solves that with two related keys instead of one shared one. " +
+                    "What is that called?"
+            NarrationId.RSA_WATCH_ASK_SHAREABLE_KEY ->
+                "They are a pair with opposite jobs. Which one can you hand out?"
+            NarrationId.RSA_WATCH_ASK_SECRET_KEY ->
+                "So which half must never leave?"
+            NarrationId.RSA_WATCH_ASK_ENCRYPT_OPERATION ->
+                "You want to send it without anyone else reading it. What does RSA " +
+                    "do to it?"
+            NarrationId.RSA_WATCH_ASK_DECRYPT_OPERATION ->
+                "Now send it through the private key instead. What happens?"
+            NarrationId.RSA_WATCH_ASK_ENCRYPT_KEY ->
+                "The sender has to pick one of them. Which key encrypts?"
+            NarrationId.RSA_WATCH_ASK_DECRYPT_KEY ->
+                "And at the other end — which key turns it back?"
+            NarrationId.RSA_WATCH_ASK_KEY_PAIR_PURPOSE ->
+                "One last question: what does having the pair let you do?"
+
             NarrationId.RSA_WATCH_PRIMES -> "Start with two primes: ${arg(0)} and ${arg(1)}."
             NarrationId.RSA_WATCH_PRIMES_SUPPORT ->
                 "These are the only secret inputs. Everything else on this screen is " +
@@ -3410,29 +3806,26 @@ object Narration {
                 "${arg(0)} × ${arg(1)} = ${arg(2)}, which is 1 more than a multiple " +
                     "of ${arg(3)}. That relationship is the whole reason one key " +
                     "undoes the other."
-            NarrationId.RSA_WATCH_PUBLIC_KEY -> "Public key: ${arg(0)}."
+            // Act II: the pair the learner has been using all along, now assembled
+            // out of the chain they have just derived.
+            NarrationId.RSA_WATCH_PUBLIC_KEY -> "That gives the public key: ${arg(0)}."
             NarrationId.RSA_WATCH_PUBLIC_KEY_SUPPORT ->
-                "The exponent that encrypts, and the modulus. This is the half you " +
-                    "publish."
-            NarrationId.RSA_WATCH_PRIVATE_KEY -> "Private key: ${arg(0)}."
+                "The exponent that encrypts, and the modulus. The same pair that " +
+                    "scrambled the message at the start of the lesson."
+            NarrationId.RSA_WATCH_PRIVATE_KEY -> "And the private key: ${arg(0)}."
             NarrationId.RSA_WATCH_PRIVATE_KEY_SUPPORT ->
                 "The same modulus, ${arg(0)}, and the other exponent. Two keys, one " +
                     "shared number, and only one of them ever leaves."
-            NarrationId.RSA_WATCH_KEY_ROLES -> "One encrypts. The other decrypts."
-            NarrationId.RSA_WATCH_KEY_ROLES_SUPPORT ->
-                "In this lesson the public key encrypts and the private key " +
-                    "decrypts. Someone can send you something without either of you " +
-                    "ever sharing a secret."
             NarrationId.RSA_WATCH_ENCRYPT ->
                 "c = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
             NarrationId.RSA_WATCH_ENCRYPT_SUPPORT ->
-                "Encrypted with the public key ${arg(0)} — the half anyone is allowed " +
-                    "to have."
+                "That is what the public key ${arg(0)} was doing: raise the message " +
+                    "to its exponent, then take the remainder."
             NarrationId.RSA_WATCH_DECRYPT ->
                 "m = ${arg(0)}^${arg(1)} mod ${arg(2)} = ${arg(3)}."
             NarrationId.RSA_WATCH_DECRYPT_SUPPORT ->
-                "Decrypted with the private key ${arg(0)}, and the message is back. " +
-                    "The same operation both ways — only the exponent changed."
+                "The private key ${arg(0)} does the same thing with the other " +
+                    "exponent — and the message is back. One operation, two keys."
             NarrationId.RSA_WATCH_SECRET_KEY -> "Only one of them has to be kept."
             NarrationId.RSA_WATCH_SECRET_KEY_SUPPORT ->
                 "The public key is meant to be handed out. The private key is what " +

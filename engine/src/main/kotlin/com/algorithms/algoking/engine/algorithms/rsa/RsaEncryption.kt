@@ -46,13 +46,107 @@ sealed interface RsaAction : Action {
  */
 data class RsaStep(val kind: RsaStepKind, val question: RsaQuestion? = null)
 
-/** What a beat of the lesson is about. */
+/**
+ * What a beat of the lesson is about.
+ *
+ * The **order of this enum is not the order of the lesson** — [stepsFor] states
+ * that, and it runs the story before the arithmetic (ADR-052). The entries are
+ * grouped here by which act they belong to, purely so the list reads.
+ */
 enum class RsaStepKind {
-    /** Two keys rather than one — the frame the rest hangs on. */
-    SETUP,
 
-    /** Which kind of cryptography this is. */
+    // ═══ LAYER 1 — the concept. A message a person would send, and what ═══
+    // ═══ happens to it. No numbers at all: not p, q, φ(n), e, d, and not ═══
+    // ═══ m or c either (ADR-053).                                        ═══
+
+    /** `"MEET AT 7"`, before anything has happened to it. */
+    MESSAGE,
+
+    /** What RSA is going to do to it — encrypt, rather than compress or hash. */
+    ENCRYPT_OPERATION,
+
+    /**
+     * The two keys, as a lock and a key rather than as numbers.
+     *
+     * They arrive here with **no `(e, n)` on them at all** — a public half that can
+     * be shared and a private half that cannot. The pair of numbers is a fact about
+     * the toy layer, and printing it here would put arithmetic on the screen whose
+     * whole job is to have none.
+     */
+    KEY_REVEAL,
+
+    /** Which kind of cryptography two related keys make this. */
     ASYMMETRIC,
+
+    /** Which key turns the message into a ciphertext. */
+    ENCRYPT_KEY,
+
+    /** The ciphertext: unreadable bytes, and it can now be sent. */
+    CIPHERTEXT,
+
+    /** Which key turns it back. */
+    DECRYPT_KEY,
+
+    /** The message, back, in full. */
+    RECOVERED,
+
+    /** The whole loop on one picture: text → 🔓 → bytes → 🔐 → text. */
+    ROUND_TRIP,
+
+    // ═══ THE BRIDGE — from text to numbers, and from the real thing to a ═══
+    // ═══ teaching device. Both admissions are made out loud.             ═══
+
+    /** Computers represent text as numbers, so RSA has numbers to work on. */
+    TEXT_AS_NUMBERS,
+
+    /**
+     * The toy layer is announced as a toy before a single number is shown.
+     *
+     * This beat exists purely to keep the lesson honest (ADR-053). The arithmetic
+     * that follows is real and checkable, but it is **not** `"MEET AT 7"` being
+     * encrypted — `n = 55` cannot hold a message that long — and the learner is told
+     * so here rather than left to assume otherwise.
+     */
+    TOY_EXAMPLE,
+
+    // ═══ LAYER 2 — the mechanism, on numbers small enough to check ═══
+
+    /** Which key must stay secret. Asked once both layers are on the table. */
+    SECRET_KEY,
+
+    /**
+     * Which half may be published, and what the private key does to a ciphertext.
+     *
+     * **Superseded but not removed.** [ENCRYPT_KEY] and [DECRYPT_KEY] ask these two
+     * things better, on the concept layer where they belong, so the authored lesson
+     * does not use them. Their beats appear **only when a dataset asks them**
+     * ([stepsFor] omits an unasked optional beat entirely), so nothing dead is drawn
+     * — and a dataset that wants the older framing still gets it, with its options,
+     * distractors and full guidance ladder intact.
+     */
+    SHAREABLE_KEY,
+    DECRYPT_OPERATION,
+
+    /** `c = mᵉ mod n`. */
+    ENCRYPT,
+
+    /**
+     * `c = 9`, on its own.
+     *
+     * The toy layer's counterpart to [CIPHERTEXT], and it exists for the same
+     * mechanical reason: the frame that lands `ENCRYPT` is also the frame the next
+     * question is pending on, so without a pause here the picture turns round to
+     * decryption on the very beat whose caption reads *"c = 4³ mod 55 = 9"*.
+     */
+    TOY_CIPHERTEXT,
+
+    /** `m = c^d mod n`. */
+    DECRYPT,
+
+    // ── Where those two keys came from ──
+
+    /** The question the lesson has been deferring, asked out loud. */
+    KEY_ORIGIN,
 
     /** `p` and `q`, chosen. */
     PRIMES,
@@ -75,20 +169,11 @@ enum class RsaStepKind {
     /** `(d, n)`. */
     PRIVATE_KEY,
 
-    /** What each half is for, and which one may be shared. */
-    KEY_ROLES,
+    /** What the pair is for — the idea the whole lesson was built to leave behind. */
+    KEY_PAIR_PURPOSE,
 
-    /** `c = mᵉ mod n`. */
-    ENCRYPT,
-
-    /** `m = c^d mod n`. */
-    DECRYPT,
-
-    /** `4 → 9 → 4`, with both halves on screen. */
-    ROUND_TRIP,
-
-    /** Which key must stay secret. */
-    SECRET_KEY,
+    /** The concept loop again, now that every arrow on it has been explained. */
+    CLOSING_FLOW,
 
     /** What separates this demonstration from real RSA. */
     REAL_WORLD,
@@ -153,15 +238,108 @@ data class RsaState(
     fun knows(kind: RsaStepKind): Boolean = kind in known
 }
 
-/** The beats, in the order the lesson runs them. */
+/**
+ * The beats, in the order the lesson runs them — **a message first, the arithmetic
+ * after, and the two never pretending to be each other** (ADR-052, ADR-053).
+ *
+ * ```
+ * LAYER 1   the concept — no numbers at all
+ *   "MEET AT 7" -> what does RSA do to it -> two keys, a lock and a key
+ *               -> which one encrypts -> unreadable bytes, send them
+ *               -> which one decrypts -> "MEET AT 7" back -> the whole loop
+ *
+ * THE BRIDGE
+ *   computers store text as numbers -> and here is a toy example, said to be one
+ *
+ * LAYER 2   the mechanism — numbers small enough to check by hand
+ *   which key stays secret -> c = m^e mod n -> m = c^d mod n
+ *   -> where did the keys come from: p, q -> n -> φ(n) -> e -> d -> (e,n), (d,n)
+ *   -> what the pair is for -> the loop again -> and what makes this a toy
+ * ```
+ *
+ * ### The hero is a message, not an integer
+ *
+ * Nobody has ever needed to send the number four. The reason RSA is worth a lesson is
+ * that two people who have never met can exchange *"MEET AT 7"*, and a walkthrough
+ * that opens on `m = 4` has hidden its own subject behind the machinery (ADR-053).
+ * So Layer 1 is the whole story, told with a message, a lock and a key, and it
+ * finishes before a digit appears.
+ *
+ * ### The two layers are labelled as two layers, because one of them is a toy
+ *
+ * `n = 55` encrypts numbers below 55. It cannot encrypt *"MEET AT 7"*, and a lesson
+ * that ran the text into `c = mᵉ mod n` and printed `9` would be teaching something
+ * false to make a picture tidier. So [RsaStepKind.TOY_EXAMPLE] says out loud what the
+ * numbers are for before any of them is shown, Layer 1's ciphertext is captioned as
+ * an illustration rather than a computation, and every Layer 2 beat carries the
+ * *Educational toy example* banner.
+ *
+ * ### Why each concept beat is asked rather than told
+ *
+ * `ENCRYPT_OPERATION` and `ENCRYPT_KEY` could both be statements — the answer is on
+ * the card in front of the learner. They are questions because a learner who taps
+ * *"the public key"* has committed to it, and PRODUCT_SPEC.md §5's ladder then has
+ * something to teach against if they do not. A story told at someone is a video.
+ *
+ * ### The arithmetic beats did not move relative to each other
+ *
+ * `PRIMES -> MODULUS -> TOTIENT -> PUBLIC_EXPONENT -> PRIVATE_EXPONENT` is unchanged
+ * and still runs in dependency order: each value is asked at the point it would be
+ * computed, with its inputs settled and its own slot showing `?`.
+ *
+ * `PUBLIC_KEY`, `PRIVATE_KEY`, `SHAREABLE_KEY` and `DECRYPT_OPERATION` are
+ * **statements here rather than questions**, because by the time each arrives its
+ * answer is already on screen. Every one of their question entries, options and copy
+ * survives untouched, and a dataset that lists them gets them back — `stepsFor` turns
+ * any unasked question into a statement.
+ */
 private fun stepsFor(problem: RsaProblem): List<RsaStep> {
     val asked = problem.questions.toSet()
     fun step(kind: RsaStepKind, question: RsaQuestion? = null) =
         RsaStep(kind, question?.takeIf { it in asked })
 
-    return listOf(
-        step(RsaStepKind.SETUP),
+    /**
+     * A beat that exists **only if its question is asked**.
+     *
+     * The ordinary [step] keeps its beat either way, because a value still has to be
+     * stated even when the learner is not asked for it. These two are different: they
+     * are superseded framings kept for datasets that want them, and a statement beat
+     * restating what the beat before it just settled is the "nothing changed" step
+     * ADR-020 calls a bug.
+     */
+    fun optionalStep(kind: RsaStepKind, question: RsaQuestion) =
+        if (question in asked) RsaStep(kind, question) else null
+
+    return listOfNotNull(
+        // -- Layer 1: the concept, on a real message -------------------------
+        step(RsaStepKind.MESSAGE),
+        step(RsaStepKind.ENCRYPT_OPERATION, RsaQuestion.ENCRYPT_OPERATION),
+        step(RsaStepKind.KEY_REVEAL),
         step(RsaStepKind.ASYMMETRIC, RsaQuestion.ASYMMETRIC),
+        optionalStep(RsaStepKind.SHAREABLE_KEY, RsaQuestion.SHAREABLE_KEY),
+        step(RsaStepKind.ENCRYPT_KEY, RsaQuestion.ENCRYPT_KEY),
+        step(RsaStepKind.CIPHERTEXT),
+        optionalStep(RsaStepKind.DECRYPT_OPERATION, RsaQuestion.DECRYPT_OPERATION),
+        step(RsaStepKind.DECRYPT_KEY, RsaQuestion.DECRYPT_KEY),
+        step(RsaStepKind.RECOVERED),
+        // Which half must never leave — a concept judgement, and it belongs with the
+        // others. It also has to sit *before* `TOY_EXAMPLE` rather than after it: a
+        // card question pending on a frame replaces that frame's support line, and
+        // `TOY_EXAMPLE`'s support is the sentence that says these numbers are not
+        // the message being encrypted. That one may not be swallowed (ADR-053).
+        step(RsaStepKind.SECRET_KEY, RsaQuestion.SECRET_KEY),
+        step(RsaStepKind.ROUND_TRIP),
+
+        // -- The bridge: text becomes numbers, and the toy says it is one ----
+        step(RsaStepKind.TEXT_AS_NUMBERS),
+        step(RsaStepKind.TOY_EXAMPLE),
+
+        // -- Layer 2: the mechanism ------------------------------------------
+        step(RsaStepKind.ENCRYPT, RsaQuestion.ENCRYPT),
+        step(RsaStepKind.TOY_CIPHERTEXT),
+        step(RsaStepKind.DECRYPT, RsaQuestion.DECRYPT),
+
+        step(RsaStepKind.KEY_ORIGIN),
         step(RsaStepKind.PRIMES),
         step(RsaStepKind.MODULUS, RsaQuestion.MODULUS),
         step(RsaStepKind.TOTIENT, RsaQuestion.TOTIENT),
@@ -169,11 +347,10 @@ private fun stepsFor(problem: RsaProblem): List<RsaStep> {
         step(RsaStepKind.PRIVATE_EXPONENT, RsaQuestion.PRIVATE_EXPONENT),
         step(RsaStepKind.PUBLIC_KEY, RsaQuestion.PUBLIC_KEY),
         step(RsaStepKind.PRIVATE_KEY, RsaQuestion.PRIVATE_KEY),
-        step(RsaStepKind.KEY_ROLES),
-        step(RsaStepKind.ENCRYPT, RsaQuestion.ENCRYPT),
-        step(RsaStepKind.DECRYPT, RsaQuestion.DECRYPT),
-        step(RsaStepKind.ROUND_TRIP),
-        step(RsaStepKind.SECRET_KEY, RsaQuestion.SECRET_KEY),
+        step(RsaStepKind.KEY_PAIR_PURPOSE, RsaQuestion.KEY_PAIR_PURPOSE),
+
+        // -- And back to the picture the learner started on ------------------
+        step(RsaStepKind.CLOSING_FLOW),
         step(RsaStepKind.REAL_WORLD),
     )
 }
@@ -196,14 +373,29 @@ private fun stepsFor(problem: RsaProblem): List<RsaStep> {
  * and the thing that makes it worth a lesson: **one key undoes the other**, so one
  * of them can be published.
  *
- * ### Why the questions are interleaved
+ * ### The story runs before the arithmetic
+ *
+ * The lesson is in **two acts** (ADR-052, and see [stepsFor]). Act I shows a message
+ * becoming a ciphertext and coming back, with the two keys handed over as `(3, 55)`
+ * and `(27, 55)` — two things that have jobs. It never names `p`, `q`, `φ(n)`, `e` or
+ * `d`. Act II then answers the question Act I leaves standing: *where did those two
+ * pairs come from?*
+ *
+ * That ordering is the lesson's one strong claim. A learner meeting
+ * `φ(n) = (p − 1)(q − 1)` on their second screen has no idea what it is *for*, and
+ * a totient without a purpose is a fact to be memorised. The same line arriving
+ * after they have watched `4 → 9 → 4` is the explanation of something they have
+ * already seen work.
+ *
+ * ### Why the questions are still interleaved
  *
  * SHA-256 and AES run their whole algorithm and then ask about it, because their
  * questions are about the run as a whole (ADR-048, ADR-049). RSA's are about
  * *links in a chain*, and a chain shown whole before being asked about is a chain
  * the learner reads off rather than derives. So every value is asked at the point it
  * would be computed, with the values it depends on already on screen and its own
- * place showing `?`.
+ * place showing `?`. Re-ordering the acts did not change that; it changed which act
+ * the chain lives in.
  *
  * That also means this lesson needs no inert hand-over beat: a frame is drawn from
  * the state *after* its transition, and here that state's pending question is always
@@ -347,8 +539,46 @@ class RsaEncryptionAlgorithm : Algorithm<RsaState, RsaAction> {
     /** What is said as each beat lands. */
     private fun narrationFor(step: RsaStep, problem: RsaProblem): NarrationKey =
         when (step.kind) {
-            RsaStepKind.SETUP -> NarrationKey(NarrationId.RSA_STEP_SETUP)
+            RsaStepKind.MESSAGE ->
+                NarrationKey(NarrationId.RSA_STEP_MESSAGE, listOf(problem.plaintext))
+
             RsaStepKind.ASYMMETRIC -> NarrationKey(NarrationId.RSA_STEP_ASYMMETRIC)
+            RsaStepKind.KEY_REVEAL -> NarrationKey(NarrationId.RSA_STEP_KEY_REVEAL)
+            RsaStepKind.SHAREABLE_KEY -> NarrationKey(NarrationId.RSA_STEP_SHAREABLE_KEY)
+            RsaStepKind.ENCRYPT_OPERATION ->
+                NarrationKey(NarrationId.RSA_STEP_ENCRYPT_OPERATION)
+
+            RsaStepKind.ENCRYPT_KEY -> NarrationKey(NarrationId.RSA_STEP_ENCRYPT_KEY)
+            RsaStepKind.DECRYPT_KEY -> NarrationKey(NarrationId.RSA_STEP_DECRYPT_KEY)
+            RsaStepKind.CIPHERTEXT -> NarrationKey(
+                NarrationId.RSA_STEP_CIPHERTEXT,
+                listOf(problem.illustrativeCiphertext),
+            )
+
+            RsaStepKind.RECOVERED ->
+                NarrationKey(NarrationId.RSA_STEP_RECOVERED, listOf(problem.plaintext))
+
+            RsaStepKind.DECRYPT_OPERATION ->
+                NarrationKey(NarrationId.RSA_STEP_DECRYPT_OPERATION)
+
+            RsaStepKind.TEXT_AS_NUMBERS ->
+                NarrationKey(NarrationId.RSA_STEP_TEXT_AS_NUMBERS)
+
+            RsaStepKind.TOY_EXAMPLE ->
+                NarrationKey(NarrationId.RSA_STEP_TOY_EXAMPLE, listOf(problem.message))
+
+            RsaStepKind.TOY_CIPHERTEXT -> NarrationKey(
+                NarrationId.RSA_STEP_TOY_CIPHERTEXT,
+                listOf(problem.message, problem.ciphertext),
+            )
+
+            RsaStepKind.CLOSING_FLOW ->
+                NarrationKey(NarrationId.RSA_STEP_CLOSING_FLOW, listOf(problem.plaintext))
+
+            RsaStepKind.KEY_ORIGIN -> NarrationKey(NarrationId.RSA_STEP_KEY_ORIGIN)
+            RsaStepKind.KEY_PAIR_PURPOSE ->
+                NarrationKey(NarrationId.RSA_STEP_KEY_PAIR_PURPOSE)
+
             RsaStepKind.PRIMES ->
                 NarrationKey(NarrationId.RSA_STEP_PRIMES, listOf(problem.p, problem.q))
 
@@ -382,7 +612,6 @@ class RsaEncryptionAlgorithm : Algorithm<RsaState, RsaAction> {
                 listOf(problem.privateKey.printed),
             )
 
-            RsaStepKind.KEY_ROLES -> NarrationKey(NarrationId.RSA_STEP_KEY_ROLES)
             RsaStepKind.ENCRYPT -> NarrationKey(
                 NarrationId.RSA_STEP_ENCRYPT,
                 listOf(problem.message, problem.e, problem.modulus, problem.ciphertext),
@@ -664,6 +893,177 @@ internal object RsaOptions {
                     why = NarrationId.RSA_WHY_SECRET_NEITHER,
                 ),
             )
+
+            // -- The story judgements (ADR-052) -------------------------------
+            //
+            // All four are cards, because every option is a sentence. They are the
+            // half of the lesson a learner has to be able to answer *before* the
+            // arithmetic means anything, and none of them needs a number on screen.
+
+            RsaQuestion.SHAREABLE_KEY -> listOf(
+                card(
+                    title = "The public key",
+                    detail = "That is what public means: hand it to anyone.",
+                    short = "PUBLIC",
+                    correct = true,
+                ),
+                card(
+                    title = "The private key",
+                    detail = "The half that undoes the work.",
+                    short = "PRIVATE",
+                    why = NarrationId.RSA_WHY_SHARE_PRIVATE,
+                ),
+                card(
+                    title = "Both of them",
+                    detail = "Hand out the pair and keep nothing back.",
+                    short = "BOTH",
+                    why = NarrationId.RSA_WHY_SHARE_BOTH,
+                ),
+                card(
+                    title = "Neither",
+                    detail = "Keep the pair, and tell nobody either number.",
+                    short = "NEITHER",
+                    why = NarrationId.RSA_WHY_SHARE_NEITHER,
+                ),
+            )
+
+            RsaQuestion.ENCRYPT_OPERATION -> listOf(
+                card(
+                    title = "Encrypt it",
+                    detail = "Scramble it so only the intended reader can read it.",
+                    short = "ENCRYPT",
+                    correct = true,
+                ),
+                card(
+                    title = "Compress it",
+                    detail = "Make it smaller to send. Nothing is hidden.",
+                    short = "COMPRESS",
+                    why = NarrationId.RSA_WHY_OP_COMPRESS,
+                ),
+                card(
+                    title = "Hash it",
+                    detail = "A one-way fingerprint, with no key and no way back.",
+                    short = "HASH",
+                    why = NarrationId.RSA_WHY_OP_HASH,
+                ),
+                card(
+                    title = "Sort it",
+                    detail = "Put the characters in order. Not a security operation.",
+                    short = "SORT",
+                    why = NarrationId.RSA_WHY_OP_SORT,
+                ),
+            )
+
+            // The two that name a *key* rather than an operation. Their cards are
+            // the two halves themselves, so the learner is choosing between the
+            // things on screen rather than between four descriptions of them.
+            RsaQuestion.ENCRYPT_KEY -> listOf(
+                card(
+                    title = "The public key",
+                    detail = "The half the recipient published, so anyone can write to them.",
+                    short = "PUBLIC",
+                    correct = true,
+                ),
+                card(
+                    title = "The private key",
+                    detail = "The half the recipient kept.",
+                    short = "PRIVATE",
+                    why = NarrationId.RSA_WHY_ENCRYPT_WITH_PRIVATE,
+                ),
+                card(
+                    title = "Both, one after the other",
+                    detail = "Apply the public half, then the private half.",
+                    short = "BOTH",
+                    why = NarrationId.RSA_WHY_ENCRYPT_WITH_BOTH,
+                ),
+                card(
+                    title = "Neither — no key is needed",
+                    detail = "Scramble it by a fixed rule instead.",
+                    short = "NEITHER",
+                    why = NarrationId.RSA_WHY_ENCRYPT_WITH_NEITHER,
+                ),
+            )
+
+            RsaQuestion.DECRYPT_KEY -> listOf(
+                card(
+                    title = "The private key",
+                    detail = "The half only the recipient has. This is what undoes it.",
+                    short = "PRIVATE",
+                    correct = true,
+                ),
+                card(
+                    title = "The public key",
+                    detail = "The same half that encrypted it.",
+                    short = "PUBLIC",
+                    why = NarrationId.RSA_WHY_DECRYPT_WITH_PUBLIC,
+                ),
+                card(
+                    title = "The same key again",
+                    detail = "Apply whatever encrypted it a second time.",
+                    short = "SAME",
+                    why = NarrationId.RSA_WHY_DECRYPT_WITH_SAME,
+                ),
+                card(
+                    title = "Neither — it cannot be undone",
+                    detail = "The message is gone for good.",
+                    short = "NEITHER",
+                    why = NarrationId.RSA_WHY_DECRYPT_IMPOSSIBLE,
+                ),
+            )
+
+            RsaQuestion.DECRYPT_OPERATION -> listOf(
+                card(
+                    title = "Decrypt it",
+                    detail = "The ciphertext goes in; the original message comes back.",
+                    short = "DECRYPT",
+                    correct = true,
+                ),
+                card(
+                    title = "Encrypt it again",
+                    detail = "Apply the same kind of transformation a second time.",
+                    short = "ENCRYPT",
+                    why = NarrationId.RSA_WHY_OP_ENCRYPT_AGAIN,
+                ),
+                card(
+                    title = "Hash it",
+                    detail = "A one-way fingerprint, with no key and no way back.",
+                    short = "HASH",
+                    why = NarrationId.RSA_WHY_OP_HASH,
+                ),
+                card(
+                    title = "Compress it",
+                    detail = "Make it smaller. Nothing to do with keys.",
+                    short = "COMPRESS",
+                    why = NarrationId.RSA_WHY_OP_COMPRESS,
+                ),
+            )
+
+            RsaQuestion.KEY_PAIR_PURPOSE -> listOf(
+                card(
+                    title = "Encrypt with one key, decrypt with the other",
+                    detail = "So a stranger can send you something only you can read.",
+                    short = "PAIR",
+                    correct = true,
+                ),
+                card(
+                    title = "Encrypt and decrypt with the same key",
+                    detail = "One shared secret, used in both directions.",
+                    short = "SHARED",
+                    why = NarrationId.RSA_WHY_PURPOSE_SHARED,
+                ),
+                card(
+                    title = "Prove a message has not been altered",
+                    detail = "A check on the message, with nothing hidden.",
+                    short = "INTEGRITY",
+                    why = NarrationId.RSA_WHY_PURPOSE_INTEGRITY,
+                ),
+                card(
+                    title = "Store a password so it cannot be read back",
+                    detail = "Keep it in a form nothing can reverse.",
+                    short = "STORAGE",
+                    why = NarrationId.RSA_WHY_PURPOSE_STORAGE,
+                ),
+            )
         }
 
     /**
@@ -904,6 +1304,98 @@ internal data class RsaQuestionCopy(
                     retryAsk = key(NarrationId.RSA_RETRY_ASK_SECRET_KEY),
                     retryExplain = key(NarrationId.RSA_RETRY_EXPLAIN_SECRET_KEY),
                     correct = key(NarrationId.RSA_CORRECT_SECRET_KEY),
+                )
+
+                // -- The story judgements (ADR-052) ---------------------------
+                //
+                // Their ladders name the two key cards on screen rather than any
+                // arithmetic, because at this point in the lesson there is none.
+
+                RsaQuestion.SHAREABLE_KEY -> RsaQuestionCopy(
+                    prompt = key(NarrationId.RSA_ASK_SHAREABLE_KEY),
+                    hint = key(NarrationId.RSA_HINT_SHAREABLE_KEY),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_SHAREABLE_KEY),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_SHAREABLE_KEY),
+                    retryExplain = key(
+                        NarrationId.RSA_RETRY_EXPLAIN_SHAREABLE_KEY,
+                        problem.publicKey.printed,
+                    ),
+                    correct = key(
+                        NarrationId.RSA_CORRECT_SHAREABLE_KEY,
+                        problem.publicKey.printed,
+                    ),
+                )
+
+                RsaQuestion.ENCRYPT_OPERATION -> RsaQuestionCopy(
+                    prompt = key(
+                        NarrationId.RSA_ASK_ENCRYPT_OPERATION,
+                        problem.plaintext,
+                    ),
+                    hint = key(NarrationId.RSA_HINT_ENCRYPT_OPERATION),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_ENCRYPT_OPERATION),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_ENCRYPT_OPERATION),
+                    retryExplain = key(
+                        NarrationId.RSA_RETRY_EXPLAIN_ENCRYPT_OPERATION,
+                        problem.plaintext,
+                    ),
+                    correct = key(
+                        NarrationId.RSA_CORRECT_ENCRYPT_OPERATION,
+                        problem.plaintext,
+                    ),
+                )
+
+                RsaQuestion.ENCRYPT_KEY -> RsaQuestionCopy(
+                    prompt = key(NarrationId.RSA_ASK_ENCRYPT_KEY, problem.plaintext),
+                    hint = key(NarrationId.RSA_HINT_ENCRYPT_KEY),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_ENCRYPT_KEY),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_ENCRYPT_KEY),
+                    retryExplain = key(NarrationId.RSA_RETRY_EXPLAIN_ENCRYPT_KEY),
+                    correct = key(NarrationId.RSA_CORRECT_ENCRYPT_KEY),
+                )
+
+                RsaQuestion.DECRYPT_KEY -> RsaQuestionCopy(
+                    prompt = key(
+                        NarrationId.RSA_ASK_DECRYPT_KEY,
+                        problem.illustrativeCiphertext, problem.plaintext,
+                    ),
+                    hint = key(NarrationId.RSA_HINT_DECRYPT_KEY),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_DECRYPT_KEY),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_DECRYPT_KEY),
+                    retryExplain = key(NarrationId.RSA_RETRY_EXPLAIN_DECRYPT_KEY),
+                    correct = key(
+                        NarrationId.RSA_CORRECT_DECRYPT_KEY,
+                        problem.plaintext,
+                    ),
+                )
+
+                RsaQuestion.DECRYPT_OPERATION -> RsaQuestionCopy(
+                    prompt = key(
+                        NarrationId.RSA_ASK_DECRYPT_OPERATION,
+                        problem.ciphertext,
+                    ),
+                    hint = key(NarrationId.RSA_HINT_DECRYPT_OPERATION),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_DECRYPT_OPERATION),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_DECRYPT_OPERATION),
+                    retryExplain = key(
+                        NarrationId.RSA_RETRY_EXPLAIN_DECRYPT_OPERATION,
+                        problem.ciphertext, problem.message,
+                    ),
+                    correct = key(
+                        NarrationId.RSA_CORRECT_DECRYPT_OPERATION,
+                        problem.ciphertext, problem.message,
+                    ),
+                )
+
+                RsaQuestion.KEY_PAIR_PURPOSE -> RsaQuestionCopy(
+                    prompt = key(NarrationId.RSA_ASK_KEY_PAIR_PURPOSE),
+                    hint = key(NarrationId.RSA_HINT_KEY_PAIR_PURPOSE),
+                    retryLook = key(NarrationId.RSA_RETRY_LOOK_KEY_PAIR_PURPOSE),
+                    retryAsk = key(NarrationId.RSA_RETRY_ASK_KEY_PAIR_PURPOSE),
+                    retryExplain = key(NarrationId.RSA_RETRY_EXPLAIN_KEY_PAIR_PURPOSE),
+                    correct = key(
+                        NarrationId.RSA_CORRECT_KEY_PAIR_PURPOSE,
+                        problem.message, problem.ciphertext,
+                    ),
                 )
             }
 

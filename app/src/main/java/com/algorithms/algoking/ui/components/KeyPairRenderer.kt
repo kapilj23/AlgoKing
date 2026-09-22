@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,8 +27,17 @@ import androidx.compose.ui.unit.dp
 import com.algorithms.algoking.engine.scene.CellState
 import com.algorithms.algoking.engine.scene.ChoiceCard
 import com.algorithms.algoking.engine.scene.DerivationStep
+import com.algorithms.algoking.engine.scene.FlowNode
+import com.algorithms.algoking.engine.scene.FlowNodeKind
+import com.algorithms.algoking.engine.scene.FlowValueStyle
+import com.algorithms.algoking.engine.scene.FlowView
 import com.algorithms.algoking.engine.scene.KeyCard
 import com.algorithms.algoking.engine.scene.KeyPairScene
+import com.algorithms.algoking.engine.scene.LessonLayer
+import com.algorithms.algoking.engine.scene.TextBridgeView
+import com.algorithms.algoking.engine.scene.MathsEmphasis
+import com.algorithms.algoking.engine.scene.MathsLine
+import com.algorithms.algoking.engine.scene.MathsPanel
 import com.algorithms.algoking.engine.scene.RoundTripStage
 import com.algorithms.algoking.engine.scene.RoundTripView
 import com.algorithms.algoking.ui.icons.AlgoIcons
@@ -91,7 +101,28 @@ fun KeyPairStage(
 ) {
     Column(modifier.fillMaxWidth()) {
 
+        // Which layer this is — the concept, or the toy arithmetic. First on the
+        // screen, because it frames everything under it, and drawn from data rather
+        // than written into the copy (ADR-053).
+        scene.layer?.let {
+            LayerBanner(it)
+            Gap(Spacing.sm)
+        }
+
+        scene.bridge?.let {
+            TextBridge(it)
+            Gap(Spacing.sm)
+        }
+
+        // The concept and toy layers draw the flow; key generation draws the chain.
+        // Never both — they are answers to two different questions, and the lesson
+        // only asks the second once the learner can answer the first (ADR-052).
+        if (scene.flow != null || scene.maths != null) {
+            FlowAndMaths(scene.flow, scene.maths)
+        }
+
         if (scene.chain.isNotEmpty()) {
+            if (scene.flow != null || scene.maths != null) Gap(Spacing.sm)
             DerivationCard(scene.chain)
         }
 
@@ -114,6 +145,334 @@ fun KeyPairStage(
             Gap(Spacing.sm)
             Caveat(text = it, prominent = scene.caveatProminent)
         }
+    }
+}
+
+/**
+ * Which of the lesson's two layers this frame is on — DESIGN_SYSTEM.md §6.16n.
+ *
+ * **The concept layer is violet; the toy layer is amber.** Amber is the app's
+ * alternative-action and caution colour, and it is the right one here for the same
+ * reason the `TOY EXAMPLE` pill uses it: the numbers below it are a demonstration,
+ * and a learner should be able to tell that from across the room. Not red — a
+ * teaching device is not an error (§0.1).
+ */
+@Composable
+private fun LayerBanner(layer: LessonLayer) {
+    val toy = layer == LessonLayer.TOY
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (toy) AlgoColors.secondarySoft else AlgoColors.primarySoft,
+                Radius.pill,
+            )
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = layer.label,
+            style = AlgoType.labelSmall,
+            color = if (toy) AlgoColors.secondaryDark else AlgoColors.primary,
+        )
+    }
+}
+
+/**
+ * `M E E T` over `77 69 69 84` — the join between the two layers.
+ *
+ * Aligned columns, because the correspondence *is* the content: `M` is 77, and it is
+ * 77 in the same column. One of the few places in this app where two rows genuinely
+ * do line up position by position (compare §6.16l, where the absence of exactly that
+ * relationship is the lesson).
+ */
+@Composable
+private fun TextBridge(bridge: TextBridgeView) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AlgoColors.surfaceVariant, Radius.card)
+            .padding(Spacing.sm),
+    ) {
+        Text(
+            text = "TEXT AS NUMBERS",
+            style = AlgoType.labelSmall,
+            color = AlgoColors.textMuted,
+            maxLines = 1,
+        )
+        Gap(Spacing.xs)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xxs),
+        ) {
+            bridge.cells.forEach { cell ->
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(AlgoColors.surface, Radius.cell)
+                        .border(Dimens.hairline, AlgoColors.border, Radius.cell)
+                        .padding(vertical = Spacing.xs),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = cell.character,
+                        style = AlgoType.titleSmall,
+                        color = AlgoColors.textPrimary,
+                        maxLines = 1,
+                    )
+                    Text("↓", style = AlgoType.labelSmall, color = AlgoColors.disabled)
+                    Text(
+                        text = cell.code.toString(),
+                        style = AlgoType.labelMedium,
+                        color = AlgoColors.primary,
+                        maxLines = 1,
+                    )
+                }
+            }
+            if (bridge.truncated) {
+                Text(
+                    text = "…",
+                    style = AlgoType.titleSmall,
+                    color = AlgoColors.textMuted,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The flow and the arithmetic that explains it — DESIGN_SYSTEM.md §6.16n.
+ *
+ * ```
+ *  ┌ ENCRYPTING ─────────┬ THE MATHEMATICS ────────┐
+ *  │  MESSAGE      4     │  c = m^e mod n          │
+ *  │      ↓              │  m = 4                  │
+ *  │  PUBLIC KEY (3,55)  │  e = 3                  │
+ *  │      ↓              │  n = 55                 │
+ *  │  ENCRYPT            │  c = 4³ mod 55          │
+ *  │      ↓              │  c = 64 mod 55          │
+ *  │  CIPHERTEXT   9     │  c = 9                  │
+ *  └─────────────────────┴─────────────────────────┘
+ * ```
+ *
+ * **Side by side above [Dimens.twoColumnMinWidth], stacked below it**, which on the
+ * devices this app targets means stacked on a phone and side by side on a tablet or
+ * in landscape. The brief asks for the two-column reading and also asks that nobody
+ * be made to read tiny text; below that width those two wishes are in conflict, and
+ * legibility wins.
+ *
+ * The order is the same either way — visual first, arithmetic second — because that
+ * is the lesson's whole claim in miniature.
+ */
+@Composable
+private fun FlowAndMaths(flow: FlowView?, maths: MathsPanel?) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val sideBySide = maxWidth >= Dimens.twoColumnMinWidth && flow != null && maths != null
+
+        if (sideBySide) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                FlowCard(requireNotNull(flow), Modifier.weight(1f))
+                MathsCard(requireNotNull(maths), Modifier.weight(1f))
+            }
+        } else {
+            Column(Modifier.fillMaxWidth()) {
+                flow?.let { FlowCard(it) }
+                maths?.let {
+                    if (flow != null) Gap(Spacing.xs)
+                    MathsCard(it)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * What goes in, what acts on it, what comes out — one node per line.
+ *
+ * A node the lesson has not produced reads `?`, the same rule the chain follows: the
+ * `ENCRYPT_OPERATION` judgement is asked with the verb node blank, and a picture that
+ * filled it in would be answering its own question.
+ */
+@Composable
+private fun FlowCard(flow: FlowView, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AlgoColors.surfaceVariant, Radius.card)
+            .padding(Spacing.sm),
+    ) {
+        Text(
+            text = flow.title,
+            style = AlgoType.labelSmall,
+            color = AlgoColors.textMuted,
+            maxLines = 1,
+        )
+        Gap(Spacing.xs)
+        flow.nodes.forEachIndexed { index, node ->
+            if (index > 0) {
+                Text(
+                    text = "↓",
+                    style = AlgoType.titleSmall,
+                    color = AlgoColors.primary,
+                    modifier = Modifier.padding(start = Spacing.sm),
+                )
+            }
+            FlowNodeView(node)
+        }
+    }
+}
+
+@Composable
+private fun FlowNodeView(node: FlowNode) {
+    val lit = node.state == CellState.COMPARING
+    val fresh = node.state == CellState.CANDIDATE
+    val value = node.value
+
+    // A key keeps the colour it carries everywhere else in the lesson — violet for
+    // the half you publish, the ornament gold for the half you keep. A learner
+    // should be able to tell the two apart without reading the label.
+    val accent = when (node.kind) {
+        FlowNodeKind.PUBLIC_KEY -> AlgoColors.primary
+        FlowNodeKind.PRIVATE_KEY -> AlgoColors.gold
+        FlowNodeKind.OPERATION -> AlgoColors.secondaryDark
+        else -> AlgoColors.textSecondary
+    }
+    val ground by animateColorAsState(
+        targetValue = when {
+            lit -> AlgoColors.primarySoft
+            fresh -> AlgoColors.secondarySoft
+            node.kind == FlowNodeKind.PUBLIC_KEY -> AlgoColors.primarySoft
+            node.kind == FlowNodeKind.PRIVATE_KEY -> AlgoColors.goldSoft
+            node.kind == FlowNodeKind.OPERATION -> AlgoColors.surface
+            node.known -> AlgoColors.surface
+            else -> AlgoColors.surfaceMuted
+        },
+        animationSpec = tween(200, easing = FastOutSlowInEasing),
+        label = "rsaFlowNode",
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ground, Radius.cell)
+            .border(
+                if (lit || fresh) Dimens.outline else Dimens.hairline,
+                when {
+                    lit -> AlgoViz.comparing
+                    fresh -> AlgoViz.next
+                    else -> AlgoColors.border
+                },
+                Radius.cell,
+            )
+            .heightIn(min = Dimens.minTouchTarget)
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = node.label,
+                style = AlgoType.labelSmall,
+                color = accent,
+                modifier = Modifier.weight(1f),
+            )
+            if (node.kind == FlowNodeKind.PRIVATE_KEY) {
+                AlgoIcon(AlgoIcons.Lock, accent, 14.dp)
+                Gap(Spacing.xxs)
+            }
+            if (node.kind != FlowNodeKind.OPERATION) {
+                Text(
+                    // A value the lesson has not produced reads `?`, never a zero.
+                    // A message is quoted so it reads as something a person wrote
+                    // rather than as a token (ADR-053).
+                    text = value?.let {
+                        if (node.style == FlowValueStyle.TEXT) "“$it”" else it
+                    } ?: "?",
+                    // Three styles, because the lesson runs on two layers and they
+                    // must not look alike: prose for a message, monospace for bytes,
+                    // tabular numerals for the toy arithmetic.
+                    style = when (node.style) {
+                        FlowValueStyle.TEXT -> AlgoType.titleSmall
+                        FlowValueStyle.BYTES -> AlgoType.digest
+                        FlowValueStyle.NUMBER -> AlgoType.numeralMedium
+                    },
+                    color = if (node.known) AlgoColors.textPrimary else AlgoColors.textMuted,
+                    maxLines = 2,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+        }
+        node.note?.let {
+            Text(
+                text = it,
+                style = AlgoType.labelSmall,
+                color = AlgoColors.textMuted,
+            )
+        }
+    }
+}
+
+/**
+ * The worked arithmetic, one line at a time.
+ *
+ * It grows downward and nothing already written is ever re-flowed, so reading down it
+ * is reading the calculation in the order it happens. The last line is **absent**
+ * while that value is the one being asked for.
+ */
+@Composable
+private fun MathsCard(maths: MathsPanel, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AlgoColors.surfaceVariant, Radius.card)
+            .padding(Spacing.sm),
+    ) {
+        Text(
+            text = maths.title,
+            style = AlgoType.labelSmall,
+            color = AlgoColors.textMuted,
+            maxLines = 1,
+        )
+        Gap(Spacing.xs)
+        maths.lines.forEach { line ->
+            MathsLineView(line)
+        }
+    }
+}
+
+@Composable
+private fun MathsLineView(line: MathsLine) {
+    // The result is the only line drawn as one: a green ground, the colour this app
+    // uses for *settled* everywhere else, and never for an action.
+    val result = line.emphasis == MathsEmphasis.RESULT
+    val formula = line.emphasis == MathsEmphasis.FORMULA
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = line.text,
+            style = if (result || formula) AlgoType.titleSmall else AlgoType.bodyLarge,
+            color = when {
+                result -> AlgoColors.onSuccessSoft
+                formula -> AlgoColors.primary
+                line.emphasis == MathsEmphasis.SUBSTITUTION -> AlgoColors.textSecondary
+                else -> AlgoColors.textPrimary
+            },
+            modifier = if (result) {
+                Modifier
+                    .background(AlgoColors.successSoft, Radius.cell)
+                    .padding(horizontal = Spacing.xs, vertical = Spacing.xxs)
+            } else {
+                Modifier
+            },
+        )
     }
 }
 
@@ -274,13 +633,19 @@ private fun KeyCardView(key: KeyCard, modifier: Modifier = Modifier) {
                 AlgoIcon(AlgoIcons.Lock, accent, 14.dp)
             }
         }
-        Gap(Spacing.xxs)
-        Text(
-            text = key.printed,
-            style = AlgoType.numeralMedium,
-            color = AlgoColors.textPrimary,
-            maxLines = 1,
-        )
+        // Null in the concept layer, where a key is a half that may be shared and a
+        // half that may not — and nothing numeric at all (ADR-053). The card still
+        // says which half it is and what it does; the numbers arrive with the toy
+        // layer, where they mean something.
+        key.printed?.let {
+            Gap(Spacing.xxs)
+            Text(
+                text = it,
+                style = AlgoType.numeralMedium,
+                color = AlgoColors.textPrimary,
+                maxLines = 1,
+            )
+        }
         Gap(Spacing.xxs)
         Text(
             text = key.rule,

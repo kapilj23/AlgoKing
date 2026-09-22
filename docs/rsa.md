@@ -1,8 +1,17 @@
-# RSA — two keys built from two primes
+# RSA — use the keys, then find out where they came from
 
-**Status:** built · 2026-09-17 · MVP scope is **WATCH → TRY → COMPLETE** · unit-tested; **on-device pass still outstanding**
+**Status:** built · re-ordered story-first 2026-09-21 · MVP scope is **WATCH → TRY → COMPLETE** · unit-tested; **on-device pass still outstanding**
 **Category:** Cryptography · **PRO** · **Engine:** `engine/algorithms/rsa/` · **Scene:** `KeyPairScene`
-**Decision:** ADR-050
+**Decisions:** ADR-050 (the lesson) · **ADR-052 (the two acts)**
+
+> **⚠ RE-ORDERED — 2026-09-21, product owner.** The lesson used to open on key
+> generation: its second judgement was `n = p × q` and its third was `φ(n)`. It now
+> runs in **two acts** — Act I shows a message going out through one key and coming
+> back through the other, with the pair handed over as given; Act II explains where
+> that pair came from. No `p`, `q`, `φ(n)`, `e` or `d` appears before the round trip
+> closes. The engine, the toy numbers, the arithmetic, the Pro gate and the TRY
+> architecture are unchanged (ADR-052). Where this note and a passage below disagree,
+> this note wins.
 
 > **The numbers in this lesson are a demonstration, not security.** `n = 55` factors
 > by inspection, so anyone holding the public key has the private one too. That is
@@ -81,67 +90,122 @@ It is also not a choice. The platform's RSA will not touch a toy modulus —
 `KeyFactory` rejects anything under 512 bits, and rightly — which is itself part of
 what the lesson is careful to say.
 
-## WATCH — 16 beats
+## WATCH — 24 beats, in two acts
+
+**Act I — what RSA does.** No `p`, `q`, `φ(n)`, `e` or `d`, anywhere.
 
 | # | Beat | |
 |---|---|---|
-| 0 | RSA uses two keys, not one | the question the other ciphers leave open |
-| 1 | this is asymmetric cryptography | the four kinds, as cards |
-| 2 | start with two primes: 5 and 11 | the only secret inputs |
-| 3 | `n = 5 × 11 = 55` | the modulus both keys carry |
-| 4 | `φ(n) = 4 × 10 = 40` | the modulus `e` and `d` are inverses in |
-| 5 | choose `e = 3` | gcd(3, 40) = 1 |
-| 6 | and `d = 27` | 3 × 27 = 81, one more than a multiple of 40 |
-| 7 | public key `(3, 55)` | |
-| 8 | private key `(27, 55)` | same modulus, other exponent |
-| 9 | one encrypts, the other decrypts | |
-| 10 | `c = 4³ mod 55 = 9` | encrypted with the public key |
-| 11 | `m = 9²⁷ mod 55 = 4` | **the round trip closes: 4 → 9 → 4** |
-| 12 | only one of them has to be kept | the secrecy cards |
-| 13 | **and this is the toy version** | the caveat, as its own beat |
-| 14 | **INSIGHT** — *two keys, built from the same chain, and only one has to be kept* | |
-| 15 | recap, seven bullets, the last two the caveats | |
+| 0 | two strangers need to agree a secret | the question the other ciphers leave open |
+| 1 | here is the message: 4 | + *what is two related keys called?* — cards |
+| 2 | this is asymmetric cryptography | what one does, the other undoes |
+| 3 | two keys: `(3, 55)` and `(27, 55)` | **handed over as given** + *which can you share?* |
+| 4 | the public key is the one you publish | + *so which half must never leave?* |
+| 5 | only one of them has to be kept | + *send the message through the public key — what happens?* |
+| 6 | the public key encrypts 4 | the flow's verb lands; the working appears, unfinished |
+| 7 | `c = 4³ mod 55 = 9` | **the mathematics, beside the flow it explains** |
+| 8 | 4 is now 9 | the pause on the ciphertext + *now the private key — what happens?* |
+| 9 | the private key decrypts 9 | |
+| 10 | `m = 9²⁷ mod 55 = 4` | |
+| 11 | **4 → 9 → 4** | the round trip, on one picture. *This is where Act I ends.* |
+
+**Act II — where those keys came from.**
+
+| # | Beat | |
+|---|---|---|
+| 12 | so where did `(3, 55)` and `(27, 55)` come from? | the chain appears, empty |
+| 13 | start with two primes: 5 and 11 | the only secret inputs |
+| 14 | `n = 5 × 11 = 55` | the modulus both keys carry |
+| 15 | `φ(n) = 4 × 10 = 40` | the modulus `e` and `d` are inverses in |
+| 16 | choose `e = 3` | gcd(3, 40) = 1 |
+| 17 | and `d = 27` | 3 × 27 = 81, one more than a multiple of 40 |
+| 18 | that gives the public key `(3, 55)` | **the pair they have been using all along** |
+| 19 | and the private key `(27, 55)` | + *what does having the pair let you do?* |
+| 20 | encrypt with one, decrypt with the other | |
+| 21 | **and this is the toy version** | the caveat, as its own beat |
+| 22 | **INSIGHT** — *two keys, built from the same chain, and only one has to be kept* | |
+| 23 | recap, seven bullets, the last two the caveats | |
 
 **Nothing is collapsed.** ADR-025's rule is about repetition — AES's ten identical
-rounds, Bubble Sort's later passes — and there is none here: five values, five
-different ideas, each earning a beat.
+rounds, Bubble Sort's later passes — and there is none here: every beat is a different
+idea.
 
-### The bug the walkthrough dump caught
+### Why the order is the lesson
+
+The old script reached `n = p × q` on beat three and the round trip on beat eleven. A
+learner on beat three cannot yet say what RSA is *for*, and a totient without a purpose
+is a fact to be memorised rather than a step in an argument. Now the arithmetic arrives
+as the explanation of something already watched working (ADR-052).
+
+Guarded by `the story is asked before the arithmetic` in the engine tests, and by
+`the story is told before any key generation` in the app's copy tests, which reads the
+resolved sentences of Act I and fails if the words *prime*, *totient*, *φ*, `p × q`,
+*gcd* or *inverse* appear in any of them.
+
+### What Act I is allowed to say
+
+`c = m^e mod n`, with its numbers filled in. The line being drawn is **key
+generation**, not arithmetic: the brief asks for the mathematics of the transformation
+the learner has just watched, so `e` and `n` appear as the two numbers inside the
+public key they have been handed. *Where those numbers came from* is the question Act
+II exists to answer.
+
+### Frames with cards on them are captioned twice over
 
 A frame is drawn from the state *after* its transition, so the frame that passes a
-beat is also the frame the **next** question is pending on. For the eight judgements
-that settle a value that is exactly right — the frame shows the value landing and the
-next one as `?`.
+beat is also the frame the **next** question is pending on. For the six judgements that
+settle a value that is exactly right — the frame shows the value landing and the next
+one as `?`.
 
-For the two answered by tapping cards it was backwards. The cards appeared on the
-previous beat's frame, so the secrecy cards were drawn under the round-trip sentence
-and the beat that was actually about them showed nothing. Every test passed.
+For the six answered by tapping cards it is backwards: the cards appear on the previous
+beat's frame. The first version of the lesson handled that by sacrificing that beat's
+caption, which was affordable when only two judgements were cards and the beats before
+them had nothing of their own to say.
 
-The fix is ADR-048's rule — *a frame is captioned by what its own scene shows* — so
-those two are captioned on the frame where their cards appear. Each needs the step
-before it to have no story of its own, and both already did: `SETUP` is covered by
-`opening()`, and `ROUND_TRIP` draws exactly what the `DECRYPT` beat before it drew. So
-**no inert step had to be invented**, which is what ADR-049 needed for AES.
+With six, all six of those beats do. So such a frame now carries **both** — the landed
+beat's headline, and a support line introducing the choice underneath. That is what the
+frame honestly shows, and it is ADR-048's rule (*a frame is captioned by what its own
+scene shows*) applied to a scene showing two things.
 
-Found, as the last five have been, by dumping the walkthrough and reading it.
+Each beat keeps its own two-sentence caption for the **statement path** — the one a
+dataset that does not ask that question takes — and `a dataset that asks nothing still
+narrates every beat` drives exactly that, so those six captions are correct rather than
+dead code.
 
-## TRY — ten decisions
+Found, as the last six have been, by dumping the walkthrough and reading it.
 
-The brief's eight exercises, plus the two §11 asks for so the key generation is fully
-the learner's.
+## TRY — twelve decisions, in the same two acts
+
+Seven story judgements, then five about the arithmetic. TRY and WATCH run **one
+script**, so the progression is identical.
 
 | # | Exercise | Asked as | Answer |
 |---|---|---|---|
 | 1 | Which kind of cryptography uses two keys? | **four stacked cards** | Asymmetric |
-| 2 | What is `n`? | four buttons: 40 · **55** · 16 · 44 | 55 |
-| 3 | What is `φ(n)`? | four buttons: **40** · 55 · 44 · 10 | 40 |
-| 4 | Which value can be `e`? | four buttons | 3 — the only one coprime to 40 |
-| 5 | Which value is `d`? | four buttons | 27 |
-| 6 | Which pair is the public key? | four buttons | (3, 55) |
-| 7 | And the private key? | four buttons | (27, 55) |
-| 8 | `c = mᵉ mod n`? | four buttons | 9 |
-| 9 | What was the message? | four buttons | 4 |
-| 10 | Which key must stay secret? | **four stacked cards** | The private key |
+| 2 | Which of these two can you share? | **four stacked cards** | The public key |
+| 3 | Which key must remain secret? | **four stacked cards** | The private key |
+| 4 | The message goes through the public key — what happens? | **four stacked cards** | Encrypt it |
+| 5 | `c = mᵉ mod n`? | four buttons | 9 |
+| 6 | Now it goes through the private key — what happens? | **four stacked cards** | Decrypt it |
+| 7 | What was the message? | four buttons | 4 |
+| 8 | What is `n`? | four buttons: 40 · **55** · 16 · 44 | 55 |
+| 9 | What is `φ(n)`? | four buttons: **40** · 55 · 44 · 10 | 40 |
+| 10 | Which value can be `e`? | four buttons | 3 — the only one coprime to 40 |
+| 11 | Which value is `d`? | four buttons | 27 |
+| 12 | What does the key pair let you do? | **four stacked cards** | Encrypt with one, decrypt with the other |
+
+### The two that became statements
+
+*"Which pair is the public key?"* and *"and the private key?"* are no longer asked.
+Both pairs have been on screen since beat 3, so asking in Act II is asking a learner to
+read a card.
+
+They are **not deleted**: `RsaQuestion.PUBLIC_KEY` and `PRIVATE_KEY`, their four
+distractors each and all their copy are untouched, and `stepsFor` turns any unasked
+question into a statement — `the two key-assembly questions are stated, not asked`
+builds a dataset that asks them both and checks they still work. The two exponents
+behind them, `e` and `d`, are still asked, and they are the part nobody could have read
+off the screen.
 
 ### The questions are interleaved, not asked afterwards
 
@@ -155,16 +219,20 @@ depends on already on screen and its own place showing `?`. That is the hash flo
 rule (ADR-030) applied to a dependency chain, and it is what makes the picture
 evidence rather than an answer key.
 
-### Two judgements are cards, not buttons
+### Six judgements are cards, not buttons
 
 "Asymmetric cryptography" does not fit on a `DecisionButton` — four share a row at
 360dp, about 76dp each. That is the wall Two Pointers hit with "Move RIGHT" (ADR-032)
 and AVL with its four case names (ADR-037).
 
-So those two are **full-width stacked cards**, each with its title and the clause that
-makes it unambiguous, each clearing the 48dp touch minimum. The other eight are
-numbers or pairs, which fit comfortably. Same split AES made between its round strip
-and its numeric buttons (ADR-049).
+So the six **concept** judgements are full-width stacked cards, each with its title and
+the clause that makes it unambiguous, each clearing the 48dp touch minimum. The other
+six are numbers, which fit comfortably. Same split AES made between its round strip and
+its numeric buttons (ADR-049).
+
+The split falls exactly along the two acts, which is not a coincidence: a question about
+what RSA *does* cannot be answered with a number, and a question about which number a
+formula produces does not need a paragraph.
 
 ### Every wrong option is a named misconception
 
@@ -221,6 +289,45 @@ than merely wrong.
 
 **`KeyPairScene`**, the eleventh scene shape (ADR-050), drawn by `KeyPairStage`.
 
+**Two acts, two pictures, never both at once** (ADR-052).
+
+**Act I — the flow, and the arithmetic beside it.** Side by side above
+`Dimens.twoColumnMinWidth` (520dp — a tablet or a landscape phone), stacked below it,
+because two 140dp columns at 360dp would put the lesson's numbers at a size nobody
+should have to squint at.
+
+```
+┌ ENCRYPTING ─────────┬ THE MATHEMATICS ────────┐
+│  MESSAGE      4     │  c = m^e mod n          │
+│      ↓              │  m = 4                  │
+│  PUBLIC KEY (3,55)  │  e = 3                  │
+│      ↓              │  n = 55                 │
+│  ENCRYPT            │  c = 4³ mod 55          │
+│      ↓              │  c = 64 mod 55          │
+│  CIPHERTEXT   9     │  c = 9        ← settled │
+└─────────────────────┴─────────────────────────┘
+
+┌ PUBLIC KEY ────────┐  ┌ PRIVATE KEY 🔒 ┐
+│ (3, 55)            │  │ (27, 55)       │
+│ Share it freely    │  │ Never share it │
+└────────────────────┘  └────────────────┘
+
+MESSAGE    4  →encrypt→  9  →decrypt→  4
+```
+
+**The flow's verb node is blank while the learner is being asked which verb it is** —
+`ENCRYPT` reads `?` during judgement 4. That is the chain's own `?` rule applied to a
+flow, and it is what makes the two operation judgements askable at all.
+
+**The arithmetic's last line is withheld while that value is the question.** While
+`c` is being asked the panel ends at `c = 4³ mod 55`; `c = 64 mod 55` and `c = 9`
+arrive together once it is settled. The reduction line is the one that makes `mod`
+mean something rather than being a symbol, and it is deliberately not shown early —
+anyone who can subtract would read the answer straight off it.
+
+**Act II — the chain.** Empty for the whole of Act I: five rows of `?` would put every
+symbol the re-ordering exists to delay on the very first screen, wearing a disguise.
+
 ```
 ┌ KEY GENERATION ─────────────────────────┐
 │  p, q    two different primes    5, 11  │
@@ -231,13 +338,6 @@ than merely wrong.
 │    ↓                                    │
 │  e       gcd(e, φ(n)) = 1           ?   │   ← being asked for
 └─────────────────────────────────────────┘
-
-┌ PUBLIC KEY ────────┐  ┌ PRIVATE KEY 🔒 ┐
-│ (3, 55)            │  │ (27, 55)       │
-│ Share it freely    │  │ Never share it │
-└────────────────────┘  └────────────────┘
-
-MESSAGE    4  →encrypt→  9  →decrypt→  4
 ```
 
 | Means | State | Reads |
@@ -327,10 +427,16 @@ adversarial driving over 40 random sequences · rewind exactness.
 | New screens or controllers | **0** |
 | Changes to existing lessons | **0** |
 | Changes to the access rule | **0** — one id added to `PRO_LESSONS` |
-| New design tokens | **1** — `Dimens.derivationSymbolWidth` |
+| New design tokens | **2** — `Dimens.derivationSymbolWidth`, `Dimens.twoColumnMinWidth` |
 | Shared model additions | `Dataset.rsa` (defaulted), `AlgorithmId.RSA` |
 | Files added | 5 engine · 1 renderer · 3 test |
-| Tests | 58 engine + 9 app (engine 920 → **978**, app 57 → **66**) |
+| Tests | 67 engine + 11 app (engine 920 → **987**, app 57 → **68**) |
+
+The story-first re-ordering (ADR-052) cost the architecture nothing further: two
+**defaulted** fields on `KeyPairScene` — `flow` and `maths` — four new questions, four
+new beats, and no change to any event, interaction model, screen, controller or other
+lesson. Defaulted, because that is what every scene addition in this project has been
+since ADR-037.
 
 The shape earns its place the way the ten before it did: a **derivation chain** — a
 short list of named scalars where each is produced from earlier ones by a printed

@@ -40,7 +40,7 @@ existed to leave behind. No stars — Try is never scored.
 | Cryptography | **XOR Cipher** | what each pair of bits makes — and the same key undoes it |
 | Cryptography | **SHA-256 Hashing** | which statement about a hash is true — with the real digests on screen to read it off |
 | Cryptography | **AES** *(Pro)* | what a round is made of — and which step the last round leaves out |
-| Cryptography | **RSA** *(Pro)* | every link in the chain that builds two keys — and which one stays secret |
+| Cryptography | **RSA** *(Pro)* | what each key is for and what it does to a message — and only then, where the two keys came from |
 | **Advanced** | **Two Pointers** | which pointer can still improve the sum |
 | **Advanced** | **Prefix Sum** | what each running total is, then which two answer the range |
 | **Advanced** | **Graph DFS** | which node DFS moves to next — deeper, or back |
@@ -52,7 +52,7 @@ existed to leave behind. No stars — Try is never scored.
 | **Advanced** | **Binary Tree — Preorder** | the same tap, the same tree — NODE → LEFT → RIGHT |
 | **Advanced** | **Binary Tree — Postorder** | and again — LEFT → RIGHT → NODE |
 | **Advanced** | **Fibonacci** | what each table entry is — and the two cells before it are the whole answer |
-| **Advanced** | **0/1 Knapsack** | which cell TAKE builds on, TAKE or SKIP, then which items the table took |
+| **Advanced** | **0/1 Knapsack** | what to pack when it will not all fit — and only then, what a table of best answers is for |
 
 Stack and Queue are the *same engine class* with one property flipped, and still read as two
 different structures — the picture carries the difference. The three traversals go further:
@@ -98,7 +98,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 978 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 1003 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -110,7 +110,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 978 unit tests, no device needed
+./gradlew :engine:test        # 1003 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -131,7 +131,7 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-050 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-053 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
@@ -170,7 +170,7 @@ until the store answers, the screen says so rather than guessing. See
 ## Status
 
 **Built:** the engine and all twenty-eight lessons · Watch · Try · Complete · Home · ten renderers ·
-the full light design-system token layer · progress persistence · 978 passing engine tests.
+the full light design-system token layer · progress persistence · 1003 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

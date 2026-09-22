@@ -665,7 +665,10 @@ data class GraphScene(...) : Scene      // nodes at positions, joined by edges
 data class CountingScene(...) : Scene   // an array, a table indexed by VALUE, and
                                         // the answer being rebuilt (ADR-040)
 data class DpTableScene(...) : Scene    // rows × columns with meaningful headers —
-                                        // a DP table (0/1 Knapsack; ADR-044)
+                                        // a DP table (0/1 Knapsack; ADR-044) — plus,
+                                        // since ADR-053, the bag, the item cards
+                                        // and the fork its first act uses, which
+                                        // the table never shares a frame with
 data class CipherScene(...) : Scene     // two aligned messages and the 26-letter
                                         // mapping between them (Caesar; ADR-046)
 data class BitwiseScene(...) : Scene    // three rows sharing one set of columns,
@@ -680,7 +683,9 @@ data class BlockCipherScene(...) : Scene // a 4 x 4 State whose rows and columns
 data class KeyPairScene(...) : Scene    // a chain of named values, each produced
                                         // from earlier ones by a printed formula,
                                         // and the two keys it ends in (RSA;
-                                        // ADR-050)
+                                        // ADR-050) — plus, since ADR-052, the flow
+                                        // and worked arithmetic its first act uses,
+                                        // which the chain never shares a frame with
 ```
 
 The sixth shape, `DpTableScene`, is the first with **two meaningful axes**: a knapsack

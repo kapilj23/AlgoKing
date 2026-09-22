@@ -5,12 +5,14 @@ import com.algorithms.algoking.engine.algorithms.rsa.RsaEncryptionAlgorithm
 import com.algorithms.algoking.engine.algorithms.rsa.RsaProjector
 import com.algorithms.algoking.engine.algorithms.rsa.RsaState
 import com.algorithms.algoking.engine.algorithms.rsa.RsaStepKind
+import com.algorithms.algoking.engine.algorithms.rsa.RsaWatchNarrator
 import com.algorithms.algoking.engine.catalog.AlgorithmCatalog
 import com.algorithms.algoking.engine.challenge.ChallengeCatalog
 import com.algorithms.algoking.engine.core.AlgorithmId
 import com.algorithms.algoking.engine.core.AlgorithmRunner
 import com.algorithms.algoking.engine.core.Dataset
 import com.algorithms.algoking.engine.core.Probe
+import com.algorithms.algoking.engine.core.RsaProblem
 import com.algorithms.algoking.engine.core.RsaQuestion
 import com.algorithms.algoking.engine.dataset.RsaDatasets
 import com.algorithms.algoking.engine.decision.Decision
@@ -21,8 +23,13 @@ import com.algorithms.algoking.engine.narration.NarrationId
 import com.algorithms.algoking.engine.progress.AlgorithmProgress
 import com.algorithms.algoking.engine.progress.Stage
 import com.algorithms.algoking.engine.scene.CellState
+import com.algorithms.algoking.engine.scene.FlowNodeKind
+import com.algorithms.algoking.engine.scene.FlowValueStyle
 import com.algorithms.algoking.engine.scene.KeyPairScene
+import com.algorithms.algoking.engine.scene.LessonLayer
+import com.algorithms.algoking.engine.scene.MathsEmphasis
 import com.algorithms.algoking.engine.scene.RoundTripStage
+import com.algorithms.algoking.engine.walkthrough.WatchScriptBuilder
 import com.algorithms.algoking.engine.walkthrough.WatchStepKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,6 +48,41 @@ import org.junit.Test
 class RsaLessonTest {
 
     private val algorithm = RsaEncryptionAlgorithm()
+
+    /**
+     * The judgements whose options are sentences, and are therefore tapped on a
+     * stacked card rather than a decision button.
+     *
+     * All six are concept judgements, which is not a coincidence: a question about
+     * what RSA *does* cannot be answered with a number, and a question about which
+     * number a formula produces does not need a paragraph.
+     */
+    private val CARD_QUESTIONS = setOf(
+        RsaQuestion.ASYMMETRIC,
+        RsaQuestion.SHAREABLE_KEY,
+        RsaQuestion.SECRET_KEY,
+        RsaQuestion.ENCRYPT_OPERATION,
+        RsaQuestion.DECRYPT_OPERATION,
+        RsaQuestion.ENCRYPT_KEY,
+        RsaQuestion.DECRYPT_KEY,
+        RsaQuestion.KEY_PAIR_PURPOSE,
+    )
+
+    /** The support line each card judgement puts on the frame that shows its cards. */
+    private val CARD_INTROS = setOf(
+        NarrationId.RSA_WATCH_ASK_ASYMMETRIC,
+        NarrationId.RSA_WATCH_ASK_SHAREABLE_KEY,
+        NarrationId.RSA_WATCH_ASK_SECRET_KEY,
+        NarrationId.RSA_WATCH_ASK_ENCRYPT_OPERATION,
+        NarrationId.RSA_WATCH_ASK_DECRYPT_OPERATION,
+        NarrationId.RSA_WATCH_ASK_ENCRYPT_KEY,
+        NarrationId.RSA_WATCH_ASK_DECRYPT_KEY,
+        NarrationId.RSA_WATCH_ASK_KEY_PAIR_PURPOSE,
+    )
+
+    /** The judgements the authored lesson actually asks, as cards. */
+    private val ASKED_CARD_QUESTIONS
+        get() = RsaDatasets.EXERCISES.filter { it in CARD_QUESTIONS }
 
     private fun start(dataset: Dataset = RsaDatasets.watch): RsaState =
         algorithm.initial(dataset)
@@ -65,24 +107,174 @@ class RsaLessonTest {
 
     // ── 1. The lesson's shape ────────────────────────────────────────────────
 
+    /**
+     * The one test the whole re-ordering turns on (ADR-052).
+     *
+     * Every judgement a learner can answer **without any arithmetic** comes before
+     * every judgement that needs some. If a future edit slides `MODULUS` back up to
+     * second place, this is what says so.
+     */
     @Test
-    fun `the ten exercises are asked, in the brief's order`() {
+    fun `the story is asked before the arithmetic`() {
+        val story = setOf(
+            RsaQuestion.ENCRYPT_OPERATION,
+            RsaQuestion.ASYMMETRIC,
+            RsaQuestion.ENCRYPT_KEY,
+            RsaQuestion.DECRYPT_KEY,
+        )
+        val arithmetic = setOf(
+            RsaQuestion.ENCRYPT,
+            RsaQuestion.DECRYPT,
+            RsaQuestion.MODULUS,
+            RsaQuestion.TOTIENT,
+            RsaQuestion.PUBLIC_EXPONENT,
+            RsaQuestion.PRIVATE_EXPONENT,
+        )
+
+        val asked = RsaDatasets.EXERCISES
+        val lastStory = asked.indexOfLast { it in story }
+        val firstArithmetic = asked.indexOfFirst { it in arithmetic }
+
+        assertTrue(
+            "the arithmetic starts at $firstArithmetic, " +
+                "but a story question is still being asked at $lastStory",
+            firstArithmetic > lastStory,
+        )
+
+        // And the very first thing asked is about the message, not about a number.
+        assertEquals(RsaQuestion.ENCRYPT_OPERATION, asked.first())
+    }
+
+    @Test
+    fun `the twelve exercises are asked in the lesson's order`() {
         assertEquals(
             listOf(
+                // Layer 1 — the concept, on a message.
+                RsaQuestion.ENCRYPT_OPERATION,
                 RsaQuestion.ASYMMETRIC,
+                RsaQuestion.ENCRYPT_KEY,
+                RsaQuestion.DECRYPT_KEY,
+                RsaQuestion.SECRET_KEY,
+                // Layer 2 — the mechanism.
+                RsaQuestion.ENCRYPT,
+                RsaQuestion.DECRYPT,
                 RsaQuestion.MODULUS,
                 RsaQuestion.TOTIENT,
                 RsaQuestion.PUBLIC_EXPONENT,
                 RsaQuestion.PRIVATE_EXPONENT,
-                RsaQuestion.PUBLIC_KEY,
-                RsaQuestion.PRIVATE_KEY,
-                RsaQuestion.ENCRYPT,
-                RsaQuestion.DECRYPT,
-                RsaQuestion.SECRET_KEY,
+                RsaQuestion.KEY_PAIR_PURPOSE,
             ),
             RsaDatasets.EXERCISES,
         )
-        assertEquals(10, decisions().size)
+        assertEquals(12, decisions().size)
+    }
+
+    /**
+     * **The lesson's central honesty claim** (ADR-053), asserted on the scene rather
+     * than on the copy.
+     *
+     * `n = 55` encrypts numbers below 55. It cannot encrypt *"MEET AT 7"*. So every
+     * frame declares which layer it is on, the concept layer never carries a number,
+     * and the toy layer never carries the message.
+     */
+    @Test
+    fun `neither layer is ever mistaken for the other`() {
+        var concept = 0
+        var toy = 0
+
+        AlgorithmRunner(algorithm, RsaDatasets.watch).runToCompletion().frames.forEach { frame ->
+            val scene = RsaProjector().project(frame.state, frame.events)
+            val problem = requireNotNull(RsaDatasets.watch.rsa)
+
+            when (scene.layer) {
+                LessonLayer.CONCEPT -> {
+                    concept++
+                    // No arithmetic reaches the concept layer — not the working,
+                    // not the chain, not the toy round trip, not even the key pair.
+                    assertNull("a formula in the concept layer", scene.maths)
+                    assertNull("the toy round trip in the concept layer", scene.roundTrip)
+                    assertTrue("the chain in the concept layer", scene.chain.isEmpty())
+                    assertTrue(
+                        "a key printed its numbers in the concept layer",
+                        scene.keys.all { it.printed == null },
+                    )
+                    val printed = scene.flow?.nodes.orEmpty()
+                        .mapNotNull { it.value }
+                        .joinToString(" ")
+                    assertFalse(
+                        "the toy ciphertext appeared in the concept layer: $printed",
+                        printed.contains(problem.ciphertext.toString()) &&
+                            !printed.contains(problem.illustrativeCiphertext),
+                    )
+                }
+
+                LessonLayer.TOY -> {
+                    toy++
+                    // The toy layer says what it is, every single frame.
+                    assertTrue(
+                        "the toy banner never claims to be secure",
+                        "NOT SECURE" in LessonLayer.TOY.label,
+                    )
+                }
+
+                // The bridge belongs to neither, and is the only frame that may
+                // hold both a message and a number.
+                null -> assertNotNull("the bridge draws the text strip", scene.bridge)
+            }
+        }
+
+        assertTrue("the concept layer was never reached", concept > 0)
+        assertTrue("the toy layer was never reached", toy > 0)
+    }
+
+    /**
+     * The bridge beat exists, and it is the only place the two layers touch.
+     *
+     * Without it the toy layer's `m = 4` arrives from nowhere: a learner who has
+     * spent nine beats on a message is owed an account of how RSA gets a number.
+     */
+    @Test
+    fun `text becomes numbers exactly once, and says so`() {
+        val bridges = scenes().mapNotNull { it.bridge }
+        assertTrue("the bridge is never drawn", bridges.isNotEmpty())
+
+        val strip = bridges.first()
+        assertEquals(
+            listOf("M" to 77, "E" to 69, "E" to 69, "T" to 84, "␣" to 32, "A" to 65),
+            strip.cells.map { it.character to it.code },
+        )
+        assertTrue("the message was longer than the strip", strip.truncated)
+
+        // And it is gone by the time the arithmetic starts, so no frame carries
+        // three pictures.
+        val withToyFlow = scenes().count { it.bridge != null && it.maths != null }
+        assertEquals("the bridge outstayed its beat", 0, withToyFlow)
+    }
+
+    /**
+     * The two the lesson deliberately states rather than asks.
+     *
+     * Both key pairs are on screen from the beat that hands them over, so asking
+     * *"which pair is the public key?"* afterwards is a reading exercise. Their
+     * machinery is all still present — this pins that it is unused rather than
+     * broken, and that a dataset which does ask them still works.
+     */
+    @Test
+    fun `the two key-assembly questions are stated, not asked`() {
+        assertTrue(RsaQuestion.PUBLIC_KEY !in RsaDatasets.EXERCISES)
+        assertTrue(RsaQuestion.PRIVATE_KEY !in RsaDatasets.EXERCISES)
+
+        // …and are still fully built, for a dataset that wants them.
+        val asking = Dataset(
+            values = emptyList(),
+            label = "both keys asked",
+            rsa = RsaProblem(
+                p = 5, q = 11, e = 3, message = 4,
+                questions = listOf(RsaQuestion.PUBLIC_KEY, RsaQuestion.PRIVATE_KEY),
+            ),
+        )
+        val asked = decisions(asking).map { it.first.question }
+        assertEquals(listOf(RsaQuestion.PUBLIC_KEY, RsaQuestion.PRIVATE_KEY), asked)
     }
 
     @Test
@@ -96,8 +288,9 @@ class RsaLessonTest {
     /**
      * The house rule, and the reason TRY has its own key pair (ADR-014).
      *
-     * Six of the ten judgements are about a derived number. If TRY reused WATCH's
-     * primes, every one of them would be answerable from memory.
+     * Four of the twelve judgements are about a derived number, and two more are
+     * about a value computed from one. If TRY reused WATCH's primes, every one of
+     * them would be answerable from memory.
      */
     @Test
     fun `TRY cannot be answered from memory of WATCH`() {
@@ -220,7 +413,9 @@ class RsaLessonTest {
     fun `sentence options are cards and number options are buttons`() {
         decisions().forEach { (state, decision) ->
             val expected = when (state.question) {
-                RsaQuestion.ASYMMETRIC, RsaQuestion.SECRET_KEY -> DecisionKind.CELL
+                // Every concept judgement — all six of them now (ADR-052) — offers
+                // sentences, and a sentence does not fit on a decision button.
+                in CARD_QUESTIONS -> DecisionKind.CELL
                 else -> DecisionKind.OPTIONS
             }
             assertEquals("${state.question}", expected, decision.kind)
@@ -262,8 +457,17 @@ class RsaLessonTest {
                     RsaQuestion.PRIVATE_KEY -> expect(problem.d, problem.modulus)
                     RsaQuestion.ENCRYPT -> expect(problem.ciphertext)
                     RsaQuestion.DECRYPT -> expect(problem.message)
-                    // The two concept judgements carry a word, not a number.
-                    RsaQuestion.ASYMMETRIC, RsaQuestion.SECRET_KEY, null -> Unit
+                    // The concept judgements carry a word, not a number.
+                    RsaQuestion.ASYMMETRIC,
+                    RsaQuestion.SECRET_KEY,
+                    RsaQuestion.SHAREABLE_KEY,
+                    RsaQuestion.ENCRYPT_OPERATION,
+                    RsaQuestion.DECRYPT_OPERATION,
+                    RsaQuestion.ENCRYPT_KEY,
+                    RsaQuestion.DECRYPT_KEY,
+                    RsaQuestion.KEY_PAIR_PURPOSE,
+                    null,
+                    -> Unit
                 }
             }
         }
@@ -271,20 +475,30 @@ class RsaLessonTest {
 
     /** The brief's own numbers, as the lesson asks them. */
     @Test
-    fun `the WATCH run asks for 55, 40, 3, 27, (3,55), (27,55), 9 and 4`() {
+    fun `the WATCH run asks for 9, 4, 55, 40, 3 and 27`() {
         val answers = decisions(RsaDatasets.watch).associate { (state, decision) ->
             state.question to decision.options
                 .first { it.action == decision.correct }
                 .label.args
         }
+        // Act I — the two the story is made of.
+        assertEquals(listOf(9L), answers[RsaQuestion.ENCRYPT])
+        assertEquals(listOf(4L), answers[RsaQuestion.DECRYPT])
+
+        // Act II — the chain that built the keys.
         assertEquals(listOf(55L), answers[RsaQuestion.MODULUS])
         assertEquals(listOf(40L), answers[RsaQuestion.TOTIENT])
         assertEquals(listOf(3L), answers[RsaQuestion.PUBLIC_EXPONENT])
         assertEquals(listOf(27L), answers[RsaQuestion.PRIVATE_EXPONENT])
-        assertEquals(listOf(3L, 55L), answers[RsaQuestion.PUBLIC_KEY])
-        assertEquals(listOf(27L, 55L), answers[RsaQuestion.PRIVATE_KEY])
-        assertEquals(listOf(9L), answers[RsaQuestion.ENCRYPT])
-        assertEquals(listOf(4L), answers[RsaQuestion.DECRYPT])
+
+        // The pair itself is stated rather than asked — see the test above.
+        assertNull(answers[RsaQuestion.PUBLIC_KEY])
+        assertNull(answers[RsaQuestion.PRIVATE_KEY])
+
+        // And the toy key pair on the picture is still the brief's.
+        val problem = requireNotNull(RsaDatasets.watch.rsa)
+        assertEquals("(3, 55)", problem.publicKey.printed)
+        assertEquals("(27, 55)", problem.privateKey.printed)
     }
 
     /** The distractors the brief lists, which fall out of the formulas. */
@@ -388,7 +602,7 @@ class RsaLessonTest {
                 }
             }
         }
-        assertEquals("every decision was guessed at first", 10, refused)
+        assertEquals("every decision was guessed at first", 12, refused)
         assertTrue(state.finished)
     }
 
@@ -439,16 +653,228 @@ class RsaLessonTest {
     }
 
     @Test
-    fun `the chain is always five links, and the caveat is always on screen`() {
+    fun `the caveat is on screen for the whole lesson`() {
         scenes().forEach { scene ->
-            assertEquals(5, scene.chain.size)
-            assertEquals(
-                listOf("p, q", "n", "φ(n)", "e", "d"),
-                scene.chain.map { it.symbol },
-            )
             assertNotNull("the caveat never leaves", scene.caveat)
             assertTrue(requireNotNull(scene.caveat).isNotBlank())
         }
+    }
+
+    /**
+     * **Act I never shows a symbol.** The point of the re-ordering (ADR-052).
+     *
+     * Not *"the chain holds question marks"* — the chain is not drawn at all, because
+     * five rows of `?` would put `p`, `q`, `φ(n)`, `e` and `d` on the first screen
+     * wearing a disguise, which is the thing being fixed.
+     */
+    @Test
+    fun `no symbol is on screen until the lesson asks where the keys came from`() {
+        var sawStory = false
+
+        AlgorithmRunner(algorithm, RsaDatasets.watch).runToCompletion().frames.forEach { frame ->
+            val scene = RsaProjector().project(frame.state, frame.events)
+            if (frame.state.knows(RsaStepKind.KEY_ORIGIN)) return@forEach
+
+            sawStory = true
+            assertTrue(
+                "the derivation chain is Act II's picture, not Act I's",
+                scene.chain.isEmpty(),
+            )
+            // Nor may any of the five leak in through the flow or the arithmetic.
+            val printed = (scene.flow?.nodes?.map { "${it.label} ${it.value}" }.orEmpty() +
+                scene.maths?.lines?.map { it.text }.orEmpty()).joinToString(" ")
+            listOf("φ", "p ×", "(p −", "gcd", "prime").forEach { symbol ->
+                assertFalse("Act I printed \"$symbol\": $printed", printed.contains(symbol))
+            }
+        }
+
+        assertTrue("Act I was never reached", sawStory)
+    }
+
+    @Test
+    fun `key generation draws the full chain, and the flow gives way to it`() {
+        val full = scenes().last { it.chain.isNotEmpty() }
+        assertEquals(5, full.chain.size)
+        assertEquals(
+            listOf("p, q", "n", "φ(n)", "e", "d"),
+            full.chain.map { it.symbol },
+        )
+        assertTrue("the chain never finished", full.chain.all { it.known })
+
+        // The two pictures are answers to two different questions, and are never on
+        // screen together.
+        scenes().forEach { scene ->
+            assertFalse(
+                "the flow and the chain were drawn at the same time",
+                scene.chain.isNotEmpty() && scene.flow != null,
+            )
+        }
+    }
+
+    /**
+     * The concept layer's picture: a message becoming unreadable bytes, and coming
+     * back — with the same shape reused for the toy numbers afterwards.
+     *
+     * The flow only ever moves forward, and each stage's nodes are the ones the
+     * brief asks for.
+     */
+    @Test
+    fun `the flow walks the message out through one key and back through the other`() {
+        val titles = scenes().mapNotNull { it.flow?.title }.distinct()
+        assertEquals(
+            listOf(
+                "THE MESSAGE",
+                "ENCRYPTING",
+                "DECRYPTING",
+                "THE WHOLE JOURNEY",
+                "TOY EXAMPLE - ENCRYPTING",
+                "TOY EXAMPLE - DECRYPTING",
+            ),
+            titles,
+        )
+
+        val encrypting = scenes().last { it.flow?.title == "ENCRYPTING" }.flow!!
+        assertEquals(
+            listOf("MESSAGE", "PUBLIC KEY", "ENCRYPT", "CIPHERTEXT"),
+            encrypting.nodes.map { it.label },
+        )
+
+        val decrypting = scenes().last { it.flow?.title == "DECRYPTING" }.flow!!
+        assertEquals(
+            listOf("CIPHERTEXT", "PRIVATE KEY", "DECRYPT", "MESSAGE"),
+            decrypting.nodes.map { it.label },
+        )
+
+        // "MEET AT 7" -> bytes -> "MEET AT 7", on one picture, in the concept layer
+        // and with no numbers on it.
+        val journey = scenes().first { it.flow?.title == "THE WHOLE JOURNEY" }.flow!!
+        assertEquals(
+            listOf("MEET AT 7", null, null, "8F 3A C1 D4 9B 22", null, null, "MEET AT 7"),
+            journey.nodes.map { it.value },
+        )
+        // And the message is styled as prose, the ciphertext as bytes — a learner
+        // must not read one as the other (ADR-053).
+        assertEquals(
+            FlowValueStyle.TEXT,
+            journey.nodes.first { it.kind == FlowNodeKind.MESSAGE }.style,
+        )
+        assertEquals(
+            FlowValueStyle.BYTES,
+            journey.nodes.first { it.kind == FlowNodeKind.CIPHERTEXT }.style,
+        )
+
+        // The toy layer reuses the same shape with numbers in it — which is the
+        // claim about the two layers, drawn rather than asserted.
+        val toy = scenes().last { it.flow?.title == "TOY EXAMPLE - DECRYPTING" }.flow!!
+        assertEquals(listOf("9", "(27, 55)", null, "4"), toy.nodes.map { it.value })
+        assertTrue(
+            "the toy flow is drawn as numerals",
+            toy.nodes.filter { it.value != null }.all { it.style == FlowValueStyle.NUMBER },
+        )
+    }
+
+    /**
+     * The verb node is blank while the learner is being asked which key does the
+     * work.
+     *
+     * The chain's `?` rule, applied to a flow — and the thing that makes the two key
+     * judgements askable at all.
+     */
+    @Test
+    fun `the flow never names the operation it is asking about`() {
+        val projector = RsaProjector()
+        var state = start(RsaDatasets.tryIt)
+        var guard = 0
+        var asked = 0
+
+        while (guard++ < 200) {
+            val probe = algorithm.probe(state)
+            if (probe is Probe.Terminal) break
+
+            val scene = projector.project(state, emptyList())
+            if (state.question == RsaQuestion.ENCRYPT_KEY ||
+                state.question == RsaQuestion.DECRYPT_KEY
+            ) {
+                val verb = requireNotNull(scene.flow).nodes
+                    .single { it.kind == FlowNodeKind.OPERATION }
+                assertEquals("the verb is what is being asked for", "?", verb.label)
+                asked++
+            }
+
+            state = when (probe) {
+                is Probe.Mechanical -> algorithm.apply(state, probe.action).next
+                is Probe.Decide -> algorithm.apply(state, probe.decision.correct).next
+                is Probe.Terminal -> state
+            }
+        }
+        assertEquals("both key judgements were reached", 2, asked)
+    }
+
+    /**
+     * The arithmetic arrives **after** the transformation it explains, and its last
+     * line is withheld while that value is the question.
+     */
+    @Test
+    fun `the mathematics explains what was shown, and never answers the question`() {
+        val projector = RsaProjector()
+        var state = start(RsaDatasets.watch)
+        var guard = 0
+        var checked = 0
+
+        while (guard++ < 200) {
+            val probe = algorithm.probe(state)
+            if (probe is Probe.Terminal) break
+            val scene = projector.project(state, emptyList())
+
+            // Nothing arithmetic before the lesson has shown a key doing work.
+            if (!state.knows(RsaStepKind.ENCRYPT_OPERATION)) {
+                assertNull("no formula before the flow it explains", scene.maths)
+            }
+
+            when (state.question) {
+                RsaQuestion.ENCRYPT -> {
+                    val lines = requireNotNull(scene.maths).lines
+                    assertEquals("c = m^e mod n", lines.first().text)
+                    assertTrue(lines.any { it.text == "c = 4³ mod 55" })
+                    assertTrue(
+                        "the answer is what is being asked for",
+                        lines.none { it.emphasis == MathsEmphasis.RESULT },
+                    )
+                    assertFalse(lines.any { it.text.contains("= 9") })
+                    checked++
+                }
+
+                RsaQuestion.DECRYPT -> {
+                    val lines = requireNotNull(scene.maths).lines
+                    assertEquals("m = c^d mod n", lines.first().text)
+                    assertTrue(lines.any { it.text == "m = 9²⁷ mod 55" })
+                    assertTrue(lines.none { it.emphasis == MathsEmphasis.RESULT })
+                    checked++
+                }
+
+                else -> Unit
+            }
+
+            state = when (probe) {
+                is Probe.Mechanical -> algorithm.apply(state, probe.action).next
+                is Probe.Decide -> algorithm.apply(state, probe.decision.correct).next
+                is Probe.Terminal -> state
+            }
+        }
+        assertEquals(2, checked)
+
+        // And once settled, the full working is there — including the reduction,
+        // which is the line that makes `mod` mean something.
+        val settled = requireNotNull(scenes().first { scene ->
+            scene.maths?.lines?.any { it.text == "c = 9" } == true
+        }.maths)
+        assertEquals(
+            listOf(
+                "c = m^e mod n", "m = 4", "e = 3", "n = 55",
+                "c = 4³ mod 55", "c = 64 mod 55", "c = 9",
+            ),
+            settled.lines.map { it.text },
+        )
     }
 
     /**
@@ -477,9 +903,17 @@ class RsaLessonTest {
                 assertNull("$symbol is what is being asked for", link.value)
                 assertEquals(CellState.COMPARING, link.state)
             }
-            // And the keys are never drawn before they are settled.
-            if (state.question == RsaQuestion.PUBLIC_KEY) {
+            // The keys are handed over as given at the start of Act I, and nothing
+            // draws them before that beat.
+            if (!state.knows(RsaStepKind.KEY_REVEAL)) {
                 assertTrue("no key card yet", scene.keys.isEmpty())
+                assertTrue(
+                    "no key in the flow yet",
+                    scene.flow?.nodes.orEmpty().none {
+                        it.kind == FlowNodeKind.PUBLIC_KEY ||
+                            it.kind == FlowNodeKind.PRIVATE_KEY
+                    },
+                )
             }
 
             state = when (probe) {
@@ -492,13 +926,29 @@ class RsaLessonTest {
 
     @Test
     fun `the chain fills in order, and nothing is skipped`() {
-        val known = scenes().map { scene -> scene.chain.count { it.known } }
+        // Up to the closing beat, which puts the journey back on screen and takes
+        // the chain down — by then it has been explained, and three pictures on one
+        // frame is not a summary.
+        val upToClosing = AlgorithmRunner(algorithm, RsaDatasets.watch)
+            .runToCompletion()
+            .frames
+            .takeWhile { !it.state.knows(RsaStepKind.CLOSING_FLOW) }
+            .map { RsaProjector().project(it.state, it.events) }
+
+        val known = upToClosing.map { scene -> scene.chain.count { it.known } }
         // Monotonic: a value that has been derived never disappears.
         known.zipWithNext().forEach { (a, b) ->
             assertTrue("the chain went backwards: $known", b >= a)
         }
         assertEquals("all five by the end", 5, known.last())
         assertEquals("none at the start", 0, known.first())
+
+        // The beat that asks where the keys came from draws the empty outline —
+        // five rows, no values — which is what makes it a beat rather than a jump
+        // straight into `p × q`.
+        val origin = scenes().first { it.chain.isNotEmpty() }
+        assertEquals(5, origin.chain.size)
+        assertTrue("the outline is empty", origin.chain.none { it.known })
     }
 
     @Test
@@ -508,7 +958,53 @@ class RsaLessonTest {
         assertEquals(listOf("(3, 55)", "(27, 55)"), finished.keys.map { it.printed })
         assertEquals(listOf(false, true), finished.keys.map { it.secret })
         // Both halves share the modulus, which is what the picture must show.
-        assertTrue(finished.keys.all { it.printed.endsWith(", 55)") })
+        assertTrue(finished.keys.all { it.printed?.endsWith(", 55)") == true })
+    }
+
+    /**
+     * The keys carry **no numbers at all** while the concept layer is on screen
+     * (ADR-053).
+     *
+     * A card printing `(3, 55)` there would put the lesson's first arithmetic on the
+     * one stretch of it whose whole job is to carry none. The card still says which
+     * half it is, whether it may be shared, and what it does.
+     */
+    @Test
+    fun `the keys are a lock and a key before they are a pair of numbers`() {
+        var sawConcept = false
+        var sawNumbered = false
+
+        AlgorithmRunner(algorithm, RsaDatasets.watch).runToCompletion().frames.forEach { frame ->
+            val scene = RsaProjector().project(frame.state, frame.events)
+            if (scene.keys.isEmpty()) return@forEach
+
+            if (frame.state.knows(RsaStepKind.TOY_EXAMPLE)) {
+                sawNumbered = true
+                assertTrue(
+                    "the toy layer prints the pair",
+                    scene.keys.all { it.printed != null },
+                )
+            } else {
+                sawConcept = true
+                assertTrue(
+                    "a key card printed numbers in the concept layer",
+                    scene.keys.all { it.printed == null },
+                )
+                // …and the flow's key nodes are just as bare.
+                assertTrue(
+                    "a flow key node printed numbers in the concept layer",
+                    scene.flow?.nodes.orEmpty()
+                        .filter {
+                            it.kind == FlowNodeKind.PUBLIC_KEY ||
+                                it.kind == FlowNodeKind.PRIVATE_KEY
+                        }
+                        .all { it.value == null },
+                )
+            }
+        }
+
+        assertTrue("the concept layer never showed the keys", sawConcept)
+        assertTrue("the toy layer never numbered them", sawNumbered)
     }
 
     @Test
@@ -556,8 +1052,7 @@ class RsaLessonTest {
             val probe = algorithm.probe(state)
             if (probe is Probe.Terminal) break
             val scene = projector.project(state, emptyList())
-            val cardQuestion = state.question == RsaQuestion.ASYMMETRIC ||
-                state.question == RsaQuestion.SECRET_KEY
+            val cardQuestion = state.question in CARD_QUESTIONS
             if (cardQuestion) {
                 assertEquals("four cards", 4, scene.choices.size)
                 assertTrue(scene.choices.all { it.title.isNotBlank() })
@@ -574,7 +1069,7 @@ class RsaLessonTest {
                 is Probe.Terminal -> state
             }
         }
-        assertEquals("both card questions were reached", 2, seen)
+        assertEquals("every card question was reached", ASKED_CARD_QUESTIONS.size, seen)
     }
 
     // ── 5. The walkthrough ───────────────────────────────────────────────────
@@ -591,8 +1086,110 @@ class RsaLessonTest {
 
     @Test
     fun `WATCH is long enough to teach and short enough to finish`() {
+        // Wider than it was, and deliberately so (ADR-052). Telling the story and
+        // *then* explaining the arithmetic costs beats that showing the arithmetic
+        // alone did not — the round trip, the two operation judgements, the pause on
+        // the ciphertext and the beat that asks where the keys came from. Every one
+        // of them is a real visual change, which is the bar ADR-020 sets.
         val size = script().size
-        assertTrue("$size beats", size in 12..20)
+        assertTrue("$size beats", size in 24..32)
+    }
+
+    /**
+     * WATCH tells the story on a message before it shows any arithmetic — ADR-053,
+     * on the walkthrough rather than on the question list.
+     *
+     * The complete round trip has to land before a single number is spoken.
+     */
+    @Test
+    fun `WATCH completes the message round trip before any arithmetic`() {
+        val ids = script().steps.map { it.headline.id }
+
+        val roundTrip = ids.indexOf(NarrationId.RSA_WATCH_ROUND_TRIP)
+        val bridge = ids.indexOf(NarrationId.RSA_WATCH_TEXT_AS_NUMBERS)
+        val toy = ids.indexOf(NarrationId.RSA_WATCH_TOY_EXAMPLE)
+        val encrypt = ids.indexOf(NarrationId.RSA_WATCH_ENCRYPT)
+        val keyOrigin = ids.indexOf(NarrationId.RSA_WATCH_KEY_ORIGIN)
+        val primes = ids.indexOf(NarrationId.RSA_WATCH_PRIMES)
+
+        listOf(roundTrip, bridge, toy, encrypt, keyOrigin, primes).forEach {
+            assertTrue("a required beat is missing: $ids", it >= 0)
+        }
+
+        // The concept round trip, then the bridge, then the toy layer announcing
+        // itself, then the arithmetic, then key generation. In that order.
+        assertTrue("the bridge comes before the round trip closes", bridge > roundTrip)
+        assertTrue("the toy layer is not announced before it starts", toy > bridge)
+        assertTrue("arithmetic before the toy layer announced itself", encrypt > toy)
+        assertTrue("key generation before the arithmetic", keyOrigin > encrypt)
+        assertTrue("the primes arrive before they are motivated", primes > keyOrigin)
+
+        // And every concept beat lands before the bridge.
+        listOf(
+            NarrationId.RSA_WATCH_MESSAGE,
+            NarrationId.RSA_WATCH_ENCRYPT_OPERATION,
+            NarrationId.RSA_WATCH_KEY_REVEAL,
+            NarrationId.RSA_WATCH_ASYMMETRIC,
+            NarrationId.RSA_WATCH_ENCRYPT_KEY,
+            NarrationId.RSA_WATCH_CIPHERTEXT,
+            NarrationId.RSA_WATCH_DECRYPT_KEY,
+            NarrationId.RSA_WATCH_RECOVERED,
+        ).forEach { id ->
+            val at = ids.indexOf(id)
+            assertTrue("$id is never said", at >= 0)
+            assertTrue("$id lands after the concept layer is over", at < bridge)
+        }
+
+        // And it finishes where it started: the journey, then the caveat.
+        assertTrue(
+            "the lesson never returns to the picture it opened on",
+            ids.indexOf(NarrationId.RSA_WATCH_CLOSING_FLOW) > keyOrigin,
+        )
+    }
+
+    /**
+     * The statement path, which this lesson's own datasets never take.
+     *
+     * A card question's beat is normally captioned together with the cards it puts
+     * on screen. A dataset that does not *ask* it turns the beat into a statement,
+     * and then the beat's own caption is what runs — so it has to exist and be
+     * correct. This is what keeps those six captions honest rather than dead.
+     */
+    @Test
+    fun `a dataset that asks nothing still narrates every beat`() {
+        val silent = Dataset(
+            values = emptyList(),
+            label = "no judgements",
+            rsa = RsaProblem(
+                p = 5, q = 11, e = 3, message = 4,
+                // One question, so the problem is legal — and not a card one.
+                questions = listOf(RsaQuestion.MODULUS),
+            ),
+        )
+        val steps = WatchScriptBuilder(algorithm, RsaProjector(), RsaWatchNarrator())
+            .build(silent)
+            .steps
+        val ids = steps.map { it.headline.id }
+
+        listOf(
+            NarrationId.RSA_WATCH_MESSAGE,
+            NarrationId.RSA_WATCH_ENCRYPT_OPERATION,
+            NarrationId.RSA_WATCH_KEY_REVEAL,
+            NarrationId.RSA_WATCH_ASYMMETRIC,
+            NarrationId.RSA_WATCH_ENCRYPT_KEY,
+            NarrationId.RSA_WATCH_CIPHERTEXT,
+            NarrationId.RSA_WATCH_DECRYPT_KEY,
+            NarrationId.RSA_WATCH_SECRET_KEY,
+            NarrationId.RSA_WATCH_KEY_PAIR_PURPOSE,
+        ).forEach { assertTrue("$it has no statement caption", it in ids) }
+
+        // And every one of them carries its own support, rather than a card intro.
+        steps.forEach { step ->
+            assertFalse(
+                "a card intro leaked into a run that asks nothing",
+                step.support?.id in CARD_INTROS,
+            )
+        }
     }
 
     /** ADR-020: a step where nothing changed is a bug, not a beat. */
@@ -637,26 +1234,47 @@ class RsaLessonTest {
      * judgement answered by tapping cards that means the cards land on the previous
      * beat's frame — and the first draft captioned the secrecy cards with the
      * round-trip sentence while the beat that was about them showed nothing.
+     *
+     * The rule now: **a frame with cards on it is captioned by both** — the landed
+     * beat's headline, and a support line that introduces the choice. Six judgements
+     * take that path (ADR-052), and every one of them has to, or the beat it sits on
+     * loses its sentence.
      */
     @Test
     fun `each card beat is captioned with the picture that shows its cards`() {
         val steps = script().steps
-        val asymmetric = steps.single { it.headline.id == NarrationId.RSA_WATCH_ASYMMETRIC }
-        val secrecy = steps.single { it.headline.id == NarrationId.RSA_WATCH_SECRET_KEY }
+        val withCards = steps.filter { (it.scene as KeyPairScene).choices.isNotEmpty() }
 
-        listOf(asymmetric to "asymmetric", secrecy to "secrecy").forEach { (step, name) ->
-            val scene = step.scene as KeyPairScene
-            assertEquals("the $name beat shows its four cards", 4, scene.choices.size)
-        }
+        assertEquals(
+            "one captioned frame per card judgement",
+            ASKED_CARD_QUESTIONS.size,
+            withCards.size,
+        )
 
-        // ...and no other beat is drawn with cards under it.
-        steps.filterNot { it == asymmetric || it == secrecy }.forEach { step ->
+        withCards.forEach { step ->
             val scene = step.scene as KeyPairScene
+            assertEquals("step ${step.index} shows four cards", 4, scene.choices.size)
+            // The support introduces the cards…
             assertTrue(
-                "step ${step.index} shows cards it is not about",
-                scene.choices.isEmpty(),
+                "step ${step.index} draws cards without introducing them",
+                step.support?.id in CARD_INTROS,
+            )
+            // …and the headline still says what just landed, rather than being
+            // sacrificed to them.
+            assertFalse(
+                "step ${step.index} lost the landed beat's headline",
+                step.headline.id in CARD_INTROS,
             )
         }
+
+        // Every intro belongs to a card judgement, and each is used exactly once —
+        // so none is orphaned and none is shown twice. The set is the *asked* ones:
+        // `SHAREABLE_KEY` and `DECRYPT_OPERATION` are superseded and this lesson
+        // does not ask them, which is what `optionalStep` is for.
+        val used = withCards.mapNotNull { it.support?.id }
+        assertEquals("an intro was shown twice", used.size, used.toSet().size)
+        assertTrue("an intro is not a card intro", CARD_INTROS.containsAll(used))
+        assertEquals(ASKED_CARD_QUESTIONS.size, used.size)
     }
 
     /** The honesty beat has a picture of its own, or it would not be a beat. */
