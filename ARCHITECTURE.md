@@ -602,12 +602,14 @@ Adding a lesson gets progress for free: there is no per-algorithm progress code 
 
 They exercise different halves of the same machinery, which is the point: none was forced into
 another's interaction model, and **no event, probe kind or validator was added after the first**.
-Five generic additions have been earned along the way — `SequenceScene.groups` (Merge Sort: a
+Six generic additions have been earned along the way — `SequenceScene.groups` (Merge Sort: a
 sequence can be shown divided), `Decision.autoInTry` (see below), `SequenceScene.endCaps` plus
 `legendLabels` (the structures: a sequence can name its ends and rename a cell state), and
 `SceneLayout` plus `links`/`detached` (the linked list: a sequence can be a chain), and the
-`Scene` union itself (the hash map: a lesson need not be a sequence). Every one of them is data
-on the scene, so the app's only branch is still the shape of what it was given.
+`Scene` union itself (the hash map: a lesson need not be a sequence), and `RegionMark.label`
+(Quick Sort: a span can say what it *is*, so the picture names the half being solved rather
+than only outlining it — ADR-054). Every one of them is data on the scene, so the app's only
+branch is still the shape of what it was given.
 
 The Binary Search Tree is the first lesson to add **no shape at all**: a tree is nodes at
 positions joined by edges, so it projects into the `GraphScene` DFS and BFS already use and is

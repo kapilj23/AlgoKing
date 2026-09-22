@@ -34,7 +34,7 @@ existed to leave behind. No stars — Try is never scored.
 | Searching | Binary Search | which cell to check, then which half survives |
 | Sorting | Bubble · Selection · Insertion | swap or keep · is this the new minimum · shift or insert |
 | Sorting | **Counting Sort** | which bucket counts this value, then which value the counts say comes out next |
-| Divide & conquer | Merge · Quick | where it splits, which front value · which side of the pivot |
+| Divide & conquer | Merge · Quick | where it splits, which front value · which side of the pivot — then watch each half get solved on its own |
 | Structures | Stack · Queue · Linked List · Hash Map | which end · which link changes · which bucket |
 | Cryptography | **Caesar Cipher** | what each letter becomes — and the alphabet wraps round at Z |
 | Cryptography | **XOR Cipher** | what each pair of bits makes — and the same key undoes it |
@@ -98,7 +98,7 @@ Everything else falls out of it:
 
 ```
 engine/   pure Kotlin JVM — an `import androidx.compose.*` in here does not compile,
-          because the module type forbids it. 1003 tests, milliseconds, no Robolectric.
+          because the module type forbids it. 1011 tests, milliseconds, no Robolectric.
 app/      Compose UI, navigation, persistence.
 ```
 
@@ -110,7 +110,7 @@ The boundary is enforced by the toolchain rather than by code review. `:app` rea
 Requires JDK 17+ (Android Studio's bundled JBR works) and an Android SDK.
 
 ```bash
-./gradlew :engine:test        # 1003 unit tests, no device needed
+./gradlew :engine:test        # 1011 unit tests, no device needed
 ./gradlew build               # both modules + tests
 ./gradlew :app:installDebug   # onto a connected device or emulator
 ```
@@ -131,7 +131,7 @@ code follows them, and where the code has diverged the documents say so.
 | [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) | product behaviour — the stages, the decisions, the rules |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | technical decisions — the engine, the renderer, the data layer |
 | [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | every visual decision, sampled from the approved reference |
-| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-053 |
+| [`DECISIONS.md`](DECISIONS.md) | the reasoning trail — ADR-001 … ADR-054 |
 
 Supporting notes live in [`docs/`](docs/), including
 [`v2-challenge.md`](docs/v2-challenge.md) — why the CHALLENGE stage is deferred and what V2
@@ -170,7 +170,7 @@ until the store answers, the screen says so rather than guessing. See
 ## Status
 
 **Built:** the engine and all twenty-eight lessons · Watch · Try · Complete · Home · ten renderers ·
-the full light design-system token layer · progress persistence · 1003 passing engine tests.
+the full light design-system token layer · progress persistence · 1011 passing engine tests.
 
 **Deferred to V2:** the CHALLENGE stage, and with it stars, mastery and the Daily Challenge.
 The machinery — seeded generator, trace-validated constraints, ten challenge types, three star

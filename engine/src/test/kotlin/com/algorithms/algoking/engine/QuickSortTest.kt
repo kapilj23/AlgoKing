@@ -1,5 +1,6 @@
 package com.algorithms.algoking.engine
 
+import com.algorithms.algoking.engine.algorithms.quicksort.PartitionSide
 import com.algorithms.algoking.engine.algorithms.quicksort.QuickSortAction
 import com.algorithms.algoking.engine.algorithms.quicksort.QuickSortAlgorithm
 import com.algorithms.algoking.engine.algorithms.quicksort.QuickSortProjector
@@ -13,6 +14,7 @@ import com.algorithms.algoking.engine.decision.DecisionKind
 import com.algorithms.algoking.engine.decision.DecisionValidation
 import com.algorithms.algoking.engine.decision.Validation
 import com.algorithms.algoking.engine.event.Outcome
+import com.algorithms.algoking.engine.narration.NarrationId
 import com.algorithms.algoking.engine.scene.CellState
 import com.algorithms.algoking.engine.walkthrough.WatchScriptBuilder
 import com.algorithms.algoking.engine.walkthrough.WatchStepKind
@@ -352,6 +354,169 @@ class QuickSortTest {
             val larger = dataset.values.dropLast(1).count { it > pivot }
             assertTrue("$dataset has an empty left side", smaller > 0)
             assertTrue("$dataset has an empty right side", larger > 0)
+        }
+    }
+
+    // ── Saying which part is being solved (ADR-054) ──────────────────────────
+
+    /** Every state the run passes through, in order. */
+    private fun statesOf(dataset: Dataset): List<QuickSortState> {
+        val r = runner(dataset)
+        val out = mutableListOf(r.current.state)
+        var guard = 0
+        while (guard++ < 2048) {
+            when (val probe = r.probe()) {
+                is Probe.Mechanical -> r.apply(probe.action)
+                is Probe.Decide -> r.apply(probe.decision.correct)
+                is Probe.Terminal -> return out
+            }
+            out += r.current.state
+        }
+        error("did not terminate")
+    }
+
+    @Test
+    fun `a pivot landing leaves both halves on screen for one beat`() {
+        val split = statesOf(QuickSortDatasets.watch).first { it.showingSplit }
+        val s = requireNotNull(split.split)
+
+        // [3, 2, 4]  5  [7, 8, 6] — the first pivot of the teaching array.
+        assertEquals(5, s.pivot)
+        assertEquals(listOf(3, 2, 4), split.values.slice(s.left))
+        assertEquals(5, split.values[s.pivotAt])
+        assertEquals(listOf(7, 8, 6), split.values.slice(s.right))
+
+        // The picture divides the array into exactly those three pieces.
+        val scene = QuickSortProjector().project(split, emptyList())
+        assertEquals(listOf(s.left, s.pivotAt..s.pivotAt, s.right), scene.groups)
+        // The pivot is the only finished value, and both halves are still in play.
+        assertEquals(
+            listOf(CellState.IDLE, CellState.IDLE, CellState.IDLE, CellState.FINALIZED,
+                CellState.IDLE, CellState.IDLE, CellState.IDLE),
+            scene.cells.sortedBy { it.slot }.map { it.state },
+        )
+        // And both halves are named for what they are.
+        assertEquals(
+            listOf("below 5", "above 5"),
+            scene.regions.map { it.label },
+        )
+    }
+
+    @Test
+    fun `a partition knows which side of which pivot it is`() {
+        val descents = statesOf(QuickSortDatasets.watch)
+            .filter { it.active && !it.showingSplit && it.pivotAt == null }
+            .map { Triple(it.side, it.parentPivot, it.partitionValues) }
+            .distinct()
+
+        // The whole array first, then the values that lost to the 5, then the
+        // ones that beat it.
+        assertEquals(PartitionSide.WHOLE, descents.first().first)
+        assertTrue(
+            "the left part of 5 is never taken up",
+            descents.any { it.first == PartitionSide.LEFT && it.second == 5 && it.third == listOf(3, 2, 4) },
+        )
+        assertTrue(
+            "the right part of 5 is never taken up",
+            descents.any { it.first == PartitionSide.RIGHT && it.second == 5 && it.third == listOf(7, 8, 6) },
+        )
+    }
+
+    /**
+     * The point of ADR-054: while one side is being sorted the other is visibly
+     * **waiting**, not finished and not gone. Without this the outline moved and
+     * nothing else did, and a learner could not tell which part was live.
+     */
+    @Test
+    fun `while one side is being solved the rest of the array is parked`() {
+        val solvingLeft = statesOf(QuickSortDatasets.watch)
+            .first { it.side == PartitionSide.LEFT && it.pivotAt != null }
+        val scene = QuickSortProjector().project(solvingLeft, emptyList())
+
+        val parked = scene.cells.filter { it.state == CellState.ELIMINATED }.map { it.slot }
+        assertEquals("the right half should be waiting", listOf(4, 5, 6), parked.sorted())
+        assertTrue(
+            "nothing inside the live partition is parked",
+            solvingLeft.partition.none { it in parked },
+        )
+        // Parked is not eliminated, and the legend has to say so.
+        assertEquals("Waiting", scene.legendLabels[CellState.ELIMINATED])
+    }
+
+    @Test
+    fun `the live partition is captioned with the side it is`() {
+        val states = statesOf(QuickSortDatasets.watch)
+        val labels = states
+            .filter { !it.showingSplit && it.active && !it.done }
+            .map { QuickSortProjector().project(it, emptyList()).regions.singleOrNull()?.label }
+            .distinct()
+
+        assertTrue("the whole array is never named", labels.contains("the whole array"))
+        assertTrue("the left part is never named", labels.contains("left of 5"))
+        assertTrue("the right part is never named", labels.contains("right of 5"))
+    }
+
+    @Test
+    fun `the walkthrough names each side exactly once`() {
+        val steps = WatchScriptBuilder(
+            QuickSortAlgorithm(),
+            QuickSortProjector(),
+            QuickSortWatchNarrator(),
+        ).build(QuickSortDatasets.watch).steps
+
+        assertEquals(
+            "the left part should be announced once",
+            1,
+            steps.count { it.headline.id == NarrationId.QUICK_WATCH_NEXT_LEFT },
+        )
+        assertEquals(
+            "the right part should be announced once",
+            1,
+            steps.count { it.headline.id == NarrationId.QUICK_WATCH_NEXT_RIGHT },
+        )
+        // The split beat is the first partition's, and only the first partition's.
+        assertEquals(1, steps.count { it.headline.id == NarrationId.QUICK_WATCH_SPLIT })
+
+        // The left part is taken up before the right, the way the array reads.
+        val left = steps.indexOfFirst { it.headline.id == NarrationId.QUICK_WATCH_NEXT_LEFT }
+        val right = steps.indexOfFirst { it.headline.id == NarrationId.QUICK_WATCH_NEXT_RIGHT }
+        val split = steps.indexOfFirst { it.headline.id == NarrationId.QUICK_WATCH_SPLIT }
+        assertTrue("the split is shown before either side is entered", split < left)
+        assertTrue("the left part comes first", left < right)
+    }
+
+    /**
+     * "Two smaller arrays" is only said when there are two.
+     *
+     * Later pivots often leave one side empty — the 4 in `[3, 2, 4]` leaves
+     * nothing above it — and claiming two halves there would be false.
+     */
+    @Test
+    fun `the split beat never claims two halves when one side is empty`() {
+        val steps = WatchScriptBuilder(
+            QuickSortAlgorithm(),
+            QuickSortProjector(),
+            QuickSortWatchNarrator(),
+        ).build(QuickSortDatasets.watch).steps
+
+        val splits = statesOf(QuickSortDatasets.watch).filter { it.showingSplit }
+        assertTrue("the teaching array should split lopsidedly somewhere", splits.any {
+            it.split!!.left.isEmpty() || it.split!!.right.isEmpty()
+        })
+        // Exactly one split has both sides, and exactly one beat says so.
+        assertEquals(
+            splits.count { !it.split!!.left.isEmpty() && !it.split!!.right.isEmpty() && it.finalized.size == 1 },
+            steps.count { it.headline.id == NarrationId.QUICK_WATCH_SPLIT },
+        )
+    }
+
+    @Test
+    fun `the split beat does not disturb the sort`() {
+        listOf(QuickSortDatasets.watch, QuickSortDatasets.tryIt).forEach { dataset ->
+            val end = playPerfectly(dataset).current.state
+            assertEquals(dataset.values.sorted(), end.values)
+            assertTrue(end.done)
+            assertEquals(null, end.split)
         }
     }
 }

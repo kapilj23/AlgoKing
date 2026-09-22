@@ -3566,6 +3566,108 @@ they were separated before this was written.
 - *Keep asking every fitting cell, and let TRY be 25 questions.* Rejected — see
   above. It is the drill the rewrite exists to remove.
 
+
+---
+
+## ADR-054 — Quick Sort shows which part it is solving
+
+**Decision.** After a pivot lands, Quick Sort holds the finished partition on screen
+for one beat as `[3, 2, 4] 5 [7, 8, 6]`, and then **names and isolates** the part it
+descends into: the live partition is captioned `left of 5`, and everything outside it
+is parked — shrunk and greyed — rather than drawn the same as the values being worked
+on. The algorithm, the pivot rule, the decisions and the scene shape are unchanged.
+
+⚠ **Product-owner decision**, 2026-09-22: after the pivot is fixed, a learner could
+not see that the app was now solving the left part, or the right part, and it needed
+to be shown visually rather than stated.
+
+### What was wrong
+
+Quick Sort's hard idea is not partitioning — the learner answers *which side?* for
+every value and gets that. The hard idea is **recursion**: that the two sides are now
+two smaller versions of the same problem, solved one at a time.
+
+The lesson ran that recursion correctly and showed almost none of it. When a pivot
+landed the outline vanished, the next partition's outline appeared somewhere else,
+and the copy said *"Now the partition of 3."* Three things were invisible:
+
+- **which side of which pivot** those three values were;
+- that the other half was **waiting** rather than finished — every value outside the
+  live partition was drawn exactly like the values inside it;
+- that a partition had two halves at all, because the two never existed on screen at
+  the same time. The pivot landed and the frame moved straight on.
+
+### One beat where both halves exist
+
+`placePivot` no longer closes the partition. It keeps `lo`/`hi`, records a `Split`,
+and the next probe is mechanical — so there is exactly one frame showing the three
+pieces, with `groups` dividing them and both halves captioned `below 5` and
+`above 5`. `nextPartition` then clears the split and descends.
+
+That frame is the one the request was about, and it costs one state. It is also the
+only place in the lesson where the sentence *"two smaller problems are left"* is
+literally true of the picture.
+
+### A partition remembers where it came from
+
+`pending` held `IntRange`. A range is enough to run the algorithm and not enough to
+*describe* it, which is exactly why the copy could only count values. It now holds a
+`Partition` — the range, the side, and the pivot it sits beside — so the lesson can
+say `left of 5` in the caption and *"the values smaller than 5: 3, 2, 4"* in the
+narration, both read from the same two fields.
+
+### Parked, not eliminated
+
+Everything outside the live partition is `CellState.ELIMINATED`, which the renderer
+already shrinks to 0.82 and fades to 0.45. That is the right *picture* — this is not
+what is being solved right now — and the wrong *word*, because these values are
+deferred rather than ruled out. So the legend renames it to **Waiting**, which is the
+mechanism ADR-027 added for exactly this case and the reason `legendLabels` exists.
+
+No new cell state was added. A new one would have been a second way of saying
+"inactive" that every other lesson would then have to ignore.
+
+### `RegionMark` gained a label
+
+One defaulted field. An outline says *something here is special*; a caption says
+**what**. Quick Sort is the first lesson where the span changes meaning as the run
+goes on — whole array, then left of 5, then right of 5 — so it is the first that
+needs to name it. Null everywhere else, so no other lesson changed: the additive move
+ADR-037, ADR-039, ADR-052 and ADR-053 each made.
+
+The renderer draws the captions in a row that mirrors the cell row exactly, group
+dividers included, so a caption sits over its own cells rather than drifting when a
+divider is inserted.
+
+### The split beat says "two halves" only when there are two
+
+Later pivots often leave one side empty — the 4 in `[3, 2, 4]` has nothing above it —
+and the first draft of this change announced *"two smaller arrays"* on every one of
+them, four times, three of them false. The beat now carries the full split copy only
+for the first partition and only when both sides are non-empty; every later pivot gets
+the terse beat it already had. A test pins that, because the failure mode is copy that
+is true of the teaching example and false of the run.
+
+### What did not change
+
+Lomuto, the last-value pivot rule, `<=` sending duplicates left, both decisions, the
+datasets, the metrics, `SequenceScene`'s shape, and every other lesson. WATCH went
+from 17 beats to 19 — the split, and one beat naming each side. TRY asks the same
+questions it always did; what changed there is that between them the learner can see
+which part is live.
+
+**Alternatives considered.**
+- *Say it in the narration only.* Rejected — that is what the lesson already did, and
+  it is what the request was about. The complaint was explicitly visual.
+- *A `RecursionScene` showing the call tree.* Rejected on ADR-036's grounds. The tree
+  is a picture of the machinery, not of the data; the array already shows every state
+  the tree would, and a second shape would have to be kept in step with it.
+- *Indent or offset the live partition.* Rejected: it breaks the stable-slot contract
+  ADR-007 rests on, and cells would appear to move without a swap.
+- *A new cell state for "waiting".* Rejected — see above.
+- *Keep both halves outlined while one is solved.* Rejected: two live-looking outlines
+  is the ambiguity being removed. One is live and captioned; the other is parked.
+
 ---
 
 ## Open — ⚠ needs owner sign-off

@@ -123,7 +123,7 @@ advancement is performed by the app, never by the user.
 | 0/1 Knapsack | fills row 1 and the zeros, adds `value + dp`, moves between cells, and fills every cell whose answer repeats one already given | **can you take all of it**, **how many times can one item go in**, **what else still fits**, **which of these two bags is worth more** — and only then **which cell TAKE builds on**, **TAKE or SKIP?**, and **was each item taken?** |
 | Sliding Window | — | **Grow, or shrink from the left?** |
 | Merge Sort | the deeper splits, the leftover tail | **Where does it split?** then **which front value comes next?** |
-| Quick Sort | picks the pivot, orders the partitions | **Which side of the pivot?** then **where does the pivot land?** |
+| Quick Sort | picks the pivot, orders the partitions, and shows which half it is solving next | **Which side of the pivot?** then **where does the pivot land?** |
 | Counting Sort | finds the range, adds one to the bucket, and does the `value - min` arithmetic | **Which bucket counts this value?** then **which value do the counts say comes out next?** |
 | Stack | — | **Which operation does this job?** then **which item comes off next?** |
 | Queue | — | the same two questions, and the opposite answers |

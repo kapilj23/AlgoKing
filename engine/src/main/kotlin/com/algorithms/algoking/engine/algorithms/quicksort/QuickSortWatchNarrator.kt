@@ -24,12 +24,16 @@ import com.algorithms.algoking.engine.walkthrough.WatchStepKind
 class QuickSortWatchNarrator : WatchNarrator<QuickSortState> {
 
     private var predictionPlaced = false
+    private var leftNarrated = false
+    private var rightNarrated = false
 
     override fun opening(
         state: QuickSortState,
         scene: Scene,
     ): List<PartialStep> {
         predictionPlaced = false
+        leftNarrated = false
+        rightNarrated = false
         return listOf(
             PartialStep(
                 kind = WatchStepKind.SETUP,
@@ -104,34 +108,65 @@ class QuickSortWatchNarrator : WatchNarrator<QuickSortState> {
             return steps
         }
 
-        // ── The pivot landed ──────────────────────────────────────────────────
-        if (state.finalized.size > previous.finalized.size &&
-            frame.events.any { it is VizEvent.Finalize }
-        ) {
+        // ── The pivot landed, and the partition split in two ──────────────────
+        // The first one gets the beat where **both halves exist at once**, which
+        // is the frame that makes the recursion visible (ADR-054). Later pivots
+        // get the terse beat they always got: by then the learner is watching the
+        // same rule on a smaller array, which is the point being made.
+        if (state.showingSplit && !previous.showingSplit) {
             if (state.done) return emptyList()
-            val pivot = previous.pivot
+            val split = requireNotNull(state.split)
+            val bothSides = !split.left.isEmpty() && !split.right.isEmpty()
             return listOf(
                 PartialStep(
                     kind = WatchStepKind.PASS_COMPLETE,
                     scene = scene,
                     headline = NarrationKey(
-                        if (detailed) {
-                            NarrationId.QUICK_WATCH_PARTITIONED
-                        } else {
-                            NarrationId.QUICK_WATCH_PIVOT_PLACED
+                        when {
+                            // Only say "two smaller arrays" when there are two.
+                            detailed && bothSides -> NarrationId.QUICK_WATCH_SPLIT
+                            detailed -> NarrationId.QUICK_WATCH_PARTITIONED
+                            else -> NarrationId.QUICK_WATCH_PIVOT_PLACED
                         },
-                        listOf(pivot ?: 0),
+                        listOf(split.pivot),
                     ),
                     support = NarrationKey(
-                        if (detailed) {
-                            NarrationId.QUICK_WATCH_PIVOT_FINAL
-                        } else {
-                            NarrationId.QUICK_WATCH_REPEAT
+                        when {
+                            detailed && bothSides -> NarrationId.QUICK_WATCH_SPLIT_SUPPORT
+                            detailed -> NarrationId.QUICK_WATCH_PIVOT_FINAL
+                            else -> NarrationId.QUICK_WATCH_REPEAT
                         },
+                        listOf(split.pivot),
                     ),
                 ),
             )
         }
+
+        // ── A side was taken up ───────────────────────────────────────────────
+        // Named, and only the first time each side is entered: after that the
+        // learner has the idea and the beats would be the same sentence again.
+        if (previous.showingSplit && state.active && !state.done) {
+            val side = state.side
+            val already = if (side == PartitionSide.LEFT) leftNarrated else rightNarrated
+            if (already) return emptyList()
+            if (side == PartitionSide.LEFT) leftNarrated = true else rightNarrated = true
+            return listOf(
+                PartialStep(
+                    kind = WatchStepKind.EXAMINE,
+                    scene = scene,
+                    headline = NarrationKey(
+                        if (side == PartitionSide.LEFT) {
+                            NarrationId.QUICK_WATCH_NEXT_LEFT
+                        } else {
+                            NarrationId.QUICK_WATCH_NEXT_RIGHT
+                        },
+                        listOf(state.partitionValues.joinToString(", ")),
+                    ),
+                    support = NarrationKey(NarrationId.QUICK_WATCH_SIDE_SUPPORT),
+                ),
+            )
+        }
+
 
         if (state.done) {
             return listOf(

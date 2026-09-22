@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.algorithms.algoking.engine.event.PointerId
@@ -233,6 +234,9 @@ private fun ColumnScope.StageColumn(
             }
         }
     }
+
+    // 2b — What the live span is called, over the cells it covers.
+    RegionLabels(scene)
 
     // 3 — The cells, with the live search range banded behind them.
     if (scene.cells.isEmpty()) {
@@ -857,4 +861,64 @@ private fun GridScene(
             }
         }
     }
+}
+
+/**
+ * Captions the named spans of a row, each sitting over the cells it covers.
+ *
+ * Quick Sort uses it to say **which part it is solving** — `left of 5` above the
+ * three values that lost to the pivot, while the rest of the array is parked
+ * (ADR-054). A region with no label draws nothing, which is every other lesson.
+ *
+ * The layout mirrors the cell row exactly, group dividers included, so a caption
+ * lines up with its cells rather than drifting when a divider is inserted.
+ */
+@Composable
+private fun RegionLabels(scene: SequenceScene) {
+    val labelled = scene.regions.filter { !it.label.isNullOrBlank() }
+    if (labelled.isEmpty()) return
+
+    val slots = scene.cells.map { it.slot }.sorted()
+    if (slots.isEmpty()) return
+    val boundaries = scene.groups.drop(1).mapNotNull { it.firstOrNull() }.toSet()
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.sceneCellGap),
+    ) {
+        var index = 0
+        while (index < slots.size) {
+            val slot = slots[index]
+            // Mirror the divider the cell row inserts at a group boundary.
+            if (slot in boundaries) {
+                Box(Modifier.width(Dimens.sceneGroupGap))
+            }
+            val region = labelled.firstOrNull { it.range.first == slot }
+            if (region == null) {
+                Box(Modifier.weight(1f))
+                index++
+                continue
+            }
+            // One caption, weighted across every cell the region covers, plus the
+            // dividers that fall inside it.
+            val covered = slots.filter { it in region.range }
+            val inner = covered.drop(1).count { it in boundaries }
+            Row(
+                modifier = Modifier.weight(covered.size.toFloat()),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                if (inner > 0) Box(Modifier.width(Dimens.sceneGroupGap * inner))
+                Text(
+                    text = region.label.orEmpty(),
+                    style = AlgoType.labelSmall,
+                    color = AlgoColors.primary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            index += covered.size
+        }
+    }
+    Gap(Spacing.xxs)
 }

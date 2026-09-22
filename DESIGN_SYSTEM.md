@@ -461,6 +461,32 @@ column so they stay aligned under the caps. Scenes with no caps lay out exactly 
 "the smallest so far" to a sort and "next out" to a structure, and the legend has to say
 whichever is true without the renderer ever learning which lesson is running.
 
+
+#### Naming the span being worked on (ADR-054)
+
+`RegionMark.label` captions a span, in a row that mirrors the cells exactly — group
+dividers included — so the caption sits over its own cells. Quick Sort uses it to say
+which half it is solving; every other lesson leaves it null and the outline is
+unlabelled as before.
+
+```
+        left of 5
+   ┌──────────────────┐
+   │  3    2    4  │ 5│   (7)  (8)  (6)      ← parked: 0.82 scale, 45 % opacity
+   └──────────────────┘
+```
+
+| Element | Treatment |
+|---|---|
+| caption | `labelSmall` / `primary`, centred over the span, one line, ellipsised |
+| the parked remainder | `CellState.ELIMINATED`, legend renamed to **Waiting** |
+| the split beat | `groups` divides the row into `[left] · pivot · [right]`, both halves captioned `below 5` / `above 5` |
+
+**Parked is not eliminated.** The colour is shared with Binary Search's discarded
+half because the *picture* is the same — this is not what is being worked on — but
+the meaning is not, so the legend says `Waiting`. A lesson that borrows a viz colour
+for a second meaning must rename it (`legendLabels`), never introduce a new one.
+
 ### 6.16c Vertical stage — the pile
 
 A scene whose `orientation` is `VERTICAL` is drawn as a pile instead of a row. It is the same

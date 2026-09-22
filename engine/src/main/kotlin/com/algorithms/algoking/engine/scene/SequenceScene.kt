@@ -187,7 +187,19 @@ data class DetachedNode(val value: Int, val atLink: Int)
 
 data class PointerMark(val pointer: PointerId, val slot: Int, val label: String)
 
-data class RegionMark(val region: RegionId, val range: IntRange)
+/**
+ * A span of the sequence that means something as a span.
+ *
+ * [label] names it on screen, and is what lets a lesson say **which part it is
+ * working on** rather than only outlining it: Quick Sort captions the live
+ * partition `left of 5` while the rest of the array is parked (ADR-054). Null is
+ * an unnamed outline, which is what every other lesson uses.
+ */
+data class RegionMark(
+    val region: RegionId,
+    val range: IntRange,
+    val label: String? = null,
+)
 
 data class Badge(
     val mark: MarkId,

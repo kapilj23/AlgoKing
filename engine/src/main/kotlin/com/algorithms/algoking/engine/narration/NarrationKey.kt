@@ -997,6 +997,14 @@ enum class NarrationId {
     QUICK_WENT_RIGHT,
     QUICK_PIVOT_FINAL,
     QUICK_NEXT_PARTITION,
+    QUICK_NEXT_LEFT,
+    QUICK_NEXT_RIGHT,
+    QUICK_SPLIT_DONE,
+    QUICK_WATCH_SPLIT,
+    QUICK_WATCH_SPLIT_SUPPORT,
+    QUICK_WATCH_NEXT_LEFT,
+    QUICK_WATCH_NEXT_RIGHT,
+    QUICK_WATCH_SIDE_SUPPORT,
     QUICK_SORTED,
 
     // ── Quick Sort — guidance and hints ──────────────────────────────────

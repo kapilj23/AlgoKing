@@ -65,6 +65,50 @@ sealed interface QuickSortAction : Action {
  * **Values equal to the pivot go left.** The comparison is `<=`, so duplicates
  * never bounce between partitions and the pivot's final slot stays correct.
  */
+/** Which side of the pivot that produced it a partition sits on. */
+enum class PartitionSide {
+    /** The array itself, before any pivot has been placed. */
+    WHOLE,
+
+    /** Everything smaller than the pivot above it. */
+    LEFT,
+
+    /** Everything larger. */
+    RIGHT,
+}
+
+/**
+ * A stretch of the array still waiting to be sorted, and **where it came from**.
+ *
+ * The range alone was enough to run the algorithm, and that is all this carried
+ * before ADR-054. It was not enough to *say* what the algorithm was doing: a
+ * learner watching the outline jump to `0..2` has no way of knowing that those
+ * three values are the ones that lost to the 5. So a partition now remembers the
+ * pivot it sits beside and which side of it that is, and the lesson reads those
+ * back in words and in the picture.
+ */
+data class Partition(
+    val range: IntRange,
+    val side: PartitionSide,
+    /** The pivot this part sits beside. Null only for the whole array. */
+    val pivot: Int?,
+)
+
+/**
+ * A partition that has just been split in two by its pivot landing.
+ *
+ * Held for exactly one beat, so there is a frame that shows
+ * `[3, 2, 4]  5  [7, 8, 6]` before the lesson descends into either side. Without
+ * it the outline vanishes the instant the pivot lands and the two halves are
+ * never seen as halves — which is the thing ADR-054 was asked to fix.
+ */
+data class Split(
+    val left: IntRange,
+    val pivotAt: Int,
+    val right: IntRange,
+    val pivot: Int,
+)
+
 data class QuickSortState(
     val values: List<Int>,
     /** The partition being worked on. `lo > hi` means there is none right now. */
@@ -78,7 +122,13 @@ data class QuickSortState(
     /** Pivots that have reached their final position. */
     val finalized: Set<Int>,
     /** Partitions still waiting, innermost last. */
-    val pending: List<IntRange>,
+    val pending: List<Partition>,
+    /** Which side of which pivot the live partition is. */
+    val side: PartitionSide,
+    /** The pivot the live partition sits beside. Null for the whole array. */
+    val parentPivot: Int?,
+    /** A partition whose pivot has just landed, held for one beat. */
+    val split: Split?,
     val done: Boolean,
 ) {
     val active: Boolean get() = lo <= hi
@@ -90,8 +140,35 @@ data class QuickSortState(
     /** Where the pivot will land: between the two groups. */
     val pivotHome: Int get() = boundary
 
+    /** True on the one beat that shows a finished partition as two halves. */
+    val showingSplit: Boolean get() = split != null
+
+    /** What the live partition holds, for copy that reads the values out. */
+    val partitionValues: List<Int>
+        get() = if (active) values.slice(partition) else emptyList()
+
+    /**
+     * What to call the part being worked on: `the whole array`, `left of 5`,
+     * `right of 5`. Read by the picture and by the copy, so the two agree.
+     */
+    val sideLabel: String
+        get() = when (side) {
+            PartitionSide.WHOLE -> "the whole array"
+            PartitionSide.LEFT -> "left of ${parentPivot ?: 0}"
+            PartitionSide.RIGHT -> "right of ${parentPivot ?: 0}"
+        }
+
     /** The left group, the right group, and what has not been judged yet. */
     fun groups(): List<IntRange> {
+        // A partition that has just been split reads as its three pieces: the
+        // values below the pivot, the pivot, and the values above it.
+        split?.let { s ->
+            return buildList {
+                if (!s.left.isEmpty()) add(s.left)
+                add(s.pivotAt..s.pivotAt)
+                if (!s.right.isEmpty()) add(s.right)
+            }
+        }
         if (!active || pivotAt == null) return emptyList()
         val at = cursor ?: hi
         return buildList {
@@ -116,11 +193,18 @@ class QuickSortAlgorithm : Algorithm<QuickSortState, QuickSortAction> {
         boundary = 0,
         finalized = emptySet(),
         pending = emptyList(),
+        side = PartitionSide.WHOLE,
+        parentPivot = null,
+        split = null,
         done = dataset.values.size <= 1,
     )
 
     override fun probe(state: QuickSortState): Probe<QuickSortAction> {
         if (state.done) return Probe.Terminal(Outcome.Sorted)
+
+        // A partition whose pivot has just landed is held on screen for one beat,
+        // as two halves either side of it, and then descended into.
+        if (state.showingSplit) return Probe.Mechanical(QuickSortAction.NextPartition)
 
         // No live partition, or one too small to partition: move on.
         if (!state.active || state.hi - state.lo < 1) {
@@ -325,6 +409,11 @@ class QuickSortAlgorithm : Algorithm<QuickSortState, QuickSortAction> {
     /**
      * The pivot drops between the two groups — and that slot is final. This is the
      * moment the lesson exists for.
+     *
+     * The partition is **kept on screen** rather than closed here (ADR-054): the
+     * next beat shows it as `[3, 2, 4] 5 [7, 8, 6]`, which is the picture that says
+     * one value is home and two smaller problems are left. `nextPartition` then
+     * descends into one of them.
      */
     private fun placePivot(state: QuickSortState, at: Int): Transition<QuickSortState> {
         val pivotAt = requireNotNull(state.pivotAt)
@@ -335,23 +424,25 @@ class QuickSortAlgorithm : Algorithm<QuickSortState, QuickSortAction> {
             it[pivotAt] = tmp
         }
 
-        // Both sides still need work; the smaller side is queued last so it is
-        // taken first, which keeps the learner inside one region at a time.
+        val left = state.lo..(at - 1)
+        val right = (at + 1)..state.hi
+
+        // Both sides still need work; the left is queued last so it is taken
+        // first, which walks the array the way the learner reads it.
         val queued = buildList {
             addAll(state.pending)
-            if (at + 1 < state.hi) add((at + 1)..state.hi)
-            if (state.lo < at - 1) add(state.lo..(at - 1))
+            if (!right.isEmpty()) add(Partition(right, PartitionSide.RIGHT, pivot))
+            if (!left.isEmpty()) add(Partition(left, PartitionSide.LEFT, pivot))
         }
 
         return Transition(
             next = state.copy(
                 values = values,
-                lo = 1,
-                hi = 0,
                 pivotAt = null,
                 cursor = null,
                 finalized = state.finalized + at,
                 pending = queued,
+                split = Split(left = left, pivotAt = at, right = right, pivot = pivot),
             ),
             events = buildList {
                 if (at != pivotAt) add(VizEvent.Swap(at, pivotAt))
@@ -363,35 +454,55 @@ class QuickSortAlgorithm : Algorithm<QuickSortState, QuickSortAction> {
         )
     }
 
-    /** Take the next waiting partition; single values are already final. */
+    /**
+     * Take the next waiting partition; single values are already final.
+     *
+     * This is also where the split beat ends, so the state it leaves behind is the
+     * one that says **which part is being solved now** — the side, the pivot it
+     * sits beside, and the values in it.
+     */
     private fun nextPartition(state: QuickSortState): Transition<QuickSortState> {
         var finalized = state.finalized
         var queue = state.pending
 
         // Anything already in the current window that is a single value is done.
-        if (state.active && state.hi == state.lo) finalized = finalized + state.lo
+        if (state.active && !state.showingSplit && state.hi == state.lo) {
+            finalized = finalized + state.lo
+        }
 
         while (queue.isNotEmpty()) {
             val next = queue.last()
             queue = queue.dropLast(1)
-            if (next.first == next.last) {
-                finalized = finalized + next.first
+            if (next.range.first == next.range.last) {
+                finalized = finalized + next.range.first
                 continue
             }
+            val descended = state.copy(
+                lo = next.range.first,
+                hi = next.range.last,
+                pivotAt = null,
+                cursor = null,
+                boundary = next.range.first,
+                finalized = finalized,
+                pending = queue,
+                side = next.side,
+                parentPivot = next.pivot,
+                split = null,
+            )
             return Transition(
-                next = state.copy(
-                    lo = next.first,
-                    hi = next.last,
-                    pivotAt = null,
-                    cursor = null,
-                    boundary = next.first,
-                    finalized = finalized,
-                    pending = queue,
-                ),
-                events = listOf(VizEvent.Region(next, RegionId.SEARCH_SPACE)),
+                next = descended,
+                events = listOf(VizEvent.Region(next.range, RegionId.SEARCH_SPACE)),
                 narration = NarrationKey(
-                    NarrationId.QUICK_NEXT_PARTITION,
-                    listOf(next.count()),
+                    when (next.side) {
+                        PartitionSide.LEFT -> NarrationId.QUICK_NEXT_LEFT
+                        PartitionSide.RIGHT -> NarrationId.QUICK_NEXT_RIGHT
+                        PartitionSide.WHOLE -> NarrationId.QUICK_NEXT_PARTITION
+                    },
+                    listOf(
+                        next.pivot ?: 0,
+                        descended.partitionValues.joinToString(", "),
+                        next.range.count(),
+                    ),
                 ),
                 correct = true,
             )
@@ -405,6 +516,7 @@ class QuickSortAlgorithm : Algorithm<QuickSortState, QuickSortAction> {
                 cursor = null,
                 finalized = state.values.indices.toSet(),
                 pending = emptyList(),
+                split = null,
                 done = true,
             ),
             events = listOf(

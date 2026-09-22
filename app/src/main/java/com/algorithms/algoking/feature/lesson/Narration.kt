@@ -1911,7 +1911,26 @@ object Narration {
             NarrationId.QUICK_WENT_RIGHT ->
                 "${arg(0)} is larger than ${arg(1)}, so it goes right."
             NarrationId.QUICK_PIVOT_FINAL -> "${arg(0)} is now in its final position."
-            NarrationId.QUICK_NEXT_PARTITION -> "Now the partition of ${arg(0)}."
+            NarrationId.QUICK_NEXT_PARTITION -> "Now a part of ${arg(2)} values: ${arg(1)}."
+            // Recursion, said out loud (ADR-054). A part is named by the side of
+            // the pivot it sits on, and the values in it are read back, so the
+            // learner can see which smaller problem is being solved now.
+            NarrationId.QUICK_NEXT_LEFT ->
+                "Now the left part — the values smaller than ${arg(0)}: ${arg(1)}."
+            NarrationId.QUICK_NEXT_RIGHT ->
+                "Now the right part — the values larger than ${arg(0)}: ${arg(1)}."
+            NarrationId.QUICK_SPLIT_DONE ->
+                "${arg(0)} is home. Two smaller problems are left: ${arg(1)} and ${arg(2)}."
+            NarrationId.QUICK_WATCH_SPLIT ->
+                "${arg(0)} is home — and what is left is two smaller arrays."
+            NarrationId.QUICK_WATCH_SPLIT_SUPPORT ->
+                "${arg(0)} never moves again. Everything on its left is smaller, everything on " +
+                    "its right is larger — so the two sides can be sorted on their own."
+            NarrationId.QUICK_WATCH_NEXT_LEFT -> "Take the left part: ${arg(0)}."
+            NarrationId.QUICK_WATCH_NEXT_RIGHT -> "Now the right part: ${arg(0)}."
+            NarrationId.QUICK_WATCH_SIDE_SUPPORT ->
+                "The rest of the array is greyed out. It is not finished — it is waiting, and " +
+                    "the same rule will be run on it next."
             NarrationId.QUICK_SORTED -> "Sorted."
 
             NarrationId.QUICK_HINT_COMPARE -> "Compare ${arg(0)} with the pivot, ${arg(1)}."
