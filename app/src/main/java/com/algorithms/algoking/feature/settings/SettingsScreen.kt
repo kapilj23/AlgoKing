@@ -38,6 +38,7 @@ import com.algorithms.algoking.ui.components.Gap
 import com.algorithms.algoking.ui.components.HeaderTitle
 import com.algorithms.algoking.ui.components.IconTileButton
 import com.algorithms.algoking.ui.components.MascotKing
+import com.algorithms.algoking.ui.components.SecondaryButton
 import com.algorithms.algoking.ui.icons.AlgoIcons
 import com.algorithms.algoking.ui.theme.AlgoAccent
 import com.algorithms.algoking.ui.theme.AlgoColors
@@ -255,6 +256,8 @@ fun InfoPage(
     sections: List<InfoSection>,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
+    /** Drawn under the last section. Privacy uses it to link the published copy. */
+    footer: (@Composable () -> Unit)? = null,
 ) {
     AlgoScreen(modifier) {
         Column(Modifier.fillMaxSize()) {
@@ -302,6 +305,10 @@ fun InfoPage(
                     }
                 }
 
+                // Below the prose, when a page has somewhere else to send you.
+                // Null for About, which does not.
+                footer?.invoke()
+
                 Gap(Spacing.lg)
             }
         }
@@ -311,72 +318,235 @@ fun InfoPage(
 data class InfoSection(val heading: String, val body: String)
 
 /**
+ * The date this policy last changed.
+ *
+ * Update it whenever the copy in [PrivacyPolicyScreen] changes — **and update the
+ * published policy at [POLICY_URL] the same day.** Two policies dated differently
+ * is the sort of thing that gets noticed, and the published one is what the Play
+ * listing points at.
+ */
+const val POLICY_EFFECTIVE_DATE: String = "25 September 2026"
+
+/** Where privacy questions go. Also printed on the published policy. */
+const val POLICY_CONTACT: String = "irislabs46@gmail.com"
+
+/**
+ * The published policy — what the Play listing links to.
+ *
+ * The same text as [PrivacyPolicyScreen], hosted so the store has a URL it can
+ * reach. The in-app copy stays the primary one for a learner: the lessons make no
+ * network calls, so a policy that needed a connection to read would be the only
+ * part of the product that did.
+ */
+const val POLICY_URL: String = "https://sites.google.com/view/algoking-privacy/home"
+
+/**
  * The privacy policy, in full, in the app.
  *
- * It is text rather than a link on purpose: the app makes no network calls, so a
- * policy the learner cannot read offline would be the only part of the product
+ * It is text rather than a link on purpose: the lessons make no network calls, so
+ * a policy the learner cannot read offline would be the only part of the product
  * that needs a connection.
  *
- * **This is only true while it is true.** AdMob and Firebase Analytics are both
- * specified (`PRODUCT_SPEC.md` §9, `ARCHITECTURE.md` §10.4) and neither is built.
- * The day either lands, this copy has to be rewritten and a hosted policy URL
- * added for the Play listing — it is not a detail that can be left to drift.
+ * ### It describes what the code does, and it is checked against it
+ *
+ * Every claim below traces to something in this repository — the permissions the
+ * merged manifest actually carries, the two DataStore files, the one ad placement,
+ * the billing gateway's return type, and what Play's review API does and does not
+ * hand back. Where a third-party SDK processes something the app itself never
+ * touches, the copy says so rather than rounding it down to "we collect nothing".
+ *
+ * **Keep it that way.** The copy that shipped before this one said the app had no
+ * ads while AdMob was already built, and said progress existed nowhere but the
+ * device while Android Auto Backup was copying it to the learner's Drive. Both
+ * were written when they were true and neither was revisited. When the ad policy,
+ * the billing product, the review trigger, the stored keys or the backup rules
+ * change, this text and `web/privacy-policy/index.html` change the same day.
+ *
+ * The hosted copy at `web/privacy-policy/` is the same substance for the Play
+ * listing, which requires a URL. **It is not deployed yet.**
  */
 @Composable
-fun PrivacyPolicyScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
+fun PrivacyPolicyScreen(
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit = {},
+    /** Opens [POLICY_URL]. The page below is the same text, readable offline. */
+    onOpenOnline: () -> Unit = {},
+) {
     InfoPage(
         title = "Privacy",
-        lead = "Everything stays on your phone.",
+        lead = "Effective $POLICY_EFFECTIVE_DATE",
         modifier = modifier,
         onBack = onBack,
+        footer = {
+            // The published copy, for anyone who wants the version the store
+            // links to — or a page they can send someone. The policy itself is
+            // already above, in full, so this is an alternative rather than the
+            // way to read it: nothing here requires a connection.
+            SecondaryButton(
+                label = "View the published policy",
+                modifier = Modifier.fillMaxWidth(),
+                leadingIcon = AlgoIcons.Shield,
+                onClick = onOpenOnline,
+            )
+        },
         sections = listOf(
             InfoSection(
-                heading = "What AlgoKing stores",
-                body = "Which lessons you have finished — one mark for Watch and one for Try, " +
-                    "per algorithm. That is the whole of it, and it is held in the app's own " +
-                    "private storage on this device.",
+                heading = "What AlgoKing does",
+                body = "AlgoKing teaches data structures and algorithms by letting you run " +
+                    "them yourself. Every lesson runs on your device, which is why they all " +
+                    "work in airplane mode.\n\nThis policy explains what the app stores, what " +
+                    "it does not, and which Google services handle things we never see.",
             ),
             InfoSection(
-                heading = "What it never collects",
-                body = "No account with us, no name, no email address, no contacts and no " +
-                    "location. The app has no analytics of its own and never reads what you " +
-                    "do in a lesson.",
+                heading = "Information AlgoKing collects",
+                body = "AlgoKing does not operate a user account or a backend database. " +
+                    "There is no login, no profile, and no server of ours holding anything " +
+                    "about you.\n\nThe app itself does not collect:\n\n" +
+                    "• your name, email address or phone number\n" +
+                    "• your location, contacts, photos, audio or files\n" +
+                    "• anything you type — there is no text box anywhere in the app\n" +
+                    "• your card, bank or billing details\n" +
+                    "• analytics or crash reports of our own\n\n" +
+                    "It has no analytics service, no crash-reporting service, and sends " +
+                    "nothing to any AI service while you use it.\n\nThat is not the same as " +
+                    "saying no information is ever processed. The Google services described " +
+                    "below process some information when they run, and the sections that " +
+                    "follow say what and by whom.",
             ),
             InfoSection(
-                heading = "What it sends",
-                body = "The lessons send nothing. Every lesson runs on the device, which is " +
-                    "why they all work in airplane mode.\n\nTwo Google services are the " +
-                    "exception. AlgoKing Pro: opening the paywall asks Google Play for the " +
-                    "price, and buying or restoring goes through Google Play, which handles " +
-                    "the payment and tells this app one thing back — whether you own Pro. " +
-                    "We never see your payment details.",
+                heading = "Information stored on your device",
+                body = "Two things, both in the app's own private storage:\n\n" +
+                    "• Learning progress — which lesson stages you have finished, as one " +
+                    "mark for Watch and one for Try per algorithm. Stored so the app can " +
+                    "show how far you have got and reopen a lesson where you left it.\n" +
+                    "• Review prompt state — whether the app has already used its one " +
+                    "automatic request to rate it. Stored so that it does not ask you " +
+                    "again.\n\n" +
+                    "Neither is an account or a profile. Neither contains your name, an " +
+                    "email address, or anything else that identifies you, and neither is " +
+                    "sent to us.",
             ),
             InfoSection(
-                heading = "Advertising",
-                body = "Free learners see one full-screen ad after finishing the practice " +
-                    "stage of a lesson, and nowhere else — no banners, no rewarded ads, and " +
-                    "nothing during a lesson. Google's ad service uses your device's " +
-                    "advertising ID to choose and measure those ads; you can reset or delete " +
-                    "that ID in Android's privacy settings.\n\nPro learners see no ads at " +
-                    "all.",
+                heading = "Android backup",
+                body = "Android can back up app data so a new phone picks up where the old " +
+                    "one left off. AlgoKing leaves that enabled, so the two items above — " +
+                    "your progress and the review flag — may be included in your device's " +
+                    "backup and restored when you set up a new device.\n\n" +
+                    "That backup is provided by Android and Google, not by us. It goes to " +
+                    "your own Google account, we cannot read it, and whether it happens at " +
+                    "all is controlled by the backup settings on your device and in your " +
+                    "Google account.",
             ),
             InfoSection(
-                heading = "Removing your data",
-                body = "Clearing the app's storage, or uninstalling it, deletes your progress " +
-                    "permanently. There is no copy anywhere else, so there is nothing to ask " +
-                    "us to delete.",
+                heading = "Advertising and Google AdMob",
+                body = "AlgoKing uses Google AdMob. If you have not bought Pro, you may see " +
+                    "one full-screen (interstitial) ad after you finish the practice stage " +
+                    "of a lesson — and nowhere else.\n\n" +
+                    "Interstitial is the only ad format the app uses. There are no banner " +
+                    "ads, no rewarded ads, no native ads, no app-open ads, no ads inside a " +
+                    "lesson, and none on Home or Settings.\n\n" +
+                    "Pro learners see no advertisements at all.\n\n" +
+                    "The app does not itself read or store your advertising ID. Google's " +
+                    "advertising SDK processes advertising identifiers and device and app " +
+                    "signals in order to deliver and measure ads, to limit how often you see " +
+                    "one, and — where your consent and settings permit — to personalise " +
+                    "them. You can reset or delete your advertising ID in Android's privacy " +
+                    "settings.",
             ),
             InfoSection(
-                heading = "Your purchase",
-                body = "AlgoKing Pro is a one-time purchase, not a subscription: it is bought " +
-                    "once and there is nothing to renew or cancel. It belongs to your Google " +
-                    "account rather than to this app, so reinstalling or moving to a new " +
+                heading = "Privacy choices and Google UMP",
+                body = "AlgoKing uses Google's User Messaging Platform to manage consent and " +
+                    "privacy choices for advertising where they apply.\n\n" +
+                    "The app asks UMP about your consent state when it starts, and requests " +
+                    "an ad only when that state allows one. Whether you are shown a consent " +
+                    "message is Google's decision, based on your region and the requirements " +
+                    "that apply there.\n\nWhere an ongoing choice is required, an \"Ad " +
+                    "privacy options\" entry appears in this app's Settings so you can change " +
+                    "it later. Pro learners are not shown a consent message, because they " +
+                    "are not shown ads.",
+            ),
+            InfoSection(
+                heading = "AlgoKing Pro and Google Play Billing",
+                body = "AlgoKing Pro (product algoking_pro) is a one-time purchase: bought " +
+                    "once, owned permanently, with nothing to renew or cancel. It unlocks the " +
+                    "advanced algorithms and their interactive lessons, and removes " +
+                    "advertising.\n\n" +
+                    "Google Play processes the payment. AlgoKing has no payment system " +
+                    "and does not receive or store your card number, bank details or full " +
+                    "billing information.\n\nWhat the app receives from Google Play is only " +
+                    "what it needs to decide whether to unlock Pro: the product, the purchase " +
+                    "state, the purchase token, and whether the purchase has been " +
+                    "acknowledged.\n\nThe purchase is associated with your Google account by " +
+                    "Google Play rather than held by us, so reinstalling or moving to a new " +
                     "device restores it with Restore purchases.",
             ),
             InfoSection(
-                heading = "Children",
-                body = "The app is rated for ages 13 and over. It collects nothing from anyone, " +
-                    "of any age.",
+                heading = "In-app reviews",
+                body = "AlgoKing uses Google Play's official In-App Review. After you finish " +
+                    "a lesson it may ask, once, whether you would like to rate the app. The " +
+                    "automatic request is deliberately limited: once the app has launched the " +
+                    "review flow it records a local flag and does not ask again.\n\n" +
+                    "Google Play decides whether the review screen is actually shown, and " +
+                    "runs it entirely. AlgoKing does not receive your star rating, does not " +
+                    "receive anything you write, and cannot tell whether you submitted a " +
+                    "review at all. The only thing it knows is that it launched the flow.\n\n" +
+                    "Settings also has a \"Rate AlgoKing\" option, which opens the app's " +
+                    "Google Play listing if you want to leave a review yourself.",
+            ),
+            InfoSection(
+                heading = "Third-party services",
+                body = "Five, all provided by Google:\n\n" +
+                    "• Google AdMob — advertising\n" +
+                    "• Google User Messaging Platform — consent and privacy choices for " +
+                    "advertising\n" +
+                    "• Google Play Billing — processing the Pro purchase\n" +
+                    "• Google Play In-App Review — the optional review prompt\n" +
+                    "• Android / Google backup — backing up and restoring the app data " +
+                    "described above\n\n" +
+                    "Their handling of information is governed by Google's privacy policy at " +
+                    "policies.google.com/privacy. AlgoKing uses no other third-party services " +
+                    "and no advertising networks besides Google's.",
+            ),
+            InfoSection(
+                heading = "Data deletion",
+                body = "You can remove AlgoKing's locally stored data by uninstalling the " +
+                    "app, or by clearing its storage in Android's app settings. That removes " +
+                    "the learning progress and the review flag from the device.\n\n" +
+                    "There is no AlgoKing account to delete and no database of ours holding a " +
+                    "profile of you, so there is no server-side deletion request to send " +
+                    "us.\n\nCopies held in your Android backup are controlled through your " +
+                    "own device and Google backup settings. Purchase records are held by " +
+                    "Google Play. Neither is an AlgoKing database, and we cannot delete " +
+                    "Google's records on your behalf.",
+            ),
+            InfoSection(
+                heading = "Data security",
+                body = "AlgoKing relies on reasonable, standard technical measures: " +
+                    "Android's application sandbox, which keeps the stored data private to " +
+                    "the app; the platform's own security controls, including device " +
+                    "encryption; and HTTPS for the third-party services above, which manage " +
+                    "their own connections.\n\nThe app does not add encryption of its own on " +
+                    "top of that. No system can be guaranteed completely secure — though " +
+                    "there is also very little stored here, which is the most useful thing " +
+                    "that can be said about it.",
+            ),
+            InfoSection(
+                heading = "Children's privacy",
+                body = "AlgoKing is an educational data structures and algorithms " +
+                    "application. It is not specifically designed or directed toward young " +
+                    "children, has no features aimed at them, and does not collect personal " +
+                    "information from anyone of any age.\n\nThe age rating that applies to " +
+                    "the app is shown on its Google Play listing.",
+            ),
+            InfoSection(
+                heading = "Changes to this privacy policy",
+                body = "If what the app does changes, this policy is updated to match and " +
+                    "the effective date at the top is changed. The current version is always " +
+                    "the one in the app and at the published policy address.",
+            ),
+            InfoSection(
+                heading = "Contact us",
+                body = "Questions about privacy or about this policy:\n\n$POLICY_CONTACT",
             ),
         ),
     )
@@ -444,6 +614,25 @@ fun openPlayStoreListing(context: Context) {
             // No store and no browser. Nothing to do, and nothing worth telling
             // the learner about a button they will not miss.
         }
+    }
+}
+
+/**
+ * Opens the published privacy policy in a browser.
+ *
+ * Kept out of the composable for the reason [openPlayStoreListing] is: opening
+ * another app is the platform's business, and the screen stays a function of its
+ * arguments (ARCHITECTURE.md §2).
+ *
+ * If there is no browser to handle it, nothing happens — the whole policy is
+ * already on the screen the learner is looking at, so there is nothing to tell
+ * them and nothing they have missed.
+ */
+fun openPrivacyPolicyOnline(context: Context) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(POLICY_URL)))
+    } catch (_: ActivityNotFoundException) {
+        // No browser. The policy above is the same text.
     }
 }
 

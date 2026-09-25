@@ -47,6 +47,7 @@ import com.algorithms.algoking.feature.settings.AboutScreen
 import com.algorithms.algoking.feature.settings.PrivacyPolicyScreen
 import com.algorithms.algoking.feature.settings.SettingsScreen
 import com.algorithms.algoking.feature.settings.openPlayStoreListing
+import com.algorithms.algoking.feature.settings.openPrivacyPolicyOnline
 import com.algorithms.algoking.feature.settings.rememberVersionLabel
 import com.algorithms.algoking.review.InAppReviewManager
 import com.algorithms.algoking.review.ReviewDecision
@@ -84,8 +85,19 @@ private sealed interface Route {
 
     /** Settings and the two pages it opens. Reached from Home's gear, and only there. */
     data object Settings : Route
-    data object Privacy : Route
     data object About : Route
+
+    /**
+     * The privacy policy, carrying **where it was opened from** so Back returns
+     * there.
+     *
+     * Two screens link to it — Settings and the paywall — and until this carried
+     * its origin, Back always went to Settings. From the paywall that silently
+     * dropped the learner out of a purchase they were part-way through, which is
+     * the worst place in the app to lose someone. Same shape as [Paywall] carrying
+     * the lesson that opened it, for the same reason.
+     */
+    data class Privacy(val from: Route) : Route
 
     /**
      * The paywall, carrying the lesson that opened it so the screen can say why it
@@ -319,7 +331,9 @@ private fun AlgoKingApp() {
                     }
                 },
                 onRetry = { subscriptions.refresh() },
-                onPrivacy = { route = Route.Privacy },
+                // Back from here returns to this paywall, with the lesson that
+                // opened it intact — reading the policy is not abandoning a purchase.
+                onPrivacy = { route = Route.Privacy(current) },
             )
         }
 
@@ -335,11 +349,16 @@ private fun AlgoKingApp() {
             // rather than inside the screen, which stays a function of its
             // arguments (ARCHITECTURE.md §2).
             onRate = { openPlayStoreListing(context) },
-            onOpenPrivacy = { route = Route.Privacy },
+            onOpenPrivacy = { route = Route.Privacy(Route.Settings) },
             onOpenAbout = { route = Route.About },
         )
 
-        Route.Privacy -> PrivacyPolicyScreen(onBack = { route = Route.Settings })
+        is Route.Privacy -> PrivacyPolicyScreen(
+            onBack = { route = current.from },
+            // The published copy the Play listing points at. Another app's job,
+            // so the intent is fired here rather than inside the screen.
+            onOpenOnline = { openPrivacyPolicyOnline(context) },
+        )
 
         Route.About -> AboutScreen(
             versionLabel = versionLabel,
