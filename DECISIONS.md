@@ -3862,6 +3862,88 @@ chance.
 
 ---
 
+## ADR-057 — Removing ads is a Pro benefit, and an unresolved entitlement is not a free one
+
+**Decision.** *Remove all ads* becomes an advertised benefit of the existing `algoking_pro`
+purchase — **no second product, no second entitlement, no `removeAdsPurchased` flag.** Two
+things changed in the code: `AdPolicy` now refuses to show an ad while entitlement is
+`Unknown`, and the final decision reads the entitlement from `SubscriptionRepository` rather
+than from a composition snapshot. The paywall and the purchase confirmation say so.
+
+⚠ **Product-owner request**, 2026-09-25.
+
+### Most of this was already true, and that is the result worth recording
+
+`AdPolicy.decide` has checked `entitlement.isPro` **first** since ADR-042, `mayRequestAds` has
+been `!isPro && canRequestAds`, and the loaded ad is discarded the moment Pro arrives. An audit
+for the other ad surfaces the brief asks about — banner, rewarded, native, app-open,
+navigation-triggered — found **none of them exist**: `InterstitialAds` is the only ad class,
+`ads.show` at one call site is the only presentation, and `MobileAds.initialize` is called in
+one place. `Placement` having a single member is why (ADR-042), and this is the first time that
+constraint has been cashed in: "make sure Pro users cannot receive ads from any path" was a
+one-file audit rather than a sweep.
+
+So the feature was mostly *already built* and mostly *not said*. A benefit nobody is told about
+is one nobody buys, which is the half this ADR actually changes.
+
+### `Unknown` is not evidence of `Free`
+
+The one genuine defect. At every cold start there is a window where `queryPurchasesAsync` has
+not answered and entitlement is `ProEntitlement.Unknown`. Unknown is not Pro, so the policy
+treated it as free and would show an ad — and `AdPolicyTest` asserted exactly that, on the
+reasoning that the worst case was one ad shown to a payer whose state had not loaded, corrected
+by the next completion.
+
+That is the wrong way round. The learner who is wronged has paid **specifically** not to see it,
+and *"we asked before the store answered"* is not a thing they can be expected to care about. So
+`ENTITLEMENT_UNKNOWN` joins the suppression reasons and an ad is shown only once the store has
+actually said `Free`.
+
+It is the same conservatism `ProAccess` has always applied to the same value, pointed the other
+way: an unresolved entitlement never unlocks a paid lesson (ADR-041), and now it never shows an
+ad either. **Loading is untouched** — `mayRequestAds` still fetches on Unknown, because an ad in
+hand for someone who turns out to be Pro is discarded rather than shown, and making the free
+learner's first completion wait on a store round-trip would cost them the ad the app is funded by.
+
+### The guard sits at the last moment, and reads the source of truth
+
+A purchase can complete during the settle before the ad. The decision is therefore made from
+`subscriptions.entitlement.value` — the repository's own state, read at the moment of the
+decision, immediately before `ads.show` — rather than from the `collectAsState` snapshot the
+screen composed with. A snapshot is something recomposition has to catch up to; the flow's value
+is what the store says now.
+
+That is one line, and it is the difference between "Pro suppresses ads" and "Pro suppresses ads
+unless you bought it in the last two seconds".
+
+### One entitlement, several benefits
+
+`AdPolicy` reads `ProEntitlement` and nothing else, and a test asserts the file contains no
+`removeAds`, `adsRemoved`, `hasNoAds` or `adFree`. The benefit therefore cannot drift out of step
+with what was paid for: a refund brings the ads back on the next query, because there is no
+separate flag left holding the benefit open. There is a test for that too.
+
+### Saying it, because the learner cannot see it
+
+The lessons unlocking is visible; ads stopping is the absence of something, and the only way a
+learner discovers it unaided is by not seeing an ad. So the paywall lists *"Remove all ads — no
+interruptions, anywhere in the app"* and the confirmation reads *"All Pro algorithms are unlocked
+and ads are now removed."* Both are literally true of a one-time purchase — permanent, and the
+app has exactly one ad to remove — which is why neither hedges and neither says "forever".
+
+**Alternatives considered.**
+- *A separate `removeAdsPurchased` flag.* Rejected: two sources of truth for one purchase, and
+  the one that survives a refund is the one that gives the product away.
+- *Treat `Unknown` as free and correct on the next completion.* Rejected above — it was the
+  existing behaviour and the reasoning does not survive being read from the payer's side.
+- *Block ad **loading** until entitlement resolves.* Rejected: it delays the SDK for every free
+  learner to protect a window in which nothing is shown anyway.
+- *Guard inside `InterstitialAds.show`.* Rejected: that class has no business knowing what a
+  learner has paid, and giving it one would put billing into the ad layer that ADR-008 keeps
+  clear of it.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

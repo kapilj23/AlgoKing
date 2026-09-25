@@ -80,12 +80,114 @@ class AdPolicyTest {
     }
 
     @Test
-    fun `an unknown entitlement is treated as free`() {
-        // Someone whose subscription has not been confirmed yet is not a
-        // subscriber. The paywall makes the same call (ADR-041), and the worst
-        // case is one ad shown to a payer whose state had not loaded — which the
-        // next completion corrects.
-        assertEquals(AdDecision.Show, decide(entitlement = ProEntitlement.Unknown))
+    fun `an unknown entitlement shows nothing, because it is not evidence of Free`() {
+        // **This used to assert `Show`**, on the reasoning that the worst case was
+        // one ad shown to a payer whose state had not loaded, corrected by the next
+        // completion. That was the wrong way round: the learner who is wronged has
+        // already paid specifically not to see it, and "we asked before the answer
+        // arrived" is not something they can be expected to care about.
+        //
+        // Unknown is not Pro and it is not Free either — it is the window at every
+        // cold start before `queryPurchasesAsync` answers. `ProAccess` has always
+        // refused to unlock a paid lesson on it (ADR-041); this refuses to show an
+        // ad on it, which is the same conservatism pointed the other way.
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+            decide(entitlement = ProEntitlement.Unknown),
+        )
+    }
+
+    @Test
+    fun `an ad is shown only once the store has actually said Free`() {
+        // The whole of the startup race, in three lines. Only one of the three
+        // entitlement states can produce an ad.
+        assertEquals(AdDecision.Show, decide(entitlement = ProEntitlement.Free))
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            decide(entitlement = ProEntitlement.Pro),
+        )
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+            decide(entitlement = ProEntitlement.Unknown),
+        )
+    }
+
+    @Test
+    fun `an unresolved entitlement suppresses whatever else is true`() {
+        // The restore-at-startup path: an ad in hand, a fresh completion, and the
+        // store still thinking. None of it adds up to permission.
+        for (completion in 1..3) {
+            for (ready in listOf(true, false)) {
+                assertEquals(
+                    AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+                    decide(
+                        entitlement = ProEntitlement.Unknown,
+                        completionId = completion,
+                        lastShown = null,
+                        ready = ready,
+                    ),
+                )
+            }
+        }
+    }
+
+    // ── Pro removes ads, and that is the entitlement doing it ────────────────
+
+    @Test
+    fun `a learner who buys Pro mid-session stops seeing ads on the same completion`() {
+        // The race in §5: the decision is made after the settle, so a purchase that
+        // completed during it is already reflected. Same completion id, same loaded
+        // ad, different answer — because entitlement is re-read rather than
+        // captured when the screen was composed.
+        assertEquals(AdDecision.Show, decide(entitlement = ProEntitlement.Free, completionId = 4))
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            decide(entitlement = ProEntitlement.Pro, completionId = 4),
+        )
+    }
+
+    @Test
+    fun `a Pro learner finishing many lessons sees no ad at any of them`() {
+        for (completion in 1..28) {
+            assertEquals(
+                AdDecision.Suppress(AdSuppressed.PRO),
+                decide(entitlement = ProEntitlement.Pro, completionId = completion),
+            )
+        }
+    }
+
+    @Test
+    fun `a free learner finishing many lessons keeps the behaviour they always had`() {
+        // The other half of the same guarantee: nothing about the free path moved.
+        // One ad per completion, still shown, still only when one is loaded.
+        for (completion in 1..28) {
+            assertEquals(
+                AdDecision.Show,
+                decide(entitlement = ProEntitlement.Free, completionId = completion),
+            )
+            assertEquals(
+                AdDecision.Suppress(AdSuppressed.ALREADY_SHOWN_FOR_COMPLETION),
+                decide(
+                    entitlement = ProEntitlement.Free,
+                    completionId = completion,
+                    lastShown = completion,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `there is no second entitlement deciding ads`() {
+        // One purchase, several benefits. `AdPolicy` reads `ProEntitlement` and
+        // nothing else — no `removeAdsPurchased`, no `isAdsRemoved`, no parallel
+        // flag that could drift out of step with what the store actually says.
+        val source = File("src/main/java/com/algorithms/algoking/ads/AdPolicy.kt").readText()
+        for (forbidden in listOf("removeAds", "adsRemoved", "hasNoAds", "adFree")) {
+            assertTrue(
+                "ads must be decided by ProEntitlement alone: found $forbidden",
+                !source.contains(forbidden, ignoreCase = true),
+            )
+        }
     }
 
     // ── One completion, one opportunity ──────────────────────────────────────
@@ -138,7 +240,20 @@ class AdPolicyTest {
 
         val cases = listOf(
             Case(ProEntitlement.Free, null, true, AdDecision.Show),
-            Case(ProEntitlement.Unknown, null, true, AdDecision.Show),
+            // Unknown suppresses whatever else is true, because it is the one state
+            // that might turn out to be a paying learner.
+            Case(
+                ProEntitlement.Unknown,
+                null,
+                true,
+                AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+            ),
+            Case(
+                ProEntitlement.Unknown,
+                1,
+                false,
+                AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+            ),
             Case(ProEntitlement.Free, null, false, AdDecision.Suppress(AdSuppressed.NOT_READY)),
             Case(
                 ProEntitlement.Free,

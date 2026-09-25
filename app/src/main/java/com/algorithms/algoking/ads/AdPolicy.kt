@@ -31,8 +31,25 @@ enum class Placement {
 
 /** Why an ad was not shown. Logged, so the rules can be verified in production. */
 enum class AdSuppressed {
-    /** A Pro subscriber. The most important one in the list. */
+    /** A Pro learner. The most important one in the list. */
     PRO,
+
+    /**
+     * The store has not said yet what the learner owns.
+     *
+     * At every launch there is a window where `queryPurchasesAsync` has not come
+     * back and entitlement is [ProEntitlement.Unknown]. Unknown is not Pro — but it
+     * is not evidence of *Free* either, and showing an ad on that basis is showing
+     * one to a learner who may well have paid to never see it, purely because the
+     * app asked before the answer arrived.
+     *
+     * So the rule is the conservative one in both directions, and it matches what
+     * `ProAccess` already does with the same value: an unresolved entitlement never
+     * unlocks a paid lesson, and it never shows an ad either. Loading one is still
+     * fine — that is `mayRequestAds`' business, and an ad fetched for someone who
+     * turns out to be Pro is discarded rather than shown.
+     */
+    ENTITLEMENT_UNKNOWN,
 
     /** This completion has already had its one opportunity. */
     ALREADY_SHOWN_FOR_COMPLETION,
@@ -83,10 +100,17 @@ object AdPolicy {
         lastShownForCompletion: Int?,
         adReady: Boolean,
     ): AdDecision = when {
-        // Pro is checked first, so a subscriber cannot be shown an ad by any
+        // Pro is checked first, so a paying learner cannot be shown an ad by any
         // combination of the conditions below — including one that was already
-        // loaded before they subscribed.
+        // loaded before they bought.
         entitlement.isPro -> AdDecision.Suppress(AdSuppressed.PRO)
+
+        // And second: an ad is shown only when the store has actually said the
+        // learner is Free. "Not yet known" is not the same as "does not own Pro",
+        // and the difference is a paying learner being advertised at during the
+        // seconds after a cold start.
+        entitlement != ProEntitlement.Free ->
+            AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN)
 
         completionId == lastShownForCompletion ->
             AdDecision.Suppress(AdSuppressed.ALREADY_SHOWN_FOR_COMPLETION)

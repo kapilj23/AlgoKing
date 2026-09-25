@@ -74,11 +74,30 @@ no "watch an ad" button, and the app looks identical when no ad is showing.
 
 ## Pro
 
-Checked first, so no combination of the other conditions can reach a subscriber.
-Beyond the policy refusing it, the moment entitlement turns Pro the loaded ad is
-**discarded** and loading stops — an ad fetched while the learner was free is not
-shown to them after they subscribe. Entitlement comes from the existing billing
-layer (ADR-041); there is no second Pro flag.
+Checked first, so no combination of the other conditions can reach a paying
+learner. Beyond the policy refusing it, the moment entitlement turns Pro the loaded
+ad is **discarded** and loading stops — an ad fetched while the learner was free is
+not shown to them after they buy. Entitlement comes from the existing billing layer
+(ADR-041); there is no second Pro flag, and **removing ads is a benefit of
+`algoking_pro` rather than a thing bought separately** (ADR-057).
+
+The decision is made from `SubscriptionRepository.entitlement.value` at the moment
+it is made — the store's own answer as it stands, rather than the `collectAsState`
+snapshot the screen composed with — so a purchase that completed during the settle
+before the ad already counts.
+
+### An unresolved entitlement shows nothing either
+
+At every launch there is a window where `queryPurchasesAsync` has not answered and
+entitlement is `Unknown`. That is **not** treated as free: `ENTITLEMENT_UNKNOWN`
+suppresses the ad, because the learner it would otherwise land on is one who may
+have paid precisely not to see it. Only an entitlement the store has actually
+reported as `Free` shows an ad.
+
+Loading is deliberately not gated the same way — `mayRequestAds` still fetches on
+`Unknown`, since an ad in hand for someone who turns out to be Pro is discarded
+rather than shown, and making a free learner's first completion wait on a store
+round-trip would cost the app the one impression it has.
 
 ## Architecture
 

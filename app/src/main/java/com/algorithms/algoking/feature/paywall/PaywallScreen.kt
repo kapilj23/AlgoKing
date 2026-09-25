@@ -254,7 +254,10 @@ private fun Includes() {
                 "Interactive WATCH and TRY for every one",
                 "Graph, tree, dynamic-programming and cipher algorithms",
                 "Learn by driving the algorithm, not memorising it",
-                "No ads, anywhere in the app",
+                // Bought once, so this is permanent rather than a window — and the
+                // app has exactly one ad, so "anywhere" is a fact about the whole
+                // product rather than a flourish.
+                "Remove all ads — no interruptions, anywhere in the app",
                 "Your progress, kept on your device",
                 // A plan, not a promise of a date: new lessons have arrived at a
                 // steady rate and are expected to keep doing so, and saying more

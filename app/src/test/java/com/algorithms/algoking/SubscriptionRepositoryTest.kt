@@ -1,5 +1,9 @@
 package com.algorithms.algoking
 
+import com.algorithms.algoking.ads.AdDecision
+import com.algorithms.algoking.ads.AdPolicy
+import com.algorithms.algoking.ads.AdSuppressed
+import com.algorithms.algoking.ads.Placement
 import com.algorithms.algoking.billing.BillingGateway
 import com.algorithms.algoking.billing.BillingState
 import com.algorithms.algoking.billing.BillingUnavailable
@@ -452,6 +456,169 @@ class SubscriptionRepositoryTest {
             assertTrue(repository.entitlement.value.isPro)
             assertNull(repository.nextUnlock())
         }
+    }
+
+    // -- Removing ads is the same entitlement --------------------------------
+    //
+    // One purchase, several benefits: the Pro lessons open *and* the one
+    // interstitial stops. There is no second "ads removed" flag to keep in step —
+    // `AdPolicy` reads the same `ProEntitlement` this repository exposes, so these
+    // tests run the real policy against the real outcome of each purchase path.
+    // What they are really pinning is that the two cannot disagree.
+
+    /** The ad decision a learner would get at the end of a lesson, right now. */
+    private fun SubscriptionRepository.adAtCompletion(completion: Int = 1) = AdPolicy.decide(
+        placement = Placement.LESSON_COMPLETE,
+        entitlement = entitlement.value,
+        completionId = completion,
+        lastShownForCompletion = null,
+        adReady = true,
+    )
+
+    @Test
+    fun `a completed purchase removes ads immediately, with no restart`() = runBlocking {
+        val repository = SubscriptionRepository(
+            FakeGateway(
+                purchaseOutcome = PurchaseOutcome.Purchased,
+                ownedAfterPurchase = ProEntitlement.Pro,
+            ),
+        )
+        // Before: the store says Free, so the one interstitial is allowed.
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+
+        repository.purchase()
+
+        // After, on the very next decision — no relaunch, no navigation, no second
+        // purchase check. The entitlement changed and the policy reads it.
+        assertTrue(repository.entitlement.value.isPro)
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            repository.adAtCompletion(),
+        )
+    }
+
+    @Test
+    fun `an existing purchase found at startup means no ad from the first lesson`() {
+        // A reinstall, a new device, or simply the next launch. Entitlement is Pro
+        // before anything is tapped, so there is no window in which an ad is
+        // allowed.
+        val repository = SubscriptionRepository(FakeGateway(owned = ProEntitlement.Pro))
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            repository.adAtCompletion(),
+        )
+    }
+
+    @Test
+    fun `while the store has not answered, no ad is shown`() {
+        // The startup race. `Unknown` is not Pro, but it is not evidence of Free
+        // either, and an ad shown in that window lands on a learner who may have
+        // paid not to see it.
+        val repository = SubscriptionRepository(FakeGateway(owned = ProEntitlement.Unknown))
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.ENTITLEMENT_UNKNOWN),
+            repository.adAtCompletion(),
+        )
+    }
+
+    @Test
+    fun `Restore purchases removes ads too`() = runBlocking {
+        val repository = SubscriptionRepository(
+            FakeGateway(
+                restoreOutcome = RestoreOutcome.Restored,
+                ownedAfterRestore = ProEntitlement.Pro,
+            ),
+        )
+        repository.restore()
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            repository.adAtCompletion(),
+        )
+    }
+
+    @Test
+    fun `a pending payment does not remove ads`() = runBlocking {
+        // Nothing is owned until Play says `PURCHASED`. A learner mid-payment is
+        // still a free learner, and pretending otherwise would be giving away the
+        // benefit before the money arrives.
+        val repository = SubscriptionRepository(
+            FakeGateway(purchaseOutcome = PurchaseOutcome.Pending),
+        )
+        repository.purchase()
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+    }
+
+    @Test
+    fun `a cancelled purchase does not remove ads`() = runBlocking {
+        val repository = SubscriptionRepository(
+            FakeGateway(purchaseOutcome = PurchaseOutcome.Cancelled),
+        )
+        repository.purchase()
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+    }
+
+    @Test
+    fun `a failed purchase does not remove ads`() = runBlocking {
+        val repository = SubscriptionRepository(
+            FakeGateway(purchaseOutcome = PurchaseOutcome.Failed("card declined")),
+        )
+        repository.purchase()
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+    }
+
+    @Test
+    fun `a purchase claiming success the store cannot confirm does not remove ads`() = runBlocking {
+        // The discrepancy again, in its ad-shaped form: no entitlement, no benefit.
+        val repository = SubscriptionRepository(
+            FakeGateway(
+                purchaseOutcome = PurchaseOutcome.Purchased,
+                ownedAfterPurchase = null,
+            ),
+        )
+        repository.purchase()
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+    }
+
+    @Test
+    fun `an entitlement the store withdraws brings the ads back`() = runBlocking {
+        // A refund. The benefit goes with the entitlement, because there is no
+        // separate flag to be left behind holding it open.
+        val gateway = FakeGateway(
+            purchaseOutcome = PurchaseOutcome.Purchased,
+            ownedAfterPurchase = ProEntitlement.Pro,
+        )
+        val repository = SubscriptionRepository(gateway)
+        repository.purchase()
+        assertEquals(
+            AdDecision.Suppress(AdSuppressed.PRO),
+            repository.adAtCompletion(),
+        )
+
+        gateway.entitlement.value = ProEntitlement.Free
+        repository.refresh()
+        assertEquals(AdDecision.Show, repository.adAtCompletion())
+    }
+
+    @Test
+    fun `the confirmation says the ads are gone, because nothing else would show it`() {
+        // A learner watches the lessons unlock; the only way they would discover
+        // the ads had stopped is by not seeing one. If the dialog does not say it,
+        // the benefit is invisible.
+        val dialog = java.io.File(
+            "src/main/java/com/algorithms/algoking/feature/paywall/ProUnlockedDialog.kt",
+        ).readText()
+        assertTrue(
+            "the purchase confirmation must mention the ads being removed",
+            dialog.contains("ads are now removed"),
+        )
+
+        val paywall = java.io.File(
+            "src/main/java/com/algorithms/algoking/feature/paywall/PaywallScreen.kt",
+        ).readText()
+        assertTrue(
+            "the paywall must list removing ads as a benefit",
+            paywall.contains("Remove all ads"),
+        )
     }
 
     private companion object {

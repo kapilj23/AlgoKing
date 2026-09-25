@@ -399,7 +399,13 @@ private fun AlgoKingApp() {
                 val host = activity
                 val decision = AdPolicy.decide(
                     placement = Placement.LESSON_COMPLETE,
-                    entitlement = entitlement,
+                    // **Read from the repository, not from the composition.** This
+                    // is the last moment before an ad could be presented, and a
+                    // purchase that completed during the settle above must count.
+                    // `collectAsState` is a snapshot that recomposition has to
+                    // catch up to; `entitlement.value` is the store's own answer as
+                    // it stands right now (§13's single source of truth).
+                    entitlement = subscriptions.entitlement.value,
                     completionId = completionId,
                     lastShownForCompletion = lastAdCompletion,
                     adReady = ads?.isReady == true,

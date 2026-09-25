@@ -161,7 +161,12 @@ private fun ProUnlockedCard(
             Gap(Spacing.xxs)
 
             Text(
-                text = "All Pro algorithms and interactive lessons are now unlocked.",
+                // Both halves of what was just bought, because the second one is
+                // invisible: a learner watches the lessons unlock, and the only way
+                // they would ever discover the ads are gone is by not seeing one.
+                // Saying it here is the difference between a benefit they paid for
+                // and one they never notice.
+                text = "All Pro algorithms are unlocked and ads are now removed.",
                 style = AlgoType.bodyMedium,
                 color = AlgoColors.textMuted,
                 textAlign = TextAlign.Center,

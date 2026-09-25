@@ -14,6 +14,7 @@
 | Product type | **One-time product** (`ProductType.INAPP`). **Not a subscription** |
 | Purchase option | **`buy`** — `PlayBillingGateway.PRO_PURCHASE_OPTION_ID` |
 | What it is | a permanent unlock: bought once, nothing to renew, nothing to cancel |
+| What it buys | the fourteen Pro lessons **and the removal of the one ad** — one entitlement, several benefits, no separate "ads removed" flag (ADR-057) |
 | Acknowledged | **yes**, every new `PURCHASED` receipt, within Play's three-day window |
 | Consumed | **never.** Consuming would tell Play the learner has used it up and may buy it again — a Pro unlock re-sold on the next reinstall |
 | Price | Google Play's own localised `formattedPrice`, passed through untouched. **No price, currency or amount is written anywhere in this repository**, and a test asserts it |
