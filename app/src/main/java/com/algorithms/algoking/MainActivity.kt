@@ -28,6 +28,7 @@ import com.algorithms.algoking.billing.PurchaseOutcome
 import com.algorithms.algoking.billing.SubscriptionRepository
 import com.algorithms.algoking.billing.PlayBillingGateway
 import com.algorithms.algoking.data.ProgressRepository
+import com.algorithms.algoking.data.ReviewStore
 import com.algorithms.algoking.engine.catalog.AlgorithmCatalog
 import com.algorithms.algoking.engine.catalog.LessonPack
 import com.algorithms.algoking.engine.core.AlgorithmId
@@ -46,6 +47,10 @@ import com.algorithms.algoking.feature.settings.PrivacyPolicyScreen
 import com.algorithms.algoking.feature.settings.SettingsScreen
 import com.algorithms.algoking.feature.settings.openPlayStoreListing
 import com.algorithms.algoking.feature.settings.rememberVersionLabel
+import com.algorithms.algoking.review.InAppReviewManager
+import com.algorithms.algoking.review.ReviewDecision
+import com.algorithms.algoking.review.ReviewPolicy
+import com.algorithms.algoking.review.ReviewTrigger
 import com.algorithms.algoking.ui.screens.HomeScreen
 import com.algorithms.algoking.ui.screens.algorithmLibrary
 import com.algorithms.algoking.ui.theme.AlgoKingTheme
@@ -54,6 +59,8 @@ import android.content.Context
 import android.content.ContextWrapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.launch
 
 /**
@@ -104,6 +111,12 @@ private fun AlgoKingApp() {
     val context = LocalContext.current
     val progressRepository = remember(context) { ProgressRepository(context) }
     val versionLabel = rememberVersionLabel()
+
+    // Asking for a review: Play's own flow, and the one flag that says it has been
+    // asked. Both are constructed here for the reason `progressRepository` is —
+    // they hold the application context and outlive no more than this composition.
+    val reviewStore = remember(context) { ReviewStore(context) }
+    val reviews = remember(context) { InAppReviewManager(context) }
 
     val progress by progressRepository.progress.collectAsState(LearningProgress.EMPTY)
     val scope = rememberCoroutineScope()
@@ -157,6 +170,11 @@ private fun AlgoKingApp() {
     val activity = remember(context) { context.findActivity() }
     var completionId by rememberSaveable { mutableIntStateOf(0) }
     var lastAdCompletion by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    // The completion the review flow was last attempted for. `rememberSaveable`, so
+    // a rotation cannot hand the same completion a second attempt — the mechanism
+    // `lastAdCompletion` uses above, for the same reason.
+    var lastReviewCompletion by rememberSaveable { mutableStateOf<Int?>(null) }
 
     // A subscription bought mid-session stops ads immediately, including one
     // already in hand: an ad loaded before the purchase must not be shown after
@@ -354,17 +372,29 @@ private fun AlgoKingApp() {
         }
 
         is Route.Complete -> LessonFlow(current.algorithm) { pack ->
-            // **The only ad in the app.** The learner has finished TRY and is
-            // looking at how the run went; the lesson is over, so nothing is
-            // interrupted. Whether it may actually show is `AdPolicy`'s decision,
-            // and the answer is no for a Pro subscriber, no for a completion that
-            // has already had its turn, and no when nothing is loaded — in which
-            // case the learner simply carries on (docs/ads.md).
+            // **What happens after a lesson, in order, in one place.**
+            //
+            // Two things may follow a finished run — the app's only ad, and its
+            // only review prompt — and they must never overlap. So this is one
+            // sequential effect rather than two timers that would have to be kept
+            // from colliding by guessing at each other's durations:
+            //
+            //     settle -> [ad, if any] -> wait for it to be gone -> settle
+            //            -> [review, if eligible]
+            //
+            // A Pro learner has no ad step, so their sequence is simply the two
+            // settles and the ask. A free learner gets the review *after* the ad is
+            // fully dismissed — the ad delays the ask, it does not cancel it.
             LaunchedEffect(completionId, entitlement) {
                 // A beat, so the metrics and the takeaway land before anything
-                // covers them. Completion feedback first; the ad is the thing
-                // that comes after.
+                // covers them. Completion feedback first; everything else comes
+                // after (docs/ads.md).
                 delay(AD_SETTLE_MS)
+
+                // **The only ad in the app.** Whether it may show is `AdPolicy`'s
+                // decision: no for a Pro subscriber, no for a completion that has
+                // already had its turn, and no when nothing is loaded — in which
+                // case the learner simply carries on.
                 val ads = interstitials
                 val host = activity
                 val decision = AdPolicy.decide(
@@ -378,8 +408,55 @@ private fun AlgoKingApp() {
                     // Recorded before the ad opens, so a recomposition while it is
                     // on screen cannot queue a second one.
                     lastAdCompletion = completionId
-                    ads.show(host)
+                    // **Waits for the ad to be completely gone.** `show` calls back
+                    // exactly once however it goes — dismissed, failed to present,
+                    // or nothing to show — so this resumes on every path and the
+                    // review below can never be drawn over an ad. If a callback
+                    // somehow never arrives the effect simply stays suspended, the
+                    // ask is not spent, and the next finished lesson gets it.
+                    suspendCancellableCoroutine { continuation ->
+                        ads.show(host) {
+                            if (continuation.isActive) continuation.resume(Unit) {}
+                        }
+                    }
                 }
+
+                // **The one place the app ever asks for a review**, and the only
+                // trigger there is: a lesson the learner actually finished.
+                //
+                // A second beat, now that the screen is the learner's again. It
+                // separates the ask from whatever just closed, and it means a
+                // learner who taps straight on to the next lesson is gone before it
+                // fires — the ask reaches someone who stayed to read how the run
+                // went, which is when it is most honestly earned.
+                delay(REVIEW_SETTLE_MS)
+                val reviewHost = activity ?: return@LaunchedEffect
+
+                val reviewDecision = ReviewPolicy.decide(
+                    trigger = ReviewTrigger.LESSON_COMPLETE,
+                    // From disk, authoritative, and the reason this is asked once.
+                    // Read here rather than collected into composition: a flow
+                    // collected into state starts at its default, and a `false`
+                    // read a beat before the real value arrived is exactly how a
+                    // learner gets asked twice.
+                    alreadyAsked = reviewStore.asked.first(),
+                    // WATCH *and* TRY. Read from the repository rather than from the
+                    // collected snapshot, which may predate the stage that was just
+                    // finished three lines of navigation ago.
+                    lessonComplete =
+                        progressRepository.progress.first()[current.algorithm].percent == 100,
+                    triedForCompletion = lastReviewCompletion == completionId,
+                )
+                if (reviewDecision !is ReviewDecision.Ask) return@LaunchedEffect
+
+                // Recorded before the attempt, so this completion cannot get a
+                // second one — the rule `lastAdCompletion` follows for the ad.
+                lastReviewCompletion = completionId
+
+                // Play decides whether anything is drawn, and never reports what
+                // the learner did. The flag is set only if the flow was genuinely
+                // handed over, so a failure leaves the ask unspent for next time.
+                if (reviews.launch(reviewHost)) reviewStore.markAsked()
             }
 
             LessonCompleteScreen(
@@ -537,3 +614,20 @@ private fun Context.findActivity(): Activity? {
  * ad still reads as part of the same beat rather than as an ambush later on.
  */
 private const val AD_SETTLE_MS = 1_200L
+
+/**
+ * How long the app waits before asking for a review, measured from the point the
+ * completion screen is the learner's own again.
+ *
+ * For a Pro learner that is right after [AD_SETTLE_MS], because nothing else
+ * happens. For a free learner who was shown the one interstitial it starts when
+ * that ad is **completely dismissed** — the wait is sequential rather than a second
+ * timer racing the first, so the review can never be drawn over an ad and an ad can
+ * only ever *delay* the ask.
+ *
+ * It also quietly selects who gets asked. A learner who taps straight on to the
+ * next lesson is gone before this fires and is never interrupted; the ask reaches
+ * someone who stayed to read how the run went, which is the moment it is most
+ * honestly earned.
+ */
+private const val REVIEW_SETTLE_MS = 1_800L

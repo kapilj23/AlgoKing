@@ -3759,6 +3759,109 @@ green**, because success green is *status* in the algorithm canvas (`DESIGN_SYST
 
 ---
 
+## ADR-056 — The app asks for a review once, after a finished lesson, and never again
+
+**Decision.** Google Play's **In-App Review** API, triggered by exactly one thing — a lesson
+the learner finished — and **once per install**. `ReviewPolicy` decides (pure, table-tested),
+`InAppReviewManager` talks to Play, `ReviewStore` persists the one flag. Settings keeps its own
+manual link to the store listing, unchanged.
+
+⚠ **Product-owner request**, 2026-09-25.
+
+### Play's API, and no rating UI of our own
+
+A star picker or comment box inside the app would be a form that throws its answer away: a
+rating collected anywhere but Play's own sheet cannot be submitted to the store. So the app owns
+the *timing* and Play owns the *interaction*, which is the whole of the integration.
+
+### The trigger is a finished lesson, and there is only one
+
+`ReviewTrigger` has one member, the device `Placement` uses (ADR-042): a prompt cannot be added
+to Home, Settings, the paywall, a billing callback or app launch by writing a call site — it
+takes editing the policy file, which is where that argument belongs. Buying Pro does not trigger
+one, restoring does not, and neither does opening anything.
+
+"Finished" means **progress at 100 %** — WATCH *and* TRY — read from `ProgressRepository` rather
+than from reaching the Complete screen, which a run can do without the stage being recorded.
+Entitlement is deliberately not an input at all: free and Pro are asked on the same terms, and a
+policy that cannot see what someone paid cannot be edited later into treating them differently.
+
+### The ad delays the ask; it does not spend it
+
+A free learner may get the one interstitial on this same screen (ADR-042), and the review must
+never be drawn over it. The coordination is therefore a **sequence**, in one effect:
+
+```
+settle -> [ad, if any] -> wait until it is completely gone -> settle -> [review, if eligible]
+```
+
+**The first design suppressed the review whenever an ad had been shown, and that was wrong.** A
+free learner is shown an ad after essentially every completion, so on a device where ads fill
+reliably the automatic ask would never arrive at all — a permanent silence dressed up as
+politeness. It was caught by the product owner before it shipped.
+
+So the ad is not a rule in `ReviewPolicy`; it is not an input to it, and a test pins the
+parameter list so it cannot become one again. `InterstitialAds.show` already called back exactly
+once however it went — dismissed, failed to present, or nothing to show — so awaiting that
+callback needed no change to the ad layer at all, and every path resumes.
+
+Two settles rather than one timer: `AD_SETTLE_MS` before the ad so the metrics and the takeaway
+land first, and `REVIEW_SETTLE_MS` measured from the screen being the learner's own again — which
+for a Pro learner is straight after the first settle, and for a free learner is after the ad is
+gone. Two independent timers would have had to be kept from colliding by guessing at an ad's
+duration, which is not knowable.
+
+The second settle also selects who is asked: a learner who taps straight on to the next lesson is
+gone before it fires, and the ask reaches someone who stayed to read how the run went.
+
+### "Asked" is the only thing the app can honestly record
+
+Play decides whether the dialog is drawn, applies quotas it does not explain, and **never reports
+what the learner did** — there is no rating, no text, no "they gave five stars" callback. So the
+flag is named for the one observable fact, *the flow was launched*, and a test asserts no file in
+the package contains `hasRated`, `userRated` or their kin. Play showing nothing is not a reason
+to come back and ask again; an app that retried until it saw a dialog would be nagging on Play's
+behalf.
+
+It follows that a **failure does not spend the ask.** `InAppReviewManager.launch` returns false
+when Play never got the flow, the flag is written only on true, and the learner is told nothing
+in either case — the rule ADR-042 set for ad availability, one layer over.
+
+### Once is structural in two places
+
+On disk: `ReviewStore` is one boolean with `markAsked` and **no method that clears it**, so "ask
+again" is not expressible — the additive guarantee ADR-028 gave progress, on the opposite kind of
+value. It is read with `first()` at the moment of the decision, never collected into composition,
+because a flow collected into state starts at its default and a `false` read a beat early is
+exactly how someone gets asked twice.
+
+In memory: the attempt is recorded against the `completionId` **before** the flow is launched, in
+`rememberSaveable`, so recomposition, rotation and a re-entered screen cannot hand one completion
+a second attempt. The same mechanism the interstitial uses, for the same reason.
+
+### One flag, and deliberately not four
+
+A timestamp, an attempt counter and a completed-lessons watermark were considered and left out:
+they only earn their keep against a cooldown or a second milestone, and there is neither. Adding
+a timestamp if a future policy wants one is a smaller change than keeping a field warm on the
+chance.
+
+**Alternatives considered.**
+- *Suppress the review on any completion that showed an ad.* **Built first, and rejected** — see
+  above. It reads as politeness and behaves as never asking a free learner at all.
+- *Show the review the instant the ad dismisses.* Rejected: two modals back to back. The second
+  settle is what makes it a separate beat rather than the ad's sequel.
+- *A cooldown and a second ask at, say, five lessons.* Rejected as the default. One ask is what
+  makes the app feel like it is not selling anything; the manual Settings path covers the learner
+  who decides later.
+- *Trigger on WATCH.* Rejected: half a lesson is not the meaningful progress this follows.
+- *Make Settings → Rate AlgoKing launch the in-app flow.* Rejected: Play may show nothing, and a
+  button that visibly does nothing is worse than one that opens the listing. Manual stays manual.
+- *Persist "they rated".* Rejected — it is not knowable, and a field claiming otherwise would be
+  a fabrication that later code would trust.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any

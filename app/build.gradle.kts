@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.billing)
     implementation(libs.play.services.ads)
+    implementation(libs.play.review)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
