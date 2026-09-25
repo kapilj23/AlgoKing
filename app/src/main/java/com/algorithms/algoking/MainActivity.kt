@@ -40,6 +40,7 @@ import com.algorithms.algoking.feature.lesson.LessonScreen
 import com.algorithms.algoking.feature.lesson.Phase
 import com.algorithms.algoking.feature.lesson.WatchScreen
 import com.algorithms.algoking.feature.paywall.PaywallScreen
+import com.algorithms.algoking.feature.paywall.ProUnlockedDialog
 import com.algorithms.algoking.feature.settings.AboutScreen
 import com.algorithms.algoking.feature.settings.PrivacyPolicyScreen
 import com.algorithms.algoking.feature.settings.SettingsScreen
@@ -117,6 +118,25 @@ private fun AlgoKingApp() {
     val billing by subscriptions.billing.collectAsState()
     val lastOutcome by subscriptions.lastOutcome.collectAsState()
     var purchasing by remember { mutableStateOf(false) }
+
+    // **The receipt, and it is driven by an event rather than by a state.**
+    //
+    // `entitlement` says whether the learner is Pro, and it says it for every
+    // reason they can be — a purchase, a restore, a reinstall, the startup query,
+    // a pending payment clearing, a `BillingClient` reconnect. Congratulating them
+    // is true of exactly one of those, so the trigger is
+    // `subscriptions.proUnlocked`, which `SubscriptionRepository` emits only from a
+    // purchase it just completed and which is **consumed on delivery**.
+    //
+    // `remember` rather than `rememberSaveable`, deliberately. A saved `true` would
+    // come back after process death and congratulate a learner on a purchase they
+    // made last week, which is the one failure worth ruling out here; the cost is
+    // that a rotation while the dialog is open closes it, and a dialog dismissed a
+    // moment early is a smaller wrong than one that reappears on a cold start.
+    var proJustUnlocked by remember { mutableStateOf(false) }
+    LaunchedEffect(subscriptions) {
+        subscriptions.proUnlocked.collect { proJustUnlocked = true }
+    }
 
     // No analytics implementation exists; the events are emitted through the seam
     // ARCHITECTURE.md §10.4 specified and go nowhere until one does.
@@ -381,6 +401,19 @@ private fun AlgoKingApp() {
                 },
             )
         }
+    }
+
+    // **Outside the `when`, on purpose.** By the time a purchase completes, the
+    // effect on the paywall has already closed it into the lesson the learner
+    // tapped — so the dialog belongs to the app rather than to a screen, and it
+    // draws over whatever they landed on with the lessons already unlocked behind
+    // it. Putting it inside the paywall branch would mean either holding that
+    // screen open to show it, or showing it and then navigating out from under it.
+    //
+    // Dismissing only clears the local flag. It cannot reopen the paywall, because
+    // nothing here touches `route`.
+    if (proJustUnlocked) {
+        ProUnlockedDialog(onStartLearning = { proJustUnlocked = false })
     }
 }
 

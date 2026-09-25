@@ -147,6 +147,22 @@ sealed interface PurchaseOutcome {
     data object Unavailable : PurchaseOutcome
 }
 
+/**
+ * *This learner just bought Pro, here, now.*
+ *
+ * An **event**, deliberately carrying nothing. It is not a state, not a flag and
+ * not something that can be asked about later — it happens once, it is delivered
+ * once, and then it is over. The state question, *"is this learner Pro?"*, is
+ * [ProEntitlement]'s and is answered from the store every time; this says only that
+ * the answer changed because of a purchase the learner just completed, which is the
+ * one circumstance worth congratulating.
+ *
+ * Emitted by `SubscriptionRepository.purchase` and by nothing else. A restore, a
+ * reinstall, the startup query and a reconnect all produce the same *entitlement*
+ * and none of them produce this.
+ */
+data object ProUnlocked
+
 /** What came back from "restore purchases". */
 sealed interface RestoreOutcome {
     data object Restored : RestoreOutcome

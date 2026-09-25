@@ -1,7 +1,7 @@
 # AlgoKing Pro — access, paywall and billing
 
 **Status:** UI and **Play Billing both connected**, against a **one-time product** · 2026-09-18 · unit-tested; **on-device pass still outstanding**
-**Decisions:** ADR-041 (the shelf) · ADR-049 and ADR-050 (lessons that are Pro without being on it) · **ADR-051 (one-time product, `buy`)**
+**Decisions:** ADR-041 (the shelf) · ADR-049 and ADR-050 (lessons that are Pro without being on it) · **ADR-051 (one-time product, `buy`)** · **ADR-055 (the purchase confirmation)**
 **Spec:** `PRODUCT_SPEC.md` §1, amended twice
 
 ---
@@ -196,17 +196,52 @@ that looks broken sells nothing (DESIGN_SYSTEM.md §6.3a).
 | State | What happens |
 |---|---|
 | no entitlement | lessons locked, paywall on tap |
-| purchase succeeds | store re-read; the moment it owns Pro the paywall closes into the triggering lesson |
+| purchase succeeds | store re-read; the moment it owns Pro the paywall closes into the triggering lesson, and **"You're All Set!" confirms it** over that lesson (ADR-055) |
 | **pending** | **nothing unlocks.** *"Google Play is still processing the payment. Pro unlocks as soon as it completes."* — neither an error nor a success, and the receipt becomes entitling if and when Play reports `PURCHASED` |
 | cancelled | *"Purchase cancelled. Nothing was charged."* — no error styling, retry available |
 | failed | one quiet line carrying the store's message, retry available |
-| restored | entitlement re-read, lessons unlock |
+| restored | entitlement re-read, lessons unlock — **silently**, with no confirmation dialog |
 | billing unavailable | the reason is stated, CTA disabled, Try again where it can help |
 
 **The paywall closes on entitlement, not on the purchase call returning.** So it
 also closes for a restore, for a pending payment that clears while the screen is
 open, and for the startup query arriving after the learner has already tapped a
 locked lesson — one trigger, and it is still the store's answer (ADR-051).
+
+### The confirmation — *"You're All Set!"*
+
+Closing into the lesson is the unlock; it is not the app *saying* the payment went
+through, and that is the one thing someone who has just paid needs to hear. So a
+completed purchase also raises a confirmation over the lesson it opened, with the
+Pro lessons already unlocked behind it (ADR-055).
+
+**Its trigger is an event, not an entitlement**, and that distinction is the whole
+of its correctness. `entitlement` becomes Pro for six different reasons — a
+purchase, a restore, a reinstall, the startup query, a pending payment clearing, a
+`BillingClient` reconnect — and exactly one of them is worth congratulating. So
+`SubscriptionRepository.purchase` emits `ProUnlocked` and nothing else does, gated
+on the store reporting `PURCHASED` **and** the re-read agreeing the learner is now
+entitled.
+
+| | |
+|---|---|
+| Shown for | a purchase completed in a flow this app launched |
+| **Not** shown for | a restore · a reinstall · the startup query · a reconnect · a `PENDING` payment, including when it later clears · a cancellation · a failure · opening the paywall · tapping Unlock |
+| Shown how often | **once**, for that purchase |
+| Dismissal | *Start Learning*, back press, or a tap outside — all the same thing. It clears a local flag and never touches the route, so it cannot reopen the paywall |
+
+"Once" is structural rather than a flag that gets cleared: the event is a
+`Channel`, so delivery **consumes** it and there is no retained `true` for a
+recomposition, a resume or process death to find. The dialog's visibility is held
+in `remember` and deliberately not `rememberSaveable`, so a cold start cannot
+resurrect it — the cost being that a rotation while it is open closes it, which is
+the smaller wrong.
+
+Visually it is `ProUnlockedDialog`: the app's own card at the app's own 20dp
+radius, the crown tile the paywall opened with, and one `PrimaryButton`. Gold
+rather than green, because success green means *status* on the algorithm canvas and
+gold is the ornament this app already uses for the wordmark's crown, the streak
+bolt and the `PRO` pill (`DESIGN_SYSTEM.md` §0.1, §6.3a).
 
 ## Analytics
 
@@ -221,7 +256,7 @@ No identifiers, no user properties, no free text.
 
 ## Tests
 
-89 JVM unit tests in `:app`, no device needed:
+102 JVM unit tests in `:app`, no device needed:
 
 - **`ProAccessTest`** — exactly fourteen Pro lessons, by name and without duplicates ·
   the whole Advanced shelf is Pro and no free lesson is Advanced · `PRO_LESSONS` names
@@ -263,6 +298,16 @@ No identifiers, no user properties, no free text.
   purchase** · restore works · **clearing local state cannot lose a purchase Play
   still owns** · `Unknown` is neither Pro nor Free · a withdrawn entitlement is
   withdrawn here too · the price is the store's string.
+- **The purchase confirmation** (ADR-055), eleven tests over the same fake gateway,
+  and every one of them is about *which* route to Pro announces itself. A completed
+  purchase unlocks Pro and raises the event, and **taking it a second time finds
+  nothing** — which is how "exactly once" is asserted rather than assumed, and the
+  same read repeated three times stands in for a recomposition. Nothing is announced
+  by: a purchase that reports success while the store owns nothing, a pending
+  payment, **a pending payment that later clears**, a cancellation, a failure, an
+  unavailable store, **Restore purchases finding a real purchase**, a fresh
+  repository over a store that already owns Pro (an app restart), or a reconnect
+  re-reporting the same receipt three times over.
 - **`BillingRulesTest`** — the product id and purchase option are pinned to
   `algoking_pro` / `buy` · only a `PURCHASED` receipt naming this product entitles
   anyone, and `PENDING`, `UNSPECIFIED` and another product's receipt do not · an
@@ -276,8 +321,11 @@ No identifiers, no user properties, no free text.
   purchases are enabled, and **no price, currency or amount is written anywhere in
   the billing package or the paywall**.
 
-Not covered: the paywall's own rendering, which needs a Compose UI test on a
-device, and the real Play Billing flow, which needs Play test tracks.
+Not covered: the paywall's own rendering and the confirmation dialog's, both of
+which need a Compose UI test on a device, and the real Play Billing flow, which
+needs Play test tracks. The *rule* the dialog obeys is covered above — which events
+raise it and which do not — so what a device pass adds is that it draws correctly
+and that dismissing it lands on the unlocked lesson.
 
 ## Still required before release
 
@@ -287,6 +335,13 @@ device, and the real Play Billing flow, which needs Play test tracks.
    paywall closing into the lesson, an app restart still Pro, a reinstall restored
    by **Restore purchases**, a refund taking Pro away on the next start, and — with
    a test instrument — a **pending** payment unlocking nothing until it clears.
+   For the confirmation (ADR-055): it appears once after the purchase with the
+   lessons unlocked behind it, *Start Learning* lands on that lesson and does not
+   reopen the paywall, and it appears **not at all** on the restart, on the
+   reinstall-plus-restore, or while the pending payment is in flight or when it
+   clears. **`MainActivity`'s temporary local dev override has to come out first** —
+   it pins entitlement to `Pro`, so the paywall is unreachable and nothing can be
+   bought.
 2. **A hosted privacy policy URL** for the Play listing. The in-app copy has been
    rewritten for billing — the lessons still send nothing, the paywall asks Google
    Play for the price, and Google handles payment and tells the app one thing back:

@@ -3670,6 +3670,95 @@ which part is live.
 
 ---
 
+## ADR-055 — A completed purchase says so, and it is an event rather than a state
+
+**Decision.** A purchase that completes in a flow this app launched raises a one-shot
+`ProUnlocked` event, and `MainActivity` draws `ProUnlockedDialog` — *"You're All Set!"* —
+over whatever screen the learner has landed on. Entitlement, access, the paywall's
+close-on-entitlement rule, the product id, the purchase option and the gateway are
+unchanged. Full detail: `docs/pro-access.md`.
+
+⚠ **Product-owner request**, 2026-09-25: a successful purchase granted Pro with no visible
+confirmation, and needed one.
+
+### What was wrong
+
+Nothing in the mechanism. ADR-051 got the hard half right: the paywall closes **on
+entitlement**, so it also closes for a restore, for a pending payment that clears, and for
+the startup query arriving late. What that produces for someone who has just paid is the
+screen quietly changing — and *"did that go through?"* is the one question a paid product
+may not leave open. The honest answer was already on the device; the app just never said it.
+
+### The trigger cannot be entitlement, and that is the whole design
+
+`entitlement` is the obvious hook and the wrong one. It answers *"is this learner Pro?"*,
+and it answers it for every reason they can be: a purchase, a restore, a reinstall, the
+startup query, a pending payment clearing an hour later, a `BillingClient` reconnect
+re-reading what the store owns. A congratulation is true of **one** of those. Derived from
+entitlement it would fire for all six — most visibly on every cold start of a paying
+learner's app, which is the app telling someone it has just sold them something it sold
+them last week.
+
+So the trigger is an event, emitted from `SubscriptionRepository.purchase` and nowhere
+else, and gated on **both** halves being true: the store reported `PURCHASED`, *and* the
+re-read says the learner is now entitled. That second clause is not ceremony — it is the
+discrepancy this repository was built to catch (ADR-041), and a dialog announcing an unlock
+that the store does not agree happened would be the worst possible place for it to surface.
+
+### "Exactly once" is structural, not a flag somebody clears
+
+A `Channel` rather than a `StateFlow`: an element is delivered to one collector and is then
+**gone**. There is no retained `true` for a recomposition to re-read, for a resume to find,
+or for process death to restore, so the guarantee holds without anything having to remember
+to reset. That is ADR-042's reasoning for one-interstitial-per-completion applied to a
+purchase — *recomposition is not a thing to be careful about, it is a thing to be immune
+to* — and it is why the tests can prove it by taking the event twice.
+
+`MainActivity` holds the dialog's visibility in `remember`, deliberately **not**
+`rememberSaveable`. A saved `true` would come back after process death and congratulate
+someone on an old purchase, which is the failure worth ruling out; the price is that a
+rotation while the dialog is open closes it, and a dialog dismissed a moment early is a
+smaller wrong than one that reappears on a cold start.
+
+### It is drawn outside the route, over the unlocked lesson
+
+By the time the event arrives the paywall has already closed into the lesson the learner
+tapped. So the dialog belongs to the app rather than to a screen, and it draws over what
+they landed on **with the lessons unlocked behind it** — which is the confirmation, stated
+by the app's own state rather than by the copy. Dismissing it clears a local flag and does
+not touch `route` at all, so it cannot reopen the paywall.
+
+### It is a receipt, not a gate and not a sales moment
+
+One button, dismissible by back press and by a tap outside, and nothing to decide: the
+purchase is done and the unlock has happened. The card is the app's — same 20dp radius,
+same `PrimaryButton`, same crown tile the paywall opened with, and **gold rather than
+green**, because success green is *status* in the algorithm canvas (`DESIGN_SYSTEM.md`
+§0.1) and gold is the ornament the learner has only ever seen mean *nice* (§6.3a).
+
+**Alternatives considered.**
+- *Show it from the purchase callback / the CTA's own coroutine.* Rejected: that is the
+  button's answer rather than the store's, and ADR-041's whole point is that those are
+  different questions. A flow reporting success while the store owns nothing would
+  celebrate.
+- *A `StateFlow<Boolean>` on the repository.* Rejected: a flag is a thing that has to be
+  cleared, by someone, from a screen, correctly, every time — and the failure mode is a
+  dialog that will not go away or one that comes back on resume.
+- *Persist "already congratulated" per purchase token.* Rejected: it is a cache of
+  something that does not need remembering, in the one package where ADR-041 forbids
+  writing purchase state to disk. The event's lifetime is the session, which is exactly as
+  long as the fact is interesting.
+- *Show it on restore as well.* Rejected, and explicitly tested against: restoring is not
+  buying, and "You're all set!" for a months-old purchase reads as the app having lost
+  track of what it sold.
+- *Show it when a `PENDING` payment later clears.* Rejected: Pro arrives through a query
+  while the learner is somewhere else entirely, and a dialog landing over a lesson minutes
+  after they paid is a surprise rather than a confirmation. The lessons simply unlock.
+- *Keep the paywall open to host the dialog.* Rejected: it either holds a screen open that
+  has finished its job, or shows the dialog and then navigates out from under it.
+
+---
+
 ## Open — ⚠ needs owner sign-off
 
 These are recorded as **assumptions currently in force**. Work proceeds on them; overruling any
