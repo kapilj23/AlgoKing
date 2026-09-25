@@ -2025,6 +2025,11 @@ shipping, and it is the exact fake entitlement the design exists to prevent. Con
 billing for real means writing one `BillingGateway` against `BillingClient` and changing one
 construction site.
 
+> **⚠ Revisited by ADR-058 (2026-09-25).** A debug override now exists — but as a *source set*
+> rather than a flag, so the overriding code is not in the release binary at all and there is no
+> branch to invert. The objection above is about a runtime check in shared code and still stands
+> against one. In a release build, Pro still comes only from a verified purchase.
+
 Because of that, the paywall today shows no price and its CTA is disabled with the reason
 stated: *"Pro is not on sale yet."* That is the honest state, and it is better than a number
 nobody will be charged.
@@ -3941,6 +3946,78 @@ app has exactly one ad to remove — which is why neither hedges and neither say
 - *Guard inside `InterstitialAds.show`.* Rejected: that class has no business knowing what a
   learner has paid, and giving it one would put billing into the ad layer that ADR-008 keeps
   clear of it.
+
+---
+
+## ADR-058 — A debug build may pretend; a release build has no such code in it
+
+**Decision.** A **debug** build can force `ProEntitlement.Free` or `Pro`, set in
+`local.properties` and read through `DebugEntitlement`. The **release** build's copy of that
+object is the identity function: the overriding implementation lives in `src/debug/` and is not
+compiled into the release variant at all. Billing, entitlement and the ad and access policies are
+untouched.
+
+⚠ **Product-owner request**, 2026-09-25.
+
+### This reverses ADR-041, and the reversal has to earn it
+
+ADR-041 considered exactly this and refused: *"A debug flag that grants Pro for testing.
+Rejected — it is one merge away from shipping, and it is the exact fake entitlement the design
+exists to prevent."* That judgement was right about the thing it was judging. A runtime
+`if (BuildConfig.DEBUG)` in shared code is one bad merge, one inverted condition or one
+copy-paste from being wrong in release, and nothing about the build would catch it.
+
+What changed is not the risk tolerance but the mechanism. **Source-set separation is not a flag.**
+There is no branch in the release binary to invert, because the other implementation is not in
+it: `src/release/.../DebugEntitlement.kt` returns its argument and mentions no other entitlement,
+`DEBUG_ENTITLEMENT` is emitted for the debug build type only, and a release build that tried to
+read it would not compile. Verified rather than asserted — the release `BuildConfig` has no such
+field, and the release APK contains zero occurrences of the string.
+
+So ADR-041's invariant is intact where it matters: **in a release build Pro still comes from a
+verified, acknowledged Play purchase and from nowhere else.** What has changed is that the
+sentence now says *in a release build*, and that qualifier is carried by the build system rather
+than by a promise.
+
+### The alternative was worse, and it was what was actually happening
+
+The honest reason this is worth building: a hand-edited `val entitlement = ProEntitlement.Pro`
+had been sitting in `MainActivity` under a `⛔ DO NOT COMMIT` banner for days, and it had to be
+stripped out of three consecutive commits by hand. A testing need that does not go away produces
+a hack that does not go away, and the hack lives in the *main* source set, in a tracked file, one
+forgotten `git add -A` from shipping. Refusing to build the safe version does not remove the
+risk; it relocates it somewhere nobody reviews.
+
+### The value is never in a tracked file
+
+`local.properties` is git-ignored and untracked, so there is nothing to remember to revert — the
+default when the property is absent is `STORE`, meaning *do not pretend*, so a fresh clone and CI
+both behave exactly like production. Anything unrecognised — a typo, a blank, `pro` in lower case
+— also means `STORE`: the fallback direction is towards the real answer, because the other
+direction hands out Pro.
+
+### It is applied at the seam, not inside billing
+
+`SubscriptionRepository` and `PlayBillingGateway` are untouched; the store is still queried and
+still answers. The substitution happens at the one place the app turns an entitlement into a
+decision — `MainActivity` — so everything downstream reads an ordinary `ProEntitlement` and
+`ProAccess` and `AdPolicy` behave exactly as they do in production.
+
+Both reads go through it, including the late one immediately before `ads.show`. That is not
+tidiness: without it a debug build told to be `FREE` would still see the store's `Unknown` at
+that guard, which ADR-057 suppresses, and the free path — the one with the ad in it — would be
+the one path still impossible to test.
+
+**Alternatives considered.**
+- *A runtime toggle in Settings.* Rejected for now: nicer for flipping quickly, but it puts
+  debug-only UI in a shared screen and the switch then exists as state rather than as a build
+  input. A rebuild is seconds, and this is used a handful of times.
+- *`if (BuildConfig.DEBUG)` in `MainActivity`.* Rejected — ADR-041's objection, unanswered.
+- *A separate `dev` product flavour.* Rejected: a third variant to configure, sign and keep in
+  step, for what two source-set files do.
+- *Test only against Play's internal track.* Not rejected — it is still the only way to check the
+  real purchase flow, and `docs/pro-access.md` says so. This is for the other ninety per cent,
+  where what is being checked is what the app does *given* an entitlement.
 
 ---
 

@@ -1,3 +1,7 @@
+// Explicit, because inside `android { }` the `java` extension shadows the
+// `java.*` package and `java.util.Properties` will not resolve.
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -19,6 +23,41 @@ android {
         versionName = "5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    /**
+     * **Debug-only entitlement override, for testing the Free and Pro paths.**
+     *
+     * A sideloaded build is not the Play-signed app, so `queryPurchasesAsync`
+     * reports nothing and entitlement sits at `Unknown` forever — which is
+     * neither of the two states worth testing. This lets a debug build pretend,
+     * and it is read from **`local.properties`**, which is git-ignored and
+     * untracked: no tracked file ever holds the value, so there is nothing to
+     * remember to revert.
+     *
+     * ```properties
+     * # local.properties — not in version control
+     * algoking.debug.entitlement=FREE    # or PRO, or STORE
+     * ```
+     *
+     * `STORE` is the default and means *no override at all* — a fresh clone
+     * behaves exactly like production.
+     *
+     * The constant is emitted **only for the debug build type**, so it does not
+     * exist in release, and the code that reads it lives only in
+     * `src/debug/`. A release build therefore cannot use it, cannot reference
+     * it, and would not compile if it tried. That is the structural answer to
+     * ADR-041's objection to a debug Pro flag — *"one merge away from
+     * shipping"* — which a runtime `if (BuildConfig.DEBUG)` in shared code
+     * would not be.
+     */
+    val debugEntitlement: String = run {
+        val properties = Properties()
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            file.inputStream().use { stream -> properties.load(stream) }
+        }
+        properties.getProperty("algoking.debug.entitlement", "STORE").trim().uppercase()
     }
 
     /**
@@ -61,15 +100,25 @@ android {
             if (canSignRelease) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // R8: shrink, optimise and obfuscate. ARCHITECTURE.md §12 has always
+            // required this before a store build; the scaffold shipped with it off.
             optimization {
-                enable = false
+                enable = true
             }
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             // PRODUCTION AdMob app id. Its matching interstitial unit is
             // `AdUnits.PRODUCTION_INTERSTITIAL` — the two share a publisher id and
             // must always be changed together (docs/ads.md).
             manifestPlaceholders["admobAppId"] = "ca-app-pub-2478174291729626~9594340402"
         }
         debug {
+            // What a debug build pretends to own. `STORE` means it does not
+            // pretend at all. Emitted for this build type only — see the note
+            // above `debugEntitlement`, and `src/debug/.../DebugEntitlement.kt`.
+            buildConfigField("String", "DEBUG_ENTITLEMENT", "\"$debugEntitlement\"")
             // Google's TEST app id. A debug build never touches the production
             // account: impressions and clicks from a developer's own device are
             // invalid traffic, and AdMob suspends accounts for it. The unit id is
@@ -83,6 +132,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // For DEBUG_ENTITLEMENT below. Nothing else uses BuildConfig.
+        buildConfig = true
     }
 }
 

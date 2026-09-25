@@ -29,6 +29,7 @@ import com.algorithms.algoking.billing.SubscriptionRepository
 import com.algorithms.algoking.billing.PlayBillingGateway
 import com.algorithms.algoking.data.ProgressRepository
 import com.algorithms.algoking.data.ReviewStore
+import com.algorithms.algoking.devtools.DebugEntitlement
 import com.algorithms.algoking.engine.catalog.AlgorithmCatalog
 import com.algorithms.algoking.engine.catalog.LessonPack
 import com.algorithms.algoking.engine.core.AlgorithmId
@@ -127,7 +128,15 @@ private fun AlgoKingApp() {
     val subscriptions = remember(gateway) { SubscriptionRepository(gateway) }
     // The store connection belongs to this screen, and goes when it does.
     DisposableEffect(gateway) { onDispose { gateway.close() } }
-    val entitlement by subscriptions.entitlement.collectAsState()
+    // What the store says, and then what this build is allowed to make of it.
+    //
+    // In release `DebugEntitlement.override` is the identity function and the
+    // overriding implementation is not in the binary at all — it lives in
+    // `src/debug/`, so Pro still comes only from a verified Play purchase
+    // (ADR-041, ADR-058). In a debug build it may substitute FREE or PRO, from
+    // `local.properties`, so both paths can actually be walked on a device.
+    val storeEntitlement by subscriptions.entitlement.collectAsState()
+    val entitlement = DebugEntitlement.override(storeEntitlement)
     val billing by subscriptions.billing.collectAsState()
     val lastOutcome by subscriptions.lastOutcome.collectAsState()
     var purchasing by remember { mutableStateOf(false) }
@@ -404,8 +413,14 @@ private fun AlgoKingApp() {
                     // purchase that completed during the settle above must count.
                     // `collectAsState` is a snapshot that recomposition has to
                     // catch up to; `entitlement.value` is the store's own answer as
-                    // it stands right now (§13's single source of truth).
-                    entitlement = subscriptions.entitlement.value,
+                    // it stands right now — the single source of truth.
+                    //
+                    // Through the same debug seam as above, so that a debug build
+                    // told to be FREE can actually reach an ad. Without it this one
+                    // read would bypass the override and see `Unknown`, which since
+                    // ADR-057 suppresses — making the free path untestable on a
+                    // sideloaded build. In release the call is the identity.
+                    entitlement = DebugEntitlement.override(subscriptions.entitlement.value),
                     completionId = completionId,
                     lastShownForCompletion = lastAdCompletion,
                     adReady = ads?.isReady == true,

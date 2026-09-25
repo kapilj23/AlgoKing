@@ -328,6 +328,28 @@ needs Play test tracks. The *rule* the dialog obeys is covered above — which e
 raise it and which do not — so what a device pass adds is that it draws correctly
 and that dismissing it lands on the unlocked lesson.
 
+## Testing the two states without a purchase
+
+A sideloaded build is not the Play-signed app, so `queryPurchasesAsync` reports
+nothing and entitlement sits at `Unknown` — which opens no paid lesson and, since
+ADR-057, shows no ad either. So a debug build can be told what to pretend, in
+`local.properties` (git-ignored, untracked):
+
+```properties
+algoking.debug.entitlement=FREE     # ads show, paid lessons locked
+algoking.debug.entitlement=PRO      # no ads, everything unlocked
+algoking.debug.entitlement=STORE    # the default — no override, whatever Play says
+```
+
+Rebuild and reinstall after changing it; it is a build-time constant.
+
+**A release build cannot do this.** The overriding code is in `src/debug/` and the
+release source set's copy of `DebugEntitlement` returns the store's answer
+unchanged; `DEBUG_ENTITLEMENT` is emitted for the debug build type only, so the
+release `BuildConfig` has no such field. Verified: the release APK contains zero
+occurrences of the string. The rule ADR-041 protects is unchanged — in a release
+build Pro comes from a verified, acknowledged purchase and from nowhere else.
+
 ## Still required before release
 
 1. **A device pass against Play.** The product is configured; nothing in this build
@@ -340,9 +362,9 @@ and that dismissing it lands on the unlocked lesson.
    lessons unlocked behind it, *Start Learning* lands on that lesson and does not
    reopen the paywall, and it appears **not at all** on the restart, on the
    reinstall-plus-restore, or while the pending payment is in flight or when it
-   clears. **`MainActivity`'s temporary local dev override has to come out first** —
-   it pins entitlement to `Pro`, so the paywall is unreachable and nothing can be
-   bought.
+   clears. **Set `algoking.debug.entitlement=STORE` (or remove it) in
+   `local.properties` first** — a debug build forced to `PRO` never reaches the
+   paywall, and one forced to `FREE` never reaches a paid lesson (ADR-058).
 2. **A hosted privacy policy URL** for the Play listing. The in-app copy has been
    rewritten for billing — the lessons still send nothing, the paywall asks Google
    Play for the price, and Google handles payment and tells the app one thing back:
