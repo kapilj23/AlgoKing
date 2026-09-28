@@ -606,9 +606,14 @@ fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier =
         }
         if (readout.skippedLoops.isNotEmpty()) {
             Gap(Spacing.xxs)
+            val one = readout.skippedLoops.size == 1
             Text(
-                text = "Not listed: ${readout.skippedLoops.joinToString(", ")} — both ends " +
-                    "are already in the tree, so it would only make a loop.",
+                text = "Not listed: ${readout.skippedLoops.joinToString(", ")} — " +
+                    if (one) {
+                        "both ends are already in the tree, so it would only make a loop."
+                    } else {
+                        "each has both ends already in the tree, so they would only make loops."
+                    },
                 style = AlgoType.bodyMedium,
                 color = AlgoColors.textMuted,
             )

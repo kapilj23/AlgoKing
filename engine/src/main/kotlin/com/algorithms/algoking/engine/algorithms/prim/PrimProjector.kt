@@ -24,8 +24,8 @@ import com.algorithms.algoking.engine.scene.SceneProjector
  *
  * | Means | Edge state |
  * |---|---|
- * | chosen — part of the tree | `PATH` |
- * | leaving the tree — one of the edges being compared | `ACTIVE` |
+ * | chosen — part of the tree | `TREE` (green) |
+ * | leaving the tree — one of the edges being compared | `OPTION` (orange) |
  * | both ends in the tree — it would only make a loop | `ELIMINATED` |
  *
  * So the edges being compared are always the lit ones, and an edge the algorithm
@@ -61,8 +61,8 @@ class PrimProjector : SceneProjector<PrimState> {
                 from = state.graph.indexOf(a),
                 to = state.graph.indexOf(b),
                 state = when {
-                    key in chosen -> EdgeState.PATH
-                    key in crossing && !done -> EdgeState.ACTIVE
+                    key in chosen -> EdgeState.TREE
+                    key in crossing && !done -> EdgeState.OPTION
                     a in state.inTree && b in state.inTree -> EdgeState.ELIMINATED
                     else -> EdgeState.IDLE
                 },

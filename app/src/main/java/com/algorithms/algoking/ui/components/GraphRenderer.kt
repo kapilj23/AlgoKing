@@ -146,7 +146,7 @@ fun GraphStage(
                 val (bx, by) = px(b)
                 EdgeWeight(
                     label = label,
-                    active = edge.state == EdgeState.ACTIVE,
+                    active = edge.state == EdgeState.ACTIVE || edge.state == EdgeState.OPTION,
                     modifier = Modifier.offset(
                         x = (ax + bx) / 2 - Dimens.edgeLabel / 2,
                         y = (ay + by) / 2 - Dimens.edgeLabelHeight / 2,
@@ -212,6 +212,10 @@ private fun DrawScope.drawEdge(from: Offset, to: Offset, state: EdgeState) {
         // A branch into a ruled-out subtree. Still drawn — the structure did not
         // change — but visibly no longer a route the algorithm can take.
         EdgeState.ELIMINATED -> Triple(AlgoColors.border, 2.dp, false)
+        // Prim: the tree in the "In tree" green, the choices in the "Can join"
+        // orange — each edge the colour of the nodes it is about.
+        EdgeState.TREE -> Triple(AlgoViz.sorted, 4.dp, false)
+        EdgeState.OPTION -> Triple(AlgoViz.next, 3.dp, false)
     }
     drawLine(
         color = color,

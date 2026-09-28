@@ -129,4 +129,16 @@ enum class EdgeState {
      * everything they can reach.
      */
     ELIMINATED,
+
+    /**
+     * Chosen and kept — Prim's tree. Drawn in the "In tree" green, so an edge
+     * and the nodes it joins read as one thing.
+     */
+    TREE,
+
+    /**
+     * One of the edges being compared right now — Prim's edges leaving the tree.
+     * Drawn in the "Can join" orange, so the choices are the only orange lines.
+     */
+    OPTION,
 }

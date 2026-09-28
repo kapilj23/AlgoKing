@@ -349,11 +349,11 @@ class PrimTest {
             setOf(it.from, it.to) == setOf(ids.indexOf(a), ids.indexOf(b))
         }.state
 
-        assertEquals(EdgeState.PATH, edge("A", "C"))
-        assertEquals(EdgeState.PATH, edge("C", "B"))
+        assertEquals(EdgeState.TREE, edge("A", "C"))
+        assertEquals(EdgeState.TREE, edge("C", "B"))
         assertEquals(EdgeState.ELIMINATED, edge("A", "B"))
-        assertEquals(EdgeState.ACTIVE, edge("B", "D"))
-        assertEquals(EdgeState.ACTIVE, edge("C", "D"))
+        assertEquals(EdgeState.OPTION, edge("B", "D"))
+        assertEquals(EdgeState.OPTION, edge("C", "D"))
         assertEquals(EdgeState.IDLE, edge("E", "F"))
 
         val state = scene.nodes.associate { it.label to it.state }
