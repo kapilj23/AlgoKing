@@ -826,6 +826,35 @@ private fun GridScene(
             Gap(Spacing.md)
         }
 
+        // A number grid: fixed columns, equal cells, so a pattern in the numbers
+        // shows up as a pattern on the screen.
+        scene.gridColumns?.let { columns ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Dimens.sceneCellGap),
+            ) {
+                scene.cells.sortedBy { it.slot }.chunked(columns).forEach { row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Dimens.sceneCellGap),
+                    ) {
+                        row.forEach { cell ->
+                            SceneCell(
+                                cell = cell,
+                                inRange = region?.contains(cell.slot) ?: false,
+                                selectable = cell.slot in selectableSlots,
+                                onSelect = { onSelectSlot(cell.slot) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        // Keep a short last row's cells the same width as the rest.
+                        repeat(columns - row.size) { Box(Modifier.weight(1f)) }
+                    }
+                }
+            }
+            return
+        }
+
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(

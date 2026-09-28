@@ -1488,6 +1488,114 @@ object Narration {
             NarrationId.LS_IDEA_3 -> "Reach the end without a match: the target is not there."
             NarrationId.LS_IDEA_4 -> "O(n) time, O(1) space. Works on any array — sorted or not."
 
+            // ── Sieve of Eratosthenes ─────────────────────────────────────
+            NarrationId.SV_OPTION_NUMBER -> arg(0)
+            NarrationId.SV_ASK_PICK -> "Which number is the next prime?"
+            NarrationId.SV_ASK_START -> "Where does crossing out the multiples of ${arg(0)} start?"
+            NarrationId.SV_PICKED -> "${arg(0)} is prime."
+            NarrationId.SV_PICKED_LAST ->
+                "${arg(0)} is prime — and ${arg(0)} × ${arg(0)} = ${arg(1)} is past ${arg(2)}."
+
+            NarrationId.SV_STARTED -> "Start at ${arg(1)}."
+            NarrationId.SV_CROSSED ->
+                "${arg(1)} ${plural(1, "number", "numbers")} crossed out by ${arg(0)}."
+
+            NarrationId.SV_FINISHED -> "${arg(0)} primes up to ${arg(1)}."
+
+            NarrationId.SV_HINT_PICK ->
+                "Find the smallest number that is not crossed out and not already marked prime."
+
+            NarrationId.SV_HINT_START ->
+                "Is ${arg(1)} already crossed out? Every multiple of ${arg(0)} below " +
+                    "${arg(0)} × ${arg(0)} has a smaller factor."
+
+            NarrationId.SV_RETRY_PICK_LOOK -> "Look again for the first number still standing."
+            NarrationId.SV_RETRY_PICK_ASK ->
+                "Reading from the start, which number is neither crossed out nor already prime?"
+
+            NarrationId.SV_RETRY_PICK_EXPLAIN ->
+                "${arg(0)} is the first number still standing, so nothing smaller divides it. " +
+                    "It is prime."
+
+            NarrationId.SV_RETRY_START_LOOK -> "Look at ${arg(1)} on the grid. Is it still standing?"
+            NarrationId.SV_RETRY_START_ASK ->
+                "Every multiple of ${arg(0)} below ${arg(2)} has a smaller factor. Where is the " +
+                    "first one that doesn't?"
+
+            NarrationId.SV_RETRY_START_EXPLAIN ->
+                "${arg(1)} is 2 × ${arg(0)} — already crossed out by 2. The first multiple " +
+                    "with no smaller factor is ${arg(0)} × ${arg(0)} = ${arg(2)}."
+
+            NarrationId.SV_WHY_ONE -> "1 is not prime — it has only one divisor, itself."
+            NarrationId.SV_WHY_DONE -> "${arg(0)} is already marked prime. Look for the next one."
+            NarrationId.SV_WHY_CROSSED ->
+                "${arg(0)} is crossed out — it is ${arg(1)} × ${arg(2)}, so it is not prime."
+
+            NarrationId.SV_WHY_NOT_SMALLEST ->
+                "${arg(0)} is still standing, but ${arg(1)} comes first. Always take the " +
+                    "smallest one left."
+
+            NarrationId.SV_WHY_START_DOUBLE ->
+                "${arg(1)} is 2 × ${arg(0)} — 2 already crossed it out. Starting there would " +
+                    "only cross out numbers that are already gone."
+
+            NarrationId.SV_CORRECT_PICK ->
+                "${arg(0)} is still standing, so nothing smaller divides it. It is prime."
+
+            NarrationId.SV_CORRECT_START ->
+                "Right — ${arg(2)} = ${arg(0)} × ${arg(0)}. Everything smaller is already crossed out."
+
+            // ── Sieve of Eratosthenes — WATCH ─────────────────────────────
+            NarrationId.SV_WATCH_SETUP -> "Find every prime up to ${arg(0)} — without dividing anything."
+            NarrationId.SV_WATCH_SETUP_SUPPORT ->
+                "A prime is only divisible by 1 and itself. 1 is not prime, so start from 2. " +
+                    "Take the smallest number still standing — it is prime — and cross out " +
+                    "all its multiples. Repeat."
+
+            NarrationId.SV_WATCH_PICK -> "${arg(0)} is prime."
+            NarrationId.SV_WATCH_PICK_FIRST ->
+                "2 is the smallest number here, and nothing smaller than it divides it. So it is prime."
+
+            NarrationId.SV_WATCH_PICK_WHY ->
+                "${arg(0)} is the smallest number still standing. If anything smaller divided " +
+                    "it, it would already be crossed out."
+
+            NarrationId.SV_WATCH_PICK_STOP ->
+                "But ${arg(0)} × ${arg(0)} = ${arg(1)} is past ${arg(2)}, so ${arg(0)} has " +
+                    "nothing left to cross out. Stop here."
+
+            NarrationId.SV_WATCH_START -> "Start crossing at ${arg(0)} × ${arg(0)} = ${arg(1)}."
+            NarrationId.SV_WATCH_START_WHY ->
+                "Why not at ${arg(1)}? It is 2 × ${arg(0)} — already crossed out. Every " +
+                    "multiple of ${arg(0)} below ${arg(2)} has a smaller factor, so it is " +
+                    "already gone."
+
+            NarrationId.SV_WATCH_CROSS -> "Cross out the multiples of ${arg(0)}: ${arg(1)}."
+            NarrationId.SV_WATCH_CROSS_TWO ->
+                "Every second number from 4. In six columns they fall into straight stripes — " +
+                    "half of everything is gone in one step."
+
+            NarrationId.SV_WATCH_CROSS_WHY ->
+                "Count up in steps of ${arg(0)}. ${arg(1)} ${plural(1, "number", "numbers")} " +
+                    "crossed out here; the ones already gone stay gone."
+
+            NarrationId.SV_WATCH_DONE -> "${arg(0)} primes up to ${arg(1)}."
+            NarrationId.SV_WATCH_DONE_WHY ->
+                "Everything still standing is prime: ${arg(0)}."
+
+            NarrationId.SV_WATCH_INSIGHT -> "Cross out multiples — what survives is prime."
+            NarrationId.SV_WATCH_INSIGHT_SUPPORT ->
+                "The sieve never divides. Each prime crosses out its own multiples, starting " +
+                    "at its square, and only primes up to √n ever need to — after that, " +
+                    "nothing new gets crossed out."
+
+            NarrationId.SV_WATCH_SUMMARY -> "${arg(0)}."
+            NarrationId.SV_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.SV_IDEA_1 -> "Take the smallest number still standing — it is prime."
+            NarrationId.SV_IDEA_2 -> "Cross out its multiples, starting at its square."
+            NarrationId.SV_IDEA_3 -> "Stop once the square is past n. Everything left is prime."
+            NarrationId.SV_IDEA_4 -> "O(n log log n) time, O(n) space — no division anywhere."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

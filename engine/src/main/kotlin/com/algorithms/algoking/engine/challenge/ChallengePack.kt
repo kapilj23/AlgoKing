@@ -153,6 +153,7 @@ object ChallengeCatalog {
         AlgorithmId.BELLMAN_FORD -> null
         AlgorithmId.TOPOLOGICAL_SORT -> null
         AlgorithmId.LINEAR_SEARCH -> null
+        AlgorithmId.SIEVE -> null
         AlgorithmId.BINARY_SEARCH_TREE -> null
         AlgorithmId.AVL_TREE -> null
         AlgorithmId.TREE_INORDER -> null

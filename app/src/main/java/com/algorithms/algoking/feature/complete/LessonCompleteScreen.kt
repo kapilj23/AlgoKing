@@ -447,6 +447,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "is the target's position: last, or missing, means checking all of them. O(n). " +
             "Binary Search does far better, but only on a sorted array."
 
+    AlgorithmId.SIEVE ->
+        "You never divided anything. Each time, the smallest number still standing was " +
+            "prime, and you crossed out its multiples — starting at its square, because " +
+            "everything smaller was already gone. Once the square passed the end, every " +
+            "survivor was prime. O(n log log n)."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

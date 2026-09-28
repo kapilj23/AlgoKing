@@ -46,6 +46,8 @@ val algorithmCategories = listOf(
     // word that lesson exists to correct — the app contradicting itself on the
     // Home screen, in a badge, before the learner has opened anything.
     "Cryptography",
+    // Number ideas rather than data handling. Free, like every shelf but Advanced.
+    "Math",
     // Techniques rather than named routines, and the first place the library
     // gets harder. It is a category like any other so the chip row, the card
     // badge and the filter all work with no new mechanism — PRODUCT_SPEC.md §12.
@@ -327,6 +329,14 @@ val algorithmLibrary = listOf(
         description = "Any input, a 256-bit fingerprint — and no way back.",
         category = "Cryptography",
         accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
+        id = AlgorithmId.SIEVE,
+        title = "Sieve of Eratosthenes",
+        description = "Cross out multiples; every number left standing is prime.",
+        category = "Math",
+        accent = AlgoAccent.Blue,
         glyph = AlgoIcons.TileBars,
     ),
     // Last on the shelf, and the only lesson on it that is Pro (ADR-049). It comes

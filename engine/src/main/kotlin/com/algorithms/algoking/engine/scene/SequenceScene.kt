@@ -72,6 +72,12 @@ data class SequenceScene(
      */
     val showIndices: Boolean = false,
     /**
+     * For [SceneLayout.GRID]: a fixed number of equal columns instead of wrapping
+     * wide boxes — the Sieve's number grid, where 6 columns put the multiples of 2
+     * and 3 in straight stripes. Null keeps the wrapping boxes every mission uses.
+     */
+    val gridColumns: Int? = null,
+    /**
      * The working behind the current step, as data rather than a sentence:
      * `dp[1] + dp[0] = 1`.
      *

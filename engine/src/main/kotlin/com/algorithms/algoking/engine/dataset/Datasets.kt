@@ -1755,3 +1755,19 @@ object LinearSearchDatasets {
         label = "try",
     )
 }
+
+/**
+ * Sieve of Eratosthenes teaching data. The upper limit rides in [Dataset.target].
+ *
+ * WATCH: 1 … 30 — five rows of six. 2, 3 and 5 cross out; 7 × 7 = 49 is past 30,
+ * so 7 is picked and the sieve stops. 10 primes.
+ *
+ * TRY: 1 … 50 — one prime further. 7 × 7 = 49 still fits, so 7 crosses out exactly
+ * one number, and 11 is where it stops. 15 primes.
+ */
+object SieveDatasets {
+
+    val watch = Dataset(values = emptyList(), target = 30, label = "watch")
+
+    val tryIt = Dataset(values = emptyList(), target = 50, label = "try")
+}

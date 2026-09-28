@@ -114,6 +114,9 @@ enum class AlgorithmId {
     // not even sorted — and costs one check per element. What Binary Search beats.
     LINEAR_SEARCH,
 
+    // Math, free: cross out the multiples of each prime; whatever survives is prime.
+    SIEVE,
+
     // Advanced: a technique rather than a named routine. Two cursors walking a
     // sorted array toward each other, discarding a whole column of pairs with
     // every step.

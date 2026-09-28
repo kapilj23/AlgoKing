@@ -41,6 +41,10 @@ import com.algorithms.algoking.engine.dataset.FloydWarshallDatasets
 import com.algorithms.algoking.engine.dataset.BellmanFordDatasets
 import com.algorithms.algoking.engine.dataset.TopologicalSortDatasets
 import com.algorithms.algoking.engine.dataset.LinearSearchDatasets
+import com.algorithms.algoking.engine.dataset.SieveDatasets
+import com.algorithms.algoking.engine.algorithms.sieve.SieveAlgorithm
+import com.algorithms.algoking.engine.algorithms.sieve.SieveProjector
+import com.algorithms.algoking.engine.algorithms.sieve.SieveWatchNarrator
 import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchAlgorithm
 import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchProjector
 import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchWatchNarrator
@@ -410,6 +414,17 @@ object AlgorithmCatalog {
         tryDataset = LinearSearchDatasets.tryIt,
     )
 
+    /** Cross out the multiples of each prime; whatever survives is prime. The first Math lesson. */
+    fun sieve() = LessonPack(
+        id = AlgorithmId.SIEVE,
+        displayName = "Sieve of Eratosthenes",
+        algorithm = SieveAlgorithm(),
+        projector = SieveProjector(),
+        watchNarrator = SieveWatchNarrator(),
+        watchDataset = SieveDatasets.watch,
+        tryDataset = SieveDatasets.tryIt,
+    )
+
     /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
@@ -644,6 +659,7 @@ object AlgorithmCatalog {
     fun byId(id: AlgorithmId): LessonPack<*, *> = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
         AlgorithmId.LINEAR_SEARCH -> linearSearch()
+        AlgorithmId.SIEVE -> sieve()
         AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()
