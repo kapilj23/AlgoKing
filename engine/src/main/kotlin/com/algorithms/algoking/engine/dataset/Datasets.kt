@@ -1771,3 +1771,19 @@ object SieveDatasets {
 
     val tryIt = Dataset(values = emptyList(), target = 50, label = "try")
 }
+
+/**
+ * Euclid's GCD teaching data: the pair rides in [Dataset.values], larger first.
+ *
+ * WATCH: (48, 18) → 12 → 6 → 0. GCD 6 in three steps, all doable in your head.
+ *
+ * TRY: (270, 192) → 78 → 36 → 6 → 0. GCD 6 again but four steps and bigger
+ * numbers — and the first step's quotient (1) and a − b (78) collide with the
+ * remainder, so that question offers two numbers rather than three.
+ */
+object EuclidGcdDatasets {
+
+    val watch = Dataset(values = listOf(48, 18), label = "watch")
+
+    val tryIt = Dataset(values = listOf(270, 192), label = "try")
+}

@@ -117,6 +117,9 @@ enum class AlgorithmId {
     // Math, free: cross out the multiples of each prime; whatever survives is prime.
     SIEVE,
 
+    // Math, free: swap the pair for (b, a mod b) until the remainder is 0.
+    EUCLID_GCD,
+
     // Advanced: a technique rather than a named routine. Two cursors walking a
     // sorted array toward each other, discarding a whole column of pairs with
     // every step.

@@ -65,6 +65,7 @@ class ProAccessTest {
         "XOR Cipher",
         "SHA-256 Hashing",
         "Sieve of Eratosthenes",
+        "Euclid's GCD",
     )
 
     private fun AlgorithmEntry.locked(entitlement: ProEntitlement) =
@@ -123,7 +124,7 @@ class ProAccessTest {
     @Test
     fun `every other lesson is free, including the newest ones`() {
         val free = algorithmLibrary.filterNot { ProAccess.requiresPro(it.category, it.id) }
-        assertEquals(16, free.size)
+        assertEquals(17, free.size)
         // Counting Sort ships free and must stay that way.
         assertTrue(free.any { it.id == AlgorithmId.COUNTING_SORT })
         assertTrue(free.any { it.id == AlgorithmId.BINARY_SEARCH })
@@ -132,9 +133,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 35 lessons, and the partition is total: a lesson that fell out of both
+        // 36 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(35, algorithmLibrary.size)
+        assertEquals(36, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category, it.id) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category, it.id) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -188,7 +189,7 @@ class ProAccessTest {
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
         // The rule applied to the real catalogue rather than to a string: all
-        // nineteen are locked, and none of the sixteen free ones is.
+        // nineteen are locked, and none of the seventeen free ones is.
         for (entry in algorithmLibrary) {
             val expected = if (entry.title in expectedPro) {
                 AccessDecision.ShowPaywall

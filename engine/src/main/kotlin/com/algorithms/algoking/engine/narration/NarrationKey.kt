@@ -758,6 +758,47 @@ enum class NarrationId {
     SV_IDEA_2,
     SV_IDEA_3,
     SV_IDEA_4,
+
+    // ── Euclid's GCD ────────────────────────────────────────────────────────
+    // "Left over" alongside "remainder": the words for doing it by hand.
+    GCD_OPTION_VALUE,
+    GCD_ASK_MOD,
+    GCD_ASK_ANSWER,
+    GCD_STEPPED,
+    GCD_ANSWERED,
+    GCD_HINT_MOD,
+    GCD_HINT_ANSWER,
+    GCD_RETRY_MOD_LOOK,
+    GCD_RETRY_MOD_ASK,
+    GCD_RETRY_MOD_EXPLAIN,
+    GCD_RETRY_ANSWER_LOOK,
+    GCD_RETRY_ANSWER_ASK,
+    GCD_RETRY_ANSWER_EXPLAIN,
+    GCD_WHY_QUOTIENT,
+    GCD_WHY_SUBTRACT_ONCE,
+    GCD_WHY_ZERO,
+    GCD_WHY_START,
+    GCD_CORRECT_MOD,
+    GCD_CORRECT_MOD_ZERO,
+    GCD_CORRECT_ANSWER,
+
+    // ── Euclid's GCD — WATCH walkthrough copy ─────────────────────────────
+    GCD_WATCH_SETUP,
+    GCD_WATCH_SETUP_SUPPORT,
+    GCD_WATCH_STEP,
+    GCD_WATCH_STEP_FIRST,
+    GCD_WATCH_STEP_WHY,
+    GCD_WATCH_STEP_ZERO,
+    GCD_WATCH_DONE,
+    GCD_WATCH_DONE_WHY,
+    GCD_WATCH_INSIGHT,
+    GCD_WATCH_INSIGHT_SUPPORT,
+    GCD_WATCH_SUMMARY,
+    GCD_WATCH_SUMMARY_SUPPORT,
+    GCD_IDEA_1,
+    GCD_IDEA_2,
+    GCD_IDEA_3,
+    GCD_IDEA_4,
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.

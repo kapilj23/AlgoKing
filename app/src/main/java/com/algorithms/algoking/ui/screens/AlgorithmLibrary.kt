@@ -339,6 +339,14 @@ val algorithmLibrary = listOf(
         accent = AlgoAccent.Blue,
         glyph = AlgoIcons.TileBars,
     ),
+    AlgorithmEntry(
+        id = AlgorithmId.EUCLID_GCD,
+        title = "Euclid's GCD",
+        description = "Swap for the remainder until it is 0 — the oldest algorithm there is.",
+        category = "Math",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileBars,
+    ),
     // Last on the shelf, and the only lesson on it that is Pro (ADR-049). It comes
     // after all three on purpose: Caesar and XOR each hide a message with one
     // operation the learner performs by hand, SHA-256 refuses to give one back, and

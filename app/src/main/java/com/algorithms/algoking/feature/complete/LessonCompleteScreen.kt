@@ -453,6 +453,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "everything smaller was already gone. Once the square passed the end, every " +
             "survivor was prime. O(n log log n)."
 
+    AlgorithmId.EUCLID_GCD ->
+        "Each step you divided and kept only what was left over, then moved to the " +
+            "smaller pair. The GCD never changed along the way, because anything dividing " +
+            "both numbers also divides the remainder. At 0 you stopped, and the answer was " +
+            "the number before it. O(log n) steps, even for huge numbers."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

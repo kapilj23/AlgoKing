@@ -42,6 +42,10 @@ import com.algorithms.algoking.engine.dataset.BellmanFordDatasets
 import com.algorithms.algoking.engine.dataset.TopologicalSortDatasets
 import com.algorithms.algoking.engine.dataset.LinearSearchDatasets
 import com.algorithms.algoking.engine.dataset.SieveDatasets
+import com.algorithms.algoking.engine.dataset.EuclidGcdDatasets
+import com.algorithms.algoking.engine.algorithms.gcd.EuclidGcdAlgorithm
+import com.algorithms.algoking.engine.algorithms.gcd.EuclidGcdProjector
+import com.algorithms.algoking.engine.algorithms.gcd.EuclidGcdWatchNarrator
 import com.algorithms.algoking.engine.algorithms.sieve.SieveAlgorithm
 import com.algorithms.algoking.engine.algorithms.sieve.SieveProjector
 import com.algorithms.algoking.engine.algorithms.sieve.SieveWatchNarrator
@@ -425,6 +429,17 @@ object AlgorithmCatalog {
         tryDataset = SieveDatasets.tryIt,
     )
 
+    /** Swap the pair for (b, a mod b) until the remainder is 0. */
+    fun euclidGcd() = LessonPack(
+        id = AlgorithmId.EUCLID_GCD,
+        displayName = "Euclid's GCD",
+        algorithm = EuclidGcdAlgorithm(),
+        projector = EuclidGcdProjector(),
+        watchNarrator = EuclidGcdWatchNarrator(),
+        watchDataset = EuclidGcdDatasets.watch,
+        tryDataset = EuclidGcdDatasets.tryIt,
+    )
+
     /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
@@ -660,6 +675,7 @@ object AlgorithmCatalog {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
         AlgorithmId.LINEAR_SEARCH -> linearSearch()
         AlgorithmId.SIEVE -> sieve()
+        AlgorithmId.EUCLID_GCD -> euclidGcd()
         AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()

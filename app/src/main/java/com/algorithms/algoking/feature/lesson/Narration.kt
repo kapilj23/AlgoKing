@@ -1596,6 +1596,103 @@ object Narration {
             NarrationId.SV_IDEA_3 -> "Stop once the square is past n. Everything left is prime."
             NarrationId.SV_IDEA_4 -> "O(n log log n) time, O(n) space — no division anywhere."
 
+            // ── Euclid's GCD ──────────────────────────────────────────────
+            // A remainder step: 0 a, 1 b, 2 how many times b fits, 3 b × that,
+            // 4 the remainder, 5 a − b. The answer: 0 the GCD, 1 and 2 the start.
+            NarrationId.GCD_OPTION_VALUE -> arg(0)
+            NarrationId.GCD_ASK_MOD -> "What is ${arg(0)} mod ${arg(1)} — what is left over?"
+            NarrationId.GCD_ASK_ANSWER -> "The remainder is 0. What is the GCD of ${arg(1)} and ${arg(2)}?"
+            NarrationId.GCD_STEPPED ->
+                if (count(2) == 0) {
+                    "${arg(0)} mod ${arg(1)} = 0. Stop."
+                } else {
+                    "${arg(0)} mod ${arg(1)} = ${arg(2)}. Next pair: ${arg(1)} and ${arg(2)}."
+                }
+
+            NarrationId.GCD_ANSWERED -> "The GCD is ${arg(0)}."
+
+            NarrationId.GCD_HINT_MOD ->
+                "${arg(1)} fits into ${arg(0)} ${arg(2)} ${plural(2, "time", "times")} — that is " +
+                    "${arg(3)}. What is left over?"
+
+            NarrationId.GCD_HINT_ANSWER -> "The answer is the last number before the 0."
+            NarrationId.GCD_RETRY_MOD_LOOK -> "Look at the two cards: ${arg(3)} fits, so what is ${arg(0)} − ${arg(3)}?"
+            NarrationId.GCD_RETRY_MOD_ASK -> "After taking out as many ${arg(1)}s as fit, what remains of ${arg(0)}?"
+            NarrationId.GCD_RETRY_MOD_EXPLAIN ->
+                "${arg(1)} × ${arg(2)} = ${arg(3)}, and ${arg(0)} − ${arg(3)} = ${arg(4)}. " +
+                    "The remainder is ${arg(4)}."
+
+            NarrationId.GCD_RETRY_ANSWER_LOOK -> "Look at the last row: which number sits next to the 0?"
+            NarrationId.GCD_RETRY_ANSWER_ASK -> "Which number was the last one that was not 0?"
+            NarrationId.GCD_RETRY_ANSWER_EXPLAIN ->
+                "The pair was (${arg(0)}, 0). ${arg(0)} divides itself and 0, so the GCD is ${arg(0)}."
+
+            // Each wrong number is the mistake it encodes.
+            NarrationId.GCD_WHY_QUOTIENT ->
+                "${arg(2)} is how many times ${arg(1)} fits into ${arg(0)} — not what is left. " +
+                    "${arg(0)} − ${arg(3)} = ${arg(4)}."
+
+            NarrationId.GCD_WHY_SUBTRACT_ONCE ->
+                "${arg(5)} takes ${arg(1)} away only once, but it fits ${arg(2)} times: " +
+                    "${arg(0)} − ${arg(3)} = ${arg(4)}."
+
+            NarrationId.GCD_WHY_ZERO ->
+                "0 is where the algorithm stops, not the answer — every number divides 0."
+
+            NarrationId.GCD_WHY_START ->
+                "${arg(1)} is where we started. The answer is the last number before the 0: ${arg(0)}."
+
+            NarrationId.GCD_CORRECT_MOD ->
+                "${arg(0)} − ${arg(3)} = ${arg(4)} left over. The next pair is ${arg(1)} and ${arg(4)}."
+
+            NarrationId.GCD_CORRECT_MOD_ZERO ->
+                "${arg(1)} fits exactly — nothing left over. The remainder is 0, so stop."
+
+            NarrationId.GCD_CORRECT_ANSWER ->
+                "GCD = ${arg(0)}. Check: ${arg(1)} = ${arg(0)} × ${arg(3)} and ${arg(2)} = " +
+                    "${arg(0)} × ${arg(4)}."
+
+            // ── Euclid's GCD — WATCH ──────────────────────────────────────
+            NarrationId.GCD_WATCH_SETUP -> "Find the GCD of ${arg(0)} and ${arg(1)}."
+            NarrationId.GCD_WATCH_SETUP_SUPPORT ->
+                "The GCD — greatest common divisor — is the biggest number that divides both " +
+                    "exactly. Euclid's trick: replace the pair with the smaller number and the " +
+                    "remainder, until the remainder is 0."
+
+            NarrationId.GCD_WATCH_STEP -> "${arg(0)} mod ${arg(1)} = ${arg(4)}."
+            NarrationId.GCD_WATCH_STEP_FIRST ->
+                "${arg(1)} fits into ${arg(0)} ${arg(2)} ${plural(2, "time", "times")} " +
+                    "(${arg(3)}), leaving ${arg(4)}. Anything that divides ${arg(0)} and " +
+                    "${arg(1)} also divides that ${arg(4)} — so swap to the smaller pair " +
+                    "(${arg(1)}, ${arg(4)}). The GCD does not change."
+
+            NarrationId.GCD_WATCH_STEP_WHY ->
+                "${arg(1)} fits ${arg(2)} ${plural(2, "time", "times")} (${arg(3)}), leaving " +
+                    "${arg(4)}. Next pair: (${arg(1)}, ${arg(4)})."
+
+            NarrationId.GCD_WATCH_STEP_ZERO ->
+                "${arg(1)} fits exactly ${arg(2)} times — nothing left over. The remainder is 0: stop."
+
+            NarrationId.GCD_WATCH_DONE -> "The GCD is ${arg(0)}."
+            NarrationId.GCD_WATCH_DONE_WHY ->
+                "It is the last number before the 0. Check: ${arg(1)} = ${arg(0)} × ${arg(3)} " +
+                    "and ${arg(2)} = ${arg(0)} × ${arg(4)}."
+
+            NarrationId.GCD_WATCH_INSIGHT -> "Swap for the remainder — the answer does not change."
+            NarrationId.GCD_WATCH_INSIGHT_SUPPORT ->
+                "gcd(a, b) = gcd(b, a mod b), because anything dividing a and b also divides " +
+                    "what is left over. The numbers shrink fast, so even huge ones need only a " +
+                    "handful of steps — no listing of divisors needed."
+
+            NarrationId.GCD_WATCH_SUMMARY ->
+                "GCD(${arg(0)}, ${arg(1)}) = ${arg(2)}, in ${arg(3)} ${plural(3, "step", "steps")}."
+
+            NarrationId.GCD_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.GCD_IDEA_1 -> "Divide a by b and keep the remainder."
+            NarrationId.GCD_IDEA_2 -> "Replace (a, b) with (b, remainder)."
+            NarrationId.GCD_IDEA_3 -> "When the remainder is 0, the GCD is the last number before it."
+            NarrationId.GCD_IDEA_4 -> "O(log min(a, b)) steps — fast even for huge numbers."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.
