@@ -57,7 +57,29 @@ data class MidpointReadout(val lo: Int, val hi: Int, val mid: Int) {
  * appeared. The rows are in the graph's own order, **not** sorted: a sorted list
  * would put the answer at the top before the learner has compared anything.
  */
-data class CheapestReadout(val rows: List<Row>, val chosen: String) {
+data class CheapestReadout(
+    val rows: List<Row>,
+    val chosen: String,
+    /**
+     * Which row won, when [chosen] can be reached by more than one — Prim lists
+     * every edge leaving the tree, and two of them may lead to the same node.
+     */
+    val chosenVia: String? = null,
+    val mode: Mode = Mode.SUMS,
+    /**
+     * Edges deliberately left out of [rows] because both ends are already in the
+     * tree — `"A – B"`. Prim only; named so the learner sees why they are missing.
+     */
+    val skippedLoops: List<String> = emptyList(),
+) {
+
+    enum class Mode {
+        /** Dijkstra: each row is a route, `distance(via) + weight`. */
+        SUMS,
+
+        /** Prim: each row is one edge, and its weight is the whole number. */
+        EDGES,
+    }
 
     /**
      * One candidate. [via] is null only for the start, which is 0 by definition
@@ -71,8 +93,11 @@ data class CheapestReadout(val rows: List<Row>, val chosen: String) {
         val distance: Int,
     )
 
-    /** The winning distance — the smallest of the rows. */
-    val best: Int get() = rows.first { it.node == chosen }.distance
+    fun isWinner(row: Row): Boolean =
+        row.node == chosen && (chosenVia == null || row.via == chosenVia)
+
+    /** The winning number — the smallest of the rows. */
+    val best: Int get() = rows.first(::isWinner).distance
 }
 
 data class Decision<A : Action>(

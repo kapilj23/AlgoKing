@@ -122,6 +122,11 @@ enum class AlgorithmId {
     // distance — which on an unweighted graph is the same thing as BFS.
     DIJKSTRA,
 
+    // Advanced: the same weighted graph, a different question. Dijkstra finds the
+    // cheapest route to each node; Prim finds the cheapest way to connect them all
+    // — and compares single edges rather than whole routes to do it.
+    PRIM,
+
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.
     BINARY_SEARCH_TREE,

@@ -472,6 +472,42 @@ enum class NarrationId {
     DIJ_IDEA_4,
     DIJ_IDEA_5,
 
+    // ── Prim ──────────────────────────────────────────────────────────────────
+    // Plain words: tree, edge, cheapest, loop. Every line says which edge and what
+    // it costs, so a choice is never a number that simply appeared.
+    PRIM_OPTION_NODE,
+    PRIM_ASK_ADD,
+    PRIM_ADDED,
+    PRIM_HINT_ADD,
+    PRIM_RETRY_LOOK,
+    PRIM_RETRY_ASK,
+    PRIM_RETRY_EXPLAIN,
+    PRIM_WHY_IN_TREE,
+    PRIM_WHY_UNREACHED,
+    PRIM_WHY_NEWEST_ONLY,
+    PRIM_WHY_NOT_CHEAPEST,
+    PRIM_CORRECT_ADD,
+
+    // ── Prim — WATCH walkthrough copy ─────────────────────────────────────
+    PRIM_WATCH_SETUP,
+    PRIM_WATCH_SETUP_SUPPORT,
+    PRIM_WATCH_ADD,
+    PRIM_WATCH_ADD_WHY,
+    PRIM_WATCH_ADD_OLDER,
+    PRIM_WATCH_LOOP,
+    PRIM_WATCH_LOOP_WHY,
+    PRIM_WATCH_DONE,
+    PRIM_WATCH_DONE_WHY,
+    PRIM_WATCH_INSIGHT,
+    PRIM_WATCH_INSIGHT_SUPPORT,
+    PRIM_WATCH_SUMMARY,
+    PRIM_WATCH_SUMMARY_SUPPORT,
+    PRIM_IDEA_1,
+    PRIM_IDEA_2,
+    PRIM_IDEA_3,
+    PRIM_IDEA_4,
+    PRIM_IDEA_5,
+
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.

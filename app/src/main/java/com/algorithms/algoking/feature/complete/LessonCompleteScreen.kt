@@ -411,6 +411,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "safe because every edge costs something — so no route still being explored " +
             "could get there for less. That is also why the weights must be positive."
 
+    AlgorithmId.PRIM ->
+        "Each round you looked at every edge leaving the tree and took the cheapest — " +
+            "from any tree node, not just the newest. Edges between two tree nodes never " +
+            "counted, because they only make loops. n nodes, n − 1 edges, and the least " +
+            "total cost to connect them all. O(E log V) with a heap."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

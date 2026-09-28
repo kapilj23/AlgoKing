@@ -35,6 +35,10 @@ import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraAlgorithm
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraProjector
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraWatchNarrator
 import com.algorithms.algoking.engine.dataset.DijkstraDatasets
+import com.algorithms.algoking.engine.dataset.PrimDatasets
+import com.algorithms.algoking.engine.algorithms.prim.PrimAlgorithm
+import com.algorithms.algoking.engine.algorithms.prim.PrimProjector
+import com.algorithms.algoking.engine.algorithms.prim.PrimWatchNarrator
 import com.algorithms.algoking.engine.algorithms.traversal.InorderRule
 import com.algorithms.algoking.engine.algorithms.traversal.InorderWatchNarrator
 import com.algorithms.algoking.engine.algorithms.traversal.PostorderRule
@@ -305,6 +309,21 @@ object AlgorithmCatalog {
     )
 
     /**
+     * The fourth graph lesson: the same weighted graph Dijkstra uses, a different
+     * question. Not the cheapest route to one node but the cheapest way to connect
+     * them all — and it compares single edges, never running totals.
+     */
+    fun prim() = LessonPack(
+        id = AlgorithmId.PRIM,
+        displayName = "Prim's Algorithm",
+        algorithm = PrimAlgorithm(),
+        projector = PrimProjector(),
+        watchNarrator = PrimWatchNarrator(),
+        watchDataset = PrimDatasets.watch,
+        tryDataset = PrimDatasets.tryIt,
+    )
+
+    /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
      * by reading two cells from the row above.
@@ -542,6 +561,7 @@ object AlgorithmCatalog {
         AlgorithmId.GRAPH_DFS -> graphDfs()
         AlgorithmId.GRAPH_BFS -> graphBfs()
         AlgorithmId.DIJKSTRA -> dijkstra()
+        AlgorithmId.PRIM -> prim()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()

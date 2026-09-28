@@ -931,6 +931,95 @@ object Narration {
                 "DFS goes deep, BFS goes level by level, Dijkstra goes by distance — and " +
                     "where every edge costs 1, that is BFS."
 
+            // ── Prim ──────────────────────────────────────────────────────
+            // Every line names the edge and what it costs. The learner should be
+            // able to say why a node joined, not just which one they tapped.
+            NarrationId.PRIM_OPTION_NODE -> arg(0)
+            NarrationId.PRIM_ASK_ADD -> "Which node joins the tree next?"
+            NarrationId.PRIM_ADDED ->
+                "${arg(0)} joins through ${arg(1)}, which costs ${arg(2)}. Total so far: ${arg(3)}."
+
+            NarrationId.PRIM_HINT_ADD ->
+                "Read the list of edges leaving the tree. Find the smallest number, then " +
+                    "tap the node at the far end of that edge."
+
+            NarrationId.PRIM_RETRY_LOOK -> "Look at the edge weights in the list again."
+            NarrationId.PRIM_RETRY_ASK ->
+                "Of all the edges from the tree to a node outside it, which one is cheapest?"
+
+            NarrationId.PRIM_RETRY_EXPLAIN ->
+                "${arg(0)} costs ${arg(1)}, and no other edge leaving the tree is cheaper. " +
+                    "So ${arg(2)} joins next."
+
+            NarrationId.PRIM_WHY_IN_TREE ->
+                "${arg(0)} is already in the tree. Adding it again would only make a loop."
+
+            NarrationId.PRIM_WHY_UNREACHED ->
+                "No edge from the tree reaches ${arg(0)} yet. A node can only join through " +
+                    "an edge that touches the tree."
+
+            // The classic slip: only looking at the node that joined last.
+            NarrationId.PRIM_WHY_NEWEST_ONLY ->
+                "${arg(0)} (${arg(1)}) is the cheapest edge from ${arg(4)}, but ${arg(2)} " +
+                    "(${arg(3)}) is cheaper. Look at edges from every node in the tree, " +
+                    "not just the newest one."
+
+            NarrationId.PRIM_WHY_NOT_CHEAPEST ->
+                "${arg(0)} can join through ${arg(1)} for ${arg(2)}, but ${arg(3)} costs only " +
+                    "${arg(4)}. Prim always takes the cheapest edge."
+
+            NarrationId.PRIM_CORRECT_ADD ->
+                "${arg(1)} (${arg(2)}) is the cheapest edge leaving the tree, so ${arg(0)} " +
+                    "joins. Total: ${arg(3)}."
+
+            // ── Prim — WATCH ──────────────────────────────────────────────
+            NarrationId.PRIM_WATCH_SETUP -> "Connect every node, for the least total cost."
+            NarrationId.PRIM_WATCH_SETUP_SUPPORT ->
+                "Think of laying cable between ${arg(1)} towns. Start with ${arg(0)} alone in " +
+                    "the tree. Each round, look at every edge from the tree to a node outside " +
+                    "it, and take the cheapest. ${arg(1)} nodes need exactly ${arg(2)} edges."
+
+            NarrationId.PRIM_WATCH_ADD -> "Add ${arg(0)}, through ${arg(1)} (${arg(2)})."
+            NarrationId.PRIM_WATCH_ADD_WHY ->
+                "It is the cheapest edge leaving the tree, so it joins. Total so far: ${arg(2)}."
+
+            NarrationId.PRIM_WATCH_ADD_OLDER ->
+                "Notice it leaves from ${arg(0)}, not from ${arg(1)}, the node that just " +
+                    "joined. Prim looks at edges from every node in the tree. Total so far: ${arg(2)}."
+
+            NarrationId.PRIM_WATCH_LOOP ->
+                "${arg(0)} ${plural(1, "is", "are")} out now."
+
+            NarrationId.PRIM_WATCH_LOOP_WHY ->
+                "Both ends of ${arg(0)} are already in the tree. Using ${plural(1, "it", "them")} " +
+                    "would only make a loop, and a loop adds cost without connecting anything new."
+
+            NarrationId.PRIM_WATCH_DONE ->
+                "Every node is connected. Total cost: ${arg(0)}."
+
+            NarrationId.PRIM_WATCH_DONE_WHY ->
+                "The edges left out — ${arg(0)} — would each have made a loop. What is left " +
+                    "is the cheapest way to connect everything."
+
+            NarrationId.PRIM_WATCH_INSIGHT -> "Always take the cheapest edge out of the tree."
+            NarrationId.PRIM_WATCH_INSIGHT_SUPPORT ->
+                "It is never a mistake. The rest of the graph has to be joined to the tree by " +
+                    "some edge, and the cheapest one out can never make that worse. Edges " +
+                    "inside the tree are never offered, so a loop can never happen."
+
+            NarrationId.PRIM_WATCH_SUMMARY -> "${arg(0)} — total ${arg(1)}."
+            NarrationId.PRIM_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.PRIM_IDEA_1 -> "Start with one node in the tree."
+            NarrationId.PRIM_IDEA_2 -> "List every edge from the tree to a node outside it."
+            NarrationId.PRIM_IDEA_3 -> "Take the cheapest. The node at its far end joins the tree."
+            NarrationId.PRIM_IDEA_4 ->
+                "Skip edges between two tree nodes — they only make loops. n nodes need n − 1 " +
+                    "edges; O(E log V) with a heap."
+
+            NarrationId.PRIM_IDEA_5 ->
+                "Dijkstra adds up whole routes from the start; Prim only ever reads one " +
+                    "edge at a time. Same kind of graph, a different question."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

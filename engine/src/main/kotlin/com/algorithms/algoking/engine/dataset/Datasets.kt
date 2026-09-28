@@ -1280,3 +1280,90 @@ object Sha256Datasets {
             HashQuestion.OUTPUT_SIZE,
         )
 }
+
+/**
+ * Prim teaching data.
+ *
+ * ### WATCH: Dijkstra's graph, on purpose
+ *
+ * The same six nodes and nine weights Dijkstra's lesson uses, so a learner who has
+ * done both sees one graph judged by two different numbers: Dijkstra adds up whole
+ * routes from A, Prim only ever reads one edge. (On this graph the two trees happen
+ * to coincide, so the copy never claims they differ — only that the question does.)
+ *
+ * ```
+ * tree {A}           leaving: A–C 2, A–B 5              -> C  (2)
+ * tree {A,C}         leaving: A–B 5, C–B 1, C–D 9       -> B  (1)    A–B is now a loop
+ * tree {A,C,B}       leaving: C–D 9, B–D 3, B–E 4       -> D  (3)    C–D is now a loop
+ * tree {A,C,B,D}     leaving: B–E 4, D–E 5, D–F 6       -> E  (4)    from B, not newest D
+ * tree {A,C,B,D,E}   leaving: D–F 6, E–F 2              -> F  (2)
+ * total 12
+ * ```
+ *
+ * It makes both mistakes worth making: **the fourth choice leaves from B**, an older
+ * node, while the node that just joined (D) only offers 5 and 6; and **three edges
+ * become loops** along the way, each ruled out on screen. No ties anywhere, so every
+ * decision has exactly one right answer.
+ */
+object PrimDatasets {
+
+    val teachingGraph: Graph get() = DijkstraDatasets.teachingGraph
+
+    /**
+     * TRY gets its own graph, so the answer cannot be recalled from WATCH.
+     *
+     * ```
+     * A–B 3   A–C 1   B–C 2   B–D 5
+     * C–E 4   D–E 6   D–F 7   E–F 3        start A
+     *
+     * tree {A}           A–B 3, A–C 1                   -> C (1)
+     * tree {A,C}         A–B 3, C–B 2, C–E 4            -> B (2)    A–B is now a loop
+     * tree {A,C,B}       C–E 4, B–D 5                   -> E (4)    from C, not newest B
+     * tree {A,C,B,E}     B–D 5, E–D 6, E–F 3            -> F (3)
+     * tree {A,C,B,E,F}   B–D 5, E–D 6, F–D 7            -> D (5)
+     * total 15
+     * ```
+     */
+    val tryGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.02f, y = 0.50f),
+            GraphNode(id = "B", label = "B", x = 0.34f, y = 0.08f),
+            GraphNode(id = "C", label = "C", x = 0.34f, y = 0.92f),
+            GraphNode(id = "D", label = "D", x = 0.66f, y = 0.08f),
+            GraphNode(id = "E", label = "E", x = 0.66f, y = 0.92f),
+            GraphNode(id = "F", label = "F", x = 0.98f, y = 0.50f),
+        ),
+        adjacency = mapOf(
+            "A" to listOf("B", "C"),
+            "B" to listOf("A", "C", "D"),
+            "C" to listOf("A", "B", "E"),
+            "D" to listOf("B", "E", "F"),
+            "E" to listOf("C", "D", "F"),
+            "F" to listOf("D", "E"),
+        ),
+        weights = Graph.weightsOf(
+            Triple("A", "B", 3),
+            Triple("A", "C", 1),
+            Triple("B", "C", 2),
+            Triple("B", "D", 5),
+            Triple("C", "E", 4),
+            Triple("D", "E", 6),
+            Triple("D", "F", 7),
+            Triple("E", "F", 3),
+        ),
+    )
+
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        graph = teachingGraph,
+        startNode = "A",
+    )
+
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        graph = tryGraph,
+        startNode = "A",
+    )
+}

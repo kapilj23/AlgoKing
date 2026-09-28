@@ -536,16 +536,17 @@ fun ComparisonChip(left: Int, symbol: String, right: Int, modifier: Modifier = M
 }
 
 /**
- * How Dijkstra picks the next node, written out.
+ * How the next node is picked, written out — Dijkstra's and Prim's.
  *
- * One line per node that has been reached but not settled, each with the sum that
- * gave it its distance — `A → C   0 + 2 = 2` — so the learner can see exactly which
- * numbers are being compared. With [reveal], the smallest is highlighted and the
- * last line says so: `Smallest: 2 → process C`. Try passes `reveal = false`, so the
- * working is on screen but the comparison is still the learner's to make.
+ * One line per candidate, so the learner can see exactly which numbers are being
+ * compared. Dijkstra's rows are sums — `A → C   0 + 2 = 2` — and Prim's are single
+ * edges — `C – B   1`. With [reveal], the smallest is highlighted and the last line
+ * names it. Try passes `reveal = false`, so the working is on screen but the
+ * comparison is still the learner's to make.
  */
 @Composable
 fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier = Modifier) {
+    val edges = readout.mode == CheapestReadout.Mode.EDGES
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -553,53 +554,80 @@ fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier =
             .padding(horizontal = Spacing.md, vertical = Spacing.sm),
     ) {
         Text(
-            text = "Waiting nodes — distance = previous node + edge",
+            text = if (edges) {
+                "Edges leaving the tree — each one reaches a new node"
+            } else {
+                "Waiting nodes — distance = previous node + edge"
+            },
             style = AlgoType.labelMedium,
             color = AlgoColors.textSecondary,
         )
         Gap(Spacing.xs)
         readout.rows.forEach { row ->
-            val winner = reveal && row.node == readout.chosen
+            val winner = reveal && readout.isWinner(row)
             val tone = if (winner) AlgoColors.primary else AlgoColors.textPrimary
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xxs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = row.via?.let { "$it → ${row.node}" } ?: row.node,
+                    text = when {
+                        edges -> "${row.via} – ${row.node}"
+                        else -> row.via?.let { "$it → ${row.node}" } ?: row.node
+                    },
                     style = AlgoType.labelMedium,
                     color = tone,
                     modifier = Modifier.width(72.dp),
                 )
                 Text(
-                    text = if (row.via == null) {
-                        "start"
-                    } else {
-                        "${row.viaDistance} + ${row.weight}"
+                    text = when {
+                        edges -> "costs"
+                        row.via == null -> "start"
+                        else -> "${row.viaDistance} + ${row.weight}"
                     },
-                    style = AlgoType.numeralMedium,
+                    style = if (edges) AlgoType.labelMedium else AlgoType.numeralMedium,
                     color = AlgoColors.textSecondary,
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = "= ${row.distance}",
+                    text = if (edges) "${row.distance}" else "= ${row.distance}",
                     style = AlgoType.numeralMedium,
                     color = tone,
                 )
                 if (winner) {
                     Gap(Spacing.xs)
-                    Text("◀ smallest", style = AlgoType.labelMedium, color = AlgoColors.primary)
+                    Text(
+                        text = if (edges) "◀ cheapest" else "◀ smallest",
+                        style = AlgoType.labelMedium,
+                        color = AlgoColors.primary,
+                    )
                 }
             }
+        }
+        if (readout.skippedLoops.isNotEmpty()) {
+            Gap(Spacing.xxs)
+            Text(
+                text = "Not listed: ${readout.skippedLoops.joinToString(", ")} — both ends " +
+                    "are already in the tree, so it would only make a loop.",
+                style = AlgoType.bodyMedium,
+                color = AlgoColors.textMuted,
+            )
         }
         if (reveal) {
             Gap(Spacing.xs)
             val values = readout.rows.joinToString(", ") { it.distance.toString() }
+            val winner = readout.rows.first(readout::isWinner)
             Text(
-                text = if (readout.rows.size > 1) {
-                    "Smallest of $values is ${readout.best}  →  process ${readout.chosen}"
-                } else {
-                    "Only one waiting: ${readout.best}  →  process ${readout.chosen}"
+                text = when {
+                    edges && readout.rows.size > 1 ->
+                        "Cheapest of $values is ${readout.best}  →  add ${readout.chosen} " +
+                            "(${winner.via} – ${winner.node})"
+
+                    edges -> "Only one edge: ${readout.best}  →  add ${readout.chosen}"
+                    readout.rows.size > 1 ->
+                        "Smallest of $values is ${readout.best}  →  process ${readout.chosen}"
+
+                    else -> "Only one waiting: ${readout.best}  →  process ${readout.chosen}"
                 },
                 style = AlgoType.titleMedium,
                 color = AlgoColors.primary,
@@ -607,7 +635,11 @@ fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier =
         } else if (readout.rows.size > 1) {
             Gap(Spacing.xs)
             Text(
-                text = "Tap the node with the smallest distance.",
+                text = if (edges) {
+                    "Find the cheapest edge, then tap the node it leads to."
+                } else {
+                    "Tap the node with the smallest distance."
+                },
                 style = AlgoType.bodyMedium,
                 color = AlgoColors.textSecondary,
             )

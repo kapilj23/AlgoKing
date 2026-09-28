@@ -102,6 +102,15 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.PRIM,
+        title = "Prim's Algorithm",
+        description = "Connect every node for the least total cost, one cheap edge at a time.",
+        // Advanced, and so Pro: access follows the category (ADR-041).
+        category = "Advanced",
+        accent = AlgoAccent.Green,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",
