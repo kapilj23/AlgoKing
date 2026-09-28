@@ -120,6 +120,15 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.FLOYD_WARSHALL,
+        title = "Floyd–Warshall",
+        description = "Shortest distance between every pair, one town at a time.",
+        // Advanced, and so Pro: access follows the category (ADR-041).
+        category = "Advanced",
+        accent = AlgoAccent.Blue,
+        glyph = AlgoIcons.TileBars,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",

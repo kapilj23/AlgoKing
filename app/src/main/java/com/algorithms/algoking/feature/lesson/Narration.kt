@@ -1110,6 +1110,117 @@ object Narration {
                 "O(E log E), for the sort. Prim grows one tree from a start; Kruskal joins " +
                     "pieces — and both find the same cheapest total."
 
+            // ── Floyd–Warshall ────────────────────────────────────────────
+            // Arguments, for every pair line: 0 from, 1 to, 2 via, 3 distance now
+            // (∞ written out), 4 first leg, 5 second leg, 6 the detour's total.
+            NarrationId.FW_OPTION_VALUE -> arg(0)
+            NarrationId.FW_ASK ->
+                "${arg(0)} → ${arg(1)} is ${arg(3)} now. Through ${arg(2)} it is ${arg(4)} + " +
+                    "${arg(5)} = ${arg(6)}. What should it be?"
+
+            NarrationId.FW_BEGIN_VIA -> "Now trying every route through ${arg(0)}."
+            NarrationId.FW_UPDATED -> "${arg(0)} → ${arg(1)} is now ${arg(2)}."
+            NarrationId.FW_KEPT -> "${arg(0)} → ${arg(1)} stays ${arg(2)}."
+
+            NarrationId.FW_HINT ->
+                "Compare the two cards: ${arg(3)} now, or ${arg(6)} through ${arg(2)}. Keep " +
+                    "whichever is smaller."
+
+            NarrationId.FW_RETRY_LOOK ->
+                "Look at the two cards again: ${arg(3)} now, ${arg(6)} through ${arg(2)}."
+
+            NarrationId.FW_RETRY_ASK_BETTER ->
+                "${arg(6)} is smaller than ${arg(3)}. Which one is the shorter route?"
+
+            NarrationId.FW_RETRY_ASK_WORSE ->
+                "${arg(6)} is not smaller than ${arg(3)}. Does anything need to change?"
+
+            NarrationId.FW_RETRY_EXPLAIN_UPDATE ->
+                "Going through ${arg(2)} costs ${arg(4)} + ${arg(5)} = ${arg(6)}, less than " +
+                    "${arg(3)}. So ${arg(0)} → ${arg(1)} becomes ${arg(6)}."
+
+            NarrationId.FW_RETRY_EXPLAIN_KEEP ->
+                "Going through ${arg(2)} costs ${arg(6)}, which is not less than ${arg(3)}. " +
+                    "So ${arg(0)} → ${arg(1)} stays ${arg(3)}."
+
+            // The classic slip: counting only the first half of the detour.
+            NarrationId.FW_WHY_ONE_LEG ->
+                "${arg(4)} only gets from ${arg(0)} to ${arg(2)}. The route also needs " +
+                    "${arg(2)} → ${arg(1)} (${arg(5)}): ${arg(4)} + ${arg(5)} = ${arg(6)}."
+
+            NarrationId.FW_WHY_MISSED ->
+                "${arg(6)} through ${arg(2)} is shorter than ${arg(3)}, so keeping ${arg(3)} " +
+                    "would keep the longer route."
+
+            NarrationId.FW_WHY_WORSE ->
+                "${arg(6)} through ${arg(2)} is not shorter than ${arg(3)}. A distance only " +
+                    "ever goes down."
+
+            NarrationId.FW_CORRECT_UPDATE ->
+                "${arg(6)} beats ${arg(3)}, so ${arg(0)} → ${arg(1)} now goes through ${arg(2)}."
+
+            NarrationId.FW_CORRECT_KEEP ->
+                "${arg(6)} is no better than ${arg(3)}, so ${arg(0)} → ${arg(1)} keeps ${arg(3)}."
+
+            // ── Floyd–Warshall — WATCH ────────────────────────────────────
+            NarrationId.FW_WATCH_SETUP -> "Find the shortest distance between every pair of towns."
+            NarrationId.FW_WATCH_SETUP_SUPPORT ->
+                "The table starts with the direct roads: 0 from a town to itself, the road's " +
+                    "length where there is one, and ∞ where there is none. Then, one town at " +
+                    "a time, ask of every pair: is going through this town shorter? " +
+                    "${arg(0)} towns means ${arg(0)} rounds."
+
+            NarrationId.FW_WATCH_ROUND -> "Round ${arg(0)}: going through ${arg(1)}."
+            NarrationId.FW_WATCH_ROUND_FIRST ->
+                "For every pair, add the two legs through ${arg(0)} and compare with the " +
+                    "table. A pair with an ∞ leg is passed over — ∞ plus anything is still ∞."
+
+            NarrationId.FW_WATCH_ROUND_WHY ->
+                "Same question, new town: is going through ${arg(0)} shorter than what the " +
+                    "table says now?"
+
+            NarrationId.FW_WATCH_UPDATE -> "${arg(0)} → ${arg(1)}: ${arg(3)} → ${arg(6)}."
+            NarrationId.FW_WATCH_UPDATE_WHY ->
+                "Through ${arg(2)}: ${arg(4)} + ${arg(5)} = ${arg(6)}, shorter than ${arg(3)}. " +
+                    "The table takes the shorter one."
+
+            NarrationId.FW_WATCH_UPDATE_BUILT ->
+                "Through ${arg(2)}: ${arg(4)} + ${arg(5)} = ${arg(6)}, shorter than ${arg(3)}. " +
+                    "And ${arg(7)} → ${arg(8)} = ${arg(9)} is not a road — an earlier round " +
+                    "found it. So this route really passes through more than one town."
+
+            NarrationId.FW_WATCH_KEEP -> "${arg(0)} → ${arg(1)} stays ${arg(3)}."
+            NarrationId.FW_WATCH_KEEP_WHY ->
+                "Through ${arg(2)}: ${arg(4)} + ${arg(5)} = ${arg(6)}, which is not shorter " +
+                    "than ${arg(3)}. Checking a route does not mean using it."
+
+            NarrationId.FW_WATCH_DONE -> "Every pair now holds its shortest distance."
+            NarrationId.FW_WATCH_DONE_WHY ->
+                "${arg(0)} rounds, one through each town. A shortest route can only pass " +
+                    "through these towns, so there is nothing shorter left to find."
+
+            NarrationId.FW_WATCH_INSIGHT -> "Long routes are built from short ones."
+            NarrationId.FW_WATCH_INSIGHT_SUPPORT ->
+                "Each round can use what earlier rounds found. So a route through several " +
+                    "towns appears one town at a time — Floyd–Warshall never has to look " +
+                    "for long routes on purpose."
+
+            NarrationId.FW_WATCH_SUMMARY ->
+                "All ${arg(0)} pairs, each at its shortest distance."
+
+            NarrationId.FW_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.FW_IDEA_1 ->
+                "Start the table with the direct roads: 0 on the diagonal, ∞ where there is no road."
+
+            NarrationId.FW_IDEA_2 -> "One round per town k: try going through k."
+            NarrationId.FW_IDEA_3 ->
+                "For every pair i, j: if i → k + k → j is shorter than i → j, replace it."
+
+            NarrationId.FW_IDEA_4 -> "Later rounds reuse earlier results — that is how long routes appear."
+            NarrationId.FW_IDEA_5 ->
+                "O(V³) time, O(V²) space. Dijkstra answers from one start; this answers " +
+                    "every pair at once."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

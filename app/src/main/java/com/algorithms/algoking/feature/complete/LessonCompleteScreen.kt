@@ -423,6 +423,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "Same group — skip it, because it would only make a loop. Stop at n − 1 edges. " +
             "O(E log E), for the sort — and the same cheapest total Prim finds."
 
+    AlgorithmId.FLOYD_WARSHALL ->
+        "One round per town, and one question for every pair: is going through this " +
+            "town shorter than what the table says? Each round reuses what earlier rounds " +
+            "found, so routes through several towns appear without being looked for. " +
+            "O(V³) time and O(V²) space — every pair's shortest distance at once."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

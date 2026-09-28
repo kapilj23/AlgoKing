@@ -191,8 +191,10 @@ fun GraphStage(
             }
         }
 
-        Gap(Spacing.sm)
-        TraversalStrip(scene)
+        if (scene.showStrips) {
+            Gap(Spacing.sm)
+            TraversalStrip(scene)
+        }
     }
 }
 

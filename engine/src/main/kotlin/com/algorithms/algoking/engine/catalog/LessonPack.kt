@@ -37,6 +37,10 @@ import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraWatchNarrator
 import com.algorithms.algoking.engine.dataset.DijkstraDatasets
 import com.algorithms.algoking.engine.dataset.PrimDatasets
 import com.algorithms.algoking.engine.dataset.KruskalDatasets
+import com.algorithms.algoking.engine.dataset.FloydWarshallDatasets
+import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallAlgorithm
+import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallProjector
+import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallWatchNarrator
 import com.algorithms.algoking.engine.algorithms.kruskal.KruskalAlgorithm
 import com.algorithms.algoking.engine.algorithms.kruskal.KruskalProjector
 import com.algorithms.algoking.engine.algorithms.kruskal.KruskalWatchNarrator
@@ -342,6 +346,20 @@ object AlgorithmCatalog {
     )
 
     /**
+     * Shortest distances between every pair at once: a table, and one question asked
+     * of every cell, round after round — is going through k shorter?
+     */
+    fun floydWarshall() = LessonPack(
+        id = AlgorithmId.FLOYD_WARSHALL,
+        displayName = "Floyd–Warshall",
+        algorithm = FloydWarshallAlgorithm(),
+        projector = FloydWarshallProjector(),
+        watchNarrator = FloydWarshallWatchNarrator(),
+        watchDataset = FloydWarshallDatasets.watch,
+        tryDataset = FloydWarshallDatasets.tryIt,
+    )
+
+    /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
      * by reading two cells from the row above.
@@ -581,6 +599,7 @@ object AlgorithmCatalog {
         AlgorithmId.DIJKSTRA -> dijkstra()
         AlgorithmId.PRIM -> prim()
         AlgorithmId.KRUSKAL -> kruskal()
+        AlgorithmId.FLOYD_WARSHALL -> floydWarshall()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()

@@ -149,6 +149,7 @@ object ChallengeCatalog {
         AlgorithmId.DIJKSTRA -> null
         AlgorithmId.PRIM -> null
         AlgorithmId.KRUSKAL -> null
+        AlgorithmId.FLOYD_WARSHALL -> null
         AlgorithmId.BINARY_SEARCH_TREE -> null
         AlgorithmId.AVL_TREE -> null
         AlgorithmId.TREE_INORDER -> null

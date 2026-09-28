@@ -55,6 +55,12 @@ data class GraphScene(
     /** The target, when the lesson is a search: "TARGET 60". */
     val badge: Badge? = null,
     val legendLabels: Map<CellState, String> = emptyMap(),
+    /**
+     * Whether the strips under the graph are drawn at all. False only for a graph
+     * drawn as a small picture inside another scene — Floyd–Warshall's roads above
+     * its table — where a visit order would mean nothing.
+     */
+    val showStrips: Boolean = true,
 ) : Scene
 
 /**

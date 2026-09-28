@@ -1463,3 +1463,103 @@ object KruskalDatasets {
 
     val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph)
 }
+
+/**
+ * Floyd–Warshall teaching data: four towns, so the table is 4 × 4 and every number
+ * in it fits on a phone.
+ *
+ * ### WATCH
+ *
+ * ```
+ *        B               A–B 2   B–C 3   C–D 1
+ *      /  |  \           A–D 10  B–D 7    (no road A–C)
+ *    A    |    C
+ *      \  |  /
+ *        D
+ *
+ * round A:  B→D  2+10 = 12 vs 7    keep        (B→C, C→D: an ∞ leg, passed over)
+ * round B:  A→C  2+3  = 5  vs ∞    UPDATE 5
+ *           A→D  2+7  = 9  vs 10   UPDATE 9
+ *           C→D  3+7  = 10 vs 1    keep
+ * round C:  A→B  5+3  = 8  vs 2    keep
+ *           A→D  5+1  = 6  vs 9    UPDATE 6    ← uses A→C = 5 from round B:
+ *                                                 really A → B → C → D
+ *           B→D  3+1  = 4  vs 7    UPDATE 4
+ * round D:  A→B 10, A→C 7, B→C 5 — all keep
+ * ```
+ *
+ * Ten comparisons, four updates, and one of them is the lesson: A → D is improved
+ * twice, the second time through a distance that is not a road. No comparison is a
+ * tie, so every decision has exactly one right answer.
+ */
+object FloydWarshallDatasets {
+
+    val teachingGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.04f, y = 0.50f),
+            GraphNode(id = "B", label = "B", x = 0.50f, y = 0.06f),
+            GraphNode(id = "C", label = "C", x = 0.96f, y = 0.50f),
+            GraphNode(id = "D", label = "D", x = 0.50f, y = 0.94f),
+        ),
+        adjacency = mapOf(
+            "A" to listOf("B", "D"),
+            "B" to listOf("A", "C", "D"),
+            "C" to listOf("B", "D"),
+            "D" to listOf("A", "B", "C"),
+        ),
+        weights = Graph.weightsOf(
+            Triple("A", "B", 2),
+            Triple("B", "C", 3),
+            Triple("C", "D", 1),
+            Triple("A", "D", 10),
+            Triple("B", "D", 7),
+        ),
+    )
+
+    /**
+     * TRY: a different graph, so no number carries over.
+     *
+     * ```
+     *        B               A–B 4   A–C 1   B–C 2
+     *      / | \             B–D 5   C–D 8    (no road A–D)
+     *    A   |   D
+     *      \ | /
+     *        C
+     *
+     * round A:  B→C  4+1 = 5  vs 2    keep
+     * round B:  A→C  4+2 = 6  vs 1    keep
+     *           A→D  4+5 = 9  vs ∞    UPDATE 9
+     *           C→D  2+5 = 7  vs 8    UPDATE 7
+     * round C:  A→B  1+2 = 3  vs 4    UPDATE 3
+     *           A→D  1+7 = 8  vs 9    UPDATE 8    ← C→D = 7 came from round B:
+     *                                                really A → C → B → D
+     *           B→D  2+7 = 9  vs 5    keep
+     * round D:  A→B 13, A→C 15, B→C 12 — all keep
+     * ```
+     */
+    val tryGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "A", label = "A", x = 0.04f, y = 0.50f),
+            GraphNode(id = "B", label = "B", x = 0.50f, y = 0.06f),
+            GraphNode(id = "C", label = "C", x = 0.50f, y = 0.94f),
+            GraphNode(id = "D", label = "D", x = 0.96f, y = 0.50f),
+        ),
+        adjacency = mapOf(
+            "A" to listOf("B", "C"),
+            "B" to listOf("A", "C", "D"),
+            "C" to listOf("A", "B", "D"),
+            "D" to listOf("B", "C"),
+        ),
+        weights = Graph.weightsOf(
+            Triple("A", "B", 4),
+            Triple("A", "C", 1),
+            Triple("B", "C", 2),
+            Triple("B", "D", 5),
+            Triple("C", "D", 8),
+        ),
+    )
+
+    val watch = Dataset(values = emptyList(), label = "watch", graph = teachingGraph)
+
+    val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph)
+}

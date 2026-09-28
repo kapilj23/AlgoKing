@@ -132,6 +132,10 @@ enum class AlgorithmId {
     // does not close a loop, and let separate pieces merge.
     KRUSKAL,
 
+    // Advanced: shortest distances between every pair at once. One table, and one
+    // question asked of every cell, round after round: is going through k shorter?
+    FLOYD_WARSHALL,
+
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.
     BINARY_SEARCH_TREE,

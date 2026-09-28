@@ -66,6 +66,11 @@ fun DpTable(
     onSelectSlot: (Int) -> Unit = {},
 ) {
     Column(modifier.fillMaxWidth()) {
+        // The roads the table is about, when it is about a graph.
+        scene.graph?.let { graph ->
+            GraphStage(graph, Modifier.fillMaxWidth())
+        }
+
         if (scene.items.isNotEmpty()) {
             ItemCards(scene.items)
             Gap(Spacing.sm)
@@ -404,7 +409,7 @@ private fun ChoiceCard(side: ChoiceSide, tone: Color, modifier: Modifier = Modif
         )
         Text(
             // `?` while this side is still the question.
-            text = side.value?.toString() ?: "?",
+            text = side.valueLabel ?: side.value?.toString() ?: "?",
             style = AlgoType.numeralMedium,
             color = if (chosen) tone else AlgoColors.textPrimary,
         )

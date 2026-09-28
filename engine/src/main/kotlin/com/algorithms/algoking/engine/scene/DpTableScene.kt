@@ -49,6 +49,12 @@ data class DpTableScene(
     val meters: List<MeterReadout> = emptyList(),
     /** Renames a cell state in the legend, as [SequenceScene.legendLabels] does. */
     val legendLabels: Map<CellState, String> = emptyMap(),
+    /**
+     * A small picture of the graph the table is about, drawn above it —
+     * Floyd–Warshall's roads. Null for every table that is not about a graph,
+     * so Knapsack, Fibonacci and SHA-256 draw exactly as before.
+     */
+    val graph: GraphScene? = null,
 ) : Scene {
     val columnCount: Int get() = columnHeaders.size
 }
@@ -85,6 +91,8 @@ data class ChoiceSide(
     /** Null while this side is still the question — it reads `?`. */
     val value: Int?,
     val emphasis: ChoiceEmphasis = ChoiceEmphasis.OPEN,
+    /** Drawn instead of [value] when the number is not a number — Floyd–Warshall's ∞. */
+    val valueLabel: String? = null,
 )
 
 enum class ChoiceEmphasis {

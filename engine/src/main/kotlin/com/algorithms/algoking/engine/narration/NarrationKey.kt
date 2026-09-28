@@ -546,6 +546,49 @@ enum class NarrationId {
     KR_IDEA_4,
     KR_IDEA_5,
 
+    // ── Floyd–Warshall ────────────────────────────────────────────────────────
+    // One question in plain words — "is going through K shorter?" — and every
+    // line writes the detour out as its two legs.
+    FW_OPTION_VALUE,
+    FW_ASK,
+    FW_BEGIN_VIA,
+    FW_UPDATED,
+    FW_KEPT,
+    FW_HINT,
+    FW_RETRY_LOOK,
+    FW_RETRY_ASK_BETTER,
+    FW_RETRY_ASK_WORSE,
+    FW_RETRY_EXPLAIN_UPDATE,
+    FW_RETRY_EXPLAIN_KEEP,
+    FW_WHY_ONE_LEG,
+    FW_WHY_MISSED,
+    FW_WHY_WORSE,
+    FW_CORRECT_UPDATE,
+    FW_CORRECT_KEEP,
+
+    // ── Floyd–Warshall — WATCH walkthrough copy ───────────────────────────
+    FW_WATCH_SETUP,
+    FW_WATCH_SETUP_SUPPORT,
+    FW_WATCH_ROUND,
+    FW_WATCH_ROUND_FIRST,
+    FW_WATCH_ROUND_WHY,
+    FW_WATCH_UPDATE,
+    FW_WATCH_UPDATE_WHY,
+    FW_WATCH_UPDATE_BUILT,
+    FW_WATCH_KEEP,
+    FW_WATCH_KEEP_WHY,
+    FW_WATCH_DONE,
+    FW_WATCH_DONE_WHY,
+    FW_WATCH_INSIGHT,
+    FW_WATCH_INSIGHT_SUPPORT,
+    FW_WATCH_SUMMARY,
+    FW_WATCH_SUMMARY_SUPPORT,
+    FW_IDEA_1,
+    FW_IDEA_2,
+    FW_IDEA_3,
+    FW_IDEA_4,
+    FW_IDEA_5,
+
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.
