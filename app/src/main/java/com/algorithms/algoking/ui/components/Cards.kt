@@ -678,7 +678,7 @@ fun EdgeListChip(readout: EdgeListReadout, modifier: Modifier = Modifier) {
             .padding(horizontal = Spacing.md, vertical = Spacing.sm),
     ) {
         Text(
-            text = "All edges, cheapest first",
+            text = readout.title,
             style = AlgoType.labelMedium,
             color = AlgoColors.textSecondary,
         )
@@ -689,6 +689,7 @@ fun EdgeListChip(readout: EdgeListReadout, modifier: Modifier = Modifier) {
                 EdgeListReadout.Status.SKIPPED -> Triple("✗", "loop — skipped", AlgoColors.textMuted)
                 EdgeListReadout.Status.NEXT -> Triple("▶", "next", AlgoViz.next)
                 EdgeListReadout.Status.WAITING -> Triple("", "", AlgoColors.textPrimary)
+                EdgeListReadout.Status.CHECKED -> Triple("–", "no change", AlgoColors.textSecondary)
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xxs),
@@ -713,7 +714,7 @@ fun EdgeListChip(readout: EdgeListReadout, modifier: Modifier = Modifier) {
                     modifier = Modifier.width(40.dp),
                 )
                 Text(
-                    text = note,
+                    text = row.note ?: note,
                     style = AlgoType.labelMedium,
                     color = tone,
                 )
@@ -721,7 +722,8 @@ fun EdgeListChip(readout: EdgeListReadout, modifier: Modifier = Modifier) {
         }
         Gap(Spacing.xs)
         Text(
-            text = "Groups: " + readout.groups.joinToString("  ") { it.joinToString(", ", "{", "}") },
+            text = readout.footer
+                ?: ("Groups: " + readout.groups.joinToString("  ") { it.joinToString(", ", "{", "}") }),
             style = AlgoType.titleMedium,
             color = AlgoColors.primary,
         )

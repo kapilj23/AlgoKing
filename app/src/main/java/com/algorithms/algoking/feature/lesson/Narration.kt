@@ -1221,6 +1221,124 @@ object Narration {
                 "O(V³) time, O(V²) space. Dijkstra answers from one start; this answers " +
                     "every pair at once."
 
+            // ── Bellman–Ford ──────────────────────────────────────────────
+            // Arguments, for every road line: 0 from, 1 to, 2 distance of from,
+            // 3 the road's length (with a real minus sign), 4 the route's total,
+            // 5 the distance of to now (∞ written out).
+            NarrationId.BF_OPTION_VALUE -> arg(0)
+            NarrationId.BF_ASK ->
+                "${arg(0)} is ${arg(2)}, and the road ${arg(0)} → ${arg(1)} is ${arg(3)}, so " +
+                    "this route costs ${arg(4)}. ${arg(1)} is ${arg(5)} now. What should it be?"
+
+            NarrationId.BF_BEGIN_PASS -> "Pass ${arg(0)} of ${arg(1)}: every road, in order."
+            NarrationId.BF_BEGIN_CHECK -> "One more pass, just to check."
+            NarrationId.BF_UPDATED -> "${arg(0)} is now ${arg(1)}."
+            NarrationId.BF_KEPT -> "${arg(0)} stays ${arg(1)}."
+
+            NarrationId.BF_HINT ->
+                "Add the road to where it starts: ${arg(2)} + ${arg(3)} = ${arg(4)}. Is that " +
+                    "less than ${arg(5)}?"
+
+            NarrationId.BF_RETRY_LOOK -> "This route costs ${arg(4)}. ${arg(1)} is ${arg(5)} now."
+            NarrationId.BF_RETRY_ASK_BETTER ->
+                "${arg(4)} is smaller than ${arg(5)}. Which is the shorter route?"
+
+            NarrationId.BF_RETRY_ASK_WORSE ->
+                "${arg(4)} is not smaller than ${arg(5)}. Does anything need to change?"
+
+            NarrationId.BF_RETRY_EXPLAIN_UPDATE ->
+                "${arg(2)} + ${arg(3)} = ${arg(4)}, less than ${arg(5)}. So ${arg(1)} becomes ${arg(4)}."
+
+            NarrationId.BF_RETRY_EXPLAIN_KEEP ->
+                "${arg(2)} + ${arg(3)} = ${arg(4)}, which is not less than ${arg(5)}. So " +
+                    "${arg(1)} stays ${arg(5)}."
+
+            // The classic slip, the same one Dijkstra names: the road without the route.
+            NarrationId.BF_WHY_WEIGHT_ONLY ->
+                "${arg(3)} is only the road. Add where it starts: ${arg(2)} + ${arg(3)} = ${arg(4)}."
+
+            NarrationId.BF_WHY_MISSED ->
+                "${arg(4)} is shorter than ${arg(5)}, so keeping ${arg(5)} would keep the longer route."
+
+            NarrationId.BF_WHY_WORSE ->
+                "${arg(4)} is not shorter than ${arg(5)}. A distance only ever goes down."
+
+            NarrationId.BF_CORRECT_UPDATE ->
+                "${arg(4)} beats ${arg(5)}, so ${arg(1)} now comes through ${arg(0)}."
+
+            NarrationId.BF_CORRECT_KEEP ->
+                "${arg(4)} is no better than ${arg(5)}, so ${arg(1)} keeps ${arg(5)}."
+
+            // ── Bellman–Ford — WATCH ──────────────────────────────────────
+            NarrationId.BF_WATCH_SETUP -> "Shortest routes from ${arg(0)} — even with a negative road."
+            NarrationId.BF_WATCH_SETUP_SUPPORT ->
+                "Every town starts at ∞ except ${arg(0)}, which is 0. Go down the list of " +
+                    "one-way roads, in order, and for each one ask: does it give its end a " +
+                    "shorter distance? Then do the whole list again — at most ${arg(2)} times " +
+                    "for ${arg(1)} towns."
+
+            NarrationId.BF_WATCH_PASS -> "Pass ${arg(0)} of ${arg(1)}."
+            NarrationId.BF_WATCH_PASS_FIRST ->
+                "A road that starts at a town still at ∞ cannot help yet, so it is passed over."
+
+            NarrationId.BF_WATCH_PASS_AGAIN ->
+                "Distances changed last pass, so go down the list again: a new distance can " +
+                    "make the roads that start there useful."
+
+            NarrationId.BF_WATCH_CHECK -> "One more pass, just to check."
+            NarrationId.BF_WATCH_CHECK_WHY ->
+                "${arg(0)} passes are enough for any shortest route — unless there is a " +
+                    "negative cycle, a loop that gets cheaper every time round. If any road " +
+                    "still lowers a distance now, there is one."
+
+            NarrationId.BF_WATCH_UPDATE -> "${arg(1)}: ${arg(5)} → ${arg(4)}."
+            NarrationId.BF_WATCH_UPDATE_WHY ->
+                "${arg(0)} is ${arg(2)} and the road is ${arg(3)}, so the route costs " +
+                    "${arg(4)} — shorter than ${arg(5)}."
+
+            NarrationId.BF_WATCH_UPDATE_NEGATIVE ->
+                "${arg(0)} is ${arg(2)} and this road is ${arg(3)} — negative — so going " +
+                    "through ${arg(0)} makes ${arg(1)} cheaper: ${arg(4)}, down from ${arg(5)}. " +
+                    "Nothing was ever settled, so there is nothing to undo."
+
+            NarrationId.BF_WATCH_KEEP -> "${arg(1)} stays ${arg(5)}."
+            NarrationId.BF_WATCH_KEEP_WHY ->
+                "${arg(0)} is ${arg(2)} and the road is ${arg(3)}, so this route costs " +
+                    "${arg(4)} — no better than ${arg(5)}."
+
+            NarrationId.BF_WATCH_DONE_EARLY -> "Pass ${arg(0)} changed nothing — done."
+            NarrationId.BF_WATCH_DONE_EARLY_WHY ->
+                "If a whole pass lowers nothing, the next one would not either. Every " +
+                    "distance is final, and there is no negative cycle."
+
+            NarrationId.BF_WATCH_DONE_CHECKED -> "Nothing dropped in the check pass — done."
+            NarrationId.BF_WATCH_DONE_CHECKED_WHY ->
+                "Every distance is final, and there is no negative cycle."
+
+            NarrationId.BF_WATCH_CYCLE -> "A distance still dropped — negative cycle."
+            NarrationId.BF_WATCH_CYCLE_WHY ->
+                "Some loop gets cheaper every time round, so there is no shortest route to " +
+                    "the towns it reaches."
+
+            NarrationId.BF_WATCH_INSIGHT -> "Repeat until nothing changes."
+            NarrationId.BF_WATCH_INSIGHT_SUPPORT ->
+                "Bellman–Ford never decides a town is finished. It just relaxes every road, " +
+                    "pass after pass. That is slower than Dijkstra, but it is why a negative " +
+                    "road cannot fool it."
+
+            NarrationId.BF_WATCH_SUMMARY -> "${arg(0)}."
+            NarrationId.BF_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.BF_IDEA_1 -> "Start at 0; every other town is ∞."
+            NarrationId.BF_IDEA_2 ->
+                "One pass: every road u → v in order — if dist(u) + w < dist(v), lower it."
+
+            NarrationId.BF_IDEA_3 -> "Repeat, at most V − 1 passes. Stop early if a pass changes nothing."
+            NarrationId.BF_IDEA_4 ->
+                "One more pass that still lowers something means a negative cycle."
+
+            NarrationId.BF_IDEA_5 ->
+                "O(V · E) time, O(V) space. Slower than Dijkstra — but negative roads are fine."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

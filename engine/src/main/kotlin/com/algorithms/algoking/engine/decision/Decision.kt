@@ -113,10 +113,26 @@ data class EdgeListReadout(
     val rows: List<Row>,
     /** Connected groups, each in graph order, the groups ordered by first member. */
     val groups: List<List<String>>,
+    /** The table's heading. Kruskal's is the default. */
+    val title: String = "All edges, cheapest first",
+    /**
+     * The line under the rows, in place of the groups — Bellman–Ford's distances.
+     * Null draws the groups, which is Kruskal.
+     */
+    val footer: String? = null,
 ) {
-    enum class Status { TAKEN, SKIPPED, NEXT, WAITING }
+    enum class Status {
+        TAKEN,
+        SKIPPED,
+        NEXT,
+        WAITING,
 
-    data class Row(val label: String, val weight: Int, val status: Status)
+        /** Looked at and left alone — Bellman–Ford's "no change". Neutral, not a failure. */
+        CHECKED,
+    }
+
+    /** [note] replaces the status's default word — "improved to 4" rather than "taken". */
+    data class Row(val label: String, val weight: Int, val status: Status, val note: String? = null)
 }
 
 data class Decision<A : Action>(

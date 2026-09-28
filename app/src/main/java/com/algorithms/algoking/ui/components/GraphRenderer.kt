@@ -33,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.Canvas
@@ -128,7 +129,13 @@ fun GraphStage(
                 scene.edges.forEach { edge ->
                     val a = scene.nodes.getOrNull(edge.from) ?: return@forEach
                     val b = scene.nodes.getOrNull(edge.to) ?: return@forEach
-                    drawEdge(point(a), point(b), edge.state)
+                    drawEdge(
+                        point(a),
+                        point(b),
+                        edge.state,
+                        // One-way roads stop at the circle's rim, where the arrow sits.
+                        arrowGap = if (scene.directed) (Dimens.graphNode / 2).toPx() else null,
+                    )
                 }
             }
 
@@ -205,7 +212,12 @@ fun GraphStage(
  * backtrack will unwind. `BACKTRACK` is dashed, because the step it describes is
  * a retreat rather than progress, and it is the half of DFS learners lose.
  */
-private fun DrawScope.drawEdge(from: Offset, to: Offset, state: EdgeState) {
+private fun DrawScope.drawEdge(
+    from: Offset,
+    to: Offset,
+    state: EdgeState,
+    arrowGap: Float? = null,
+) {
     val (color, width, dashed) = when (state) {
         EdgeState.IDLE -> Triple(AlgoColors.borderStrong, 2.dp, false)
         EdgeState.PATH -> Triple(AlgoViz.pointer, 3.dp, false)
@@ -219,10 +231,29 @@ private fun DrawScope.drawEdge(from: Offset, to: Offset, state: EdgeState) {
         EdgeState.TREE -> Triple(AlgoViz.sorted, 4.dp, false)
         EdgeState.OPTION -> Triple(AlgoViz.next, 3.dp, false)
     }
+    // A one-way edge ends in an arrowhead touching the target's rim, and the line
+    // stops short of it so the head reads cleanly.
+    val dx = to.x - from.x
+    val dy = to.y - from.y
+    val length = kotlin.math.sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
+    val ux = dx / length
+    val uy = dy / length
+    val head = 12.dp.toPx()
+    val tip = if (arrowGap != null) Offset(to.x - ux * arrowGap, to.y - uy * arrowGap) else to
+    val end = if (arrowGap != null) Offset(tip.x - ux * head * 0.8f, tip.y - uy * head * 0.8f) else to
+    if (arrowGap != null) {
+        val arrow = Path().apply {
+            moveTo(tip.x, tip.y)
+            lineTo(tip.x - ux * head - uy * head * 0.55f, tip.y - uy * head + ux * head * 0.55f)
+            lineTo(tip.x - ux * head + uy * head * 0.55f, tip.y - uy * head - ux * head * 0.55f)
+            close()
+        }
+        drawPath(arrow, color)
+    }
     drawLine(
         color = color,
         start = from,
-        end = to,
+        end = end,
         strokeWidth = width.toPx(),
         cap = StrokeCap.Round,
         pathEffect = if (dashed) {

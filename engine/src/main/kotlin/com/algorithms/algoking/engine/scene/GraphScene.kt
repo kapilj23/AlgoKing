@@ -61,6 +61,8 @@ data class GraphScene(
      * its table — where a visit order would mean nothing.
      */
     val showStrips: Boolean = true,
+    /** Draw each edge with an arrowhead at its `to` end — Bellman–Ford's one-way roads. */
+    val directed: Boolean = false,
 ) : Scene
 
 /**

@@ -6,6 +6,7 @@ import com.algorithms.algoking.engine.core.BinaryTree
 import com.algorithms.algoking.engine.core.XorProblem
 import com.algorithms.algoking.engine.core.CipherProblem
 import com.algorithms.algoking.engine.core.Dataset
+import com.algorithms.algoking.engine.core.DirectedEdge
 import com.algorithms.algoking.engine.core.Graph
 import com.algorithms.algoking.engine.core.GraphNode
 import com.algorithms.algoking.engine.core.HashProblem
@@ -1562,4 +1563,86 @@ object FloydWarshallDatasets {
     val watch = Dataset(values = emptyList(), label = "watch", graph = teachingGraph)
 
     val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph)
+}
+
+/**
+ * Bellman–Ford teaching data: four towns, five one-way roads, one of them negative.
+ *
+ * Both runs use the same four positions and the same five roads — A → B, A → C,
+ * B → C, B → D, C → D, no crossings — and differ in their lengths and, above all,
+ * in the **order** the roads are listed, because the order is what the lesson is
+ * about.
+ *
+ * ### WATCH: a bad order, so the answer takes every pass
+ *
+ * ```
+ * order: C→D 2, B→C −3, B→D 6, A→B 4, A→C 5          start A
+ *
+ * pass 1:  C→D, B→C, B→D start at ∞          A→B: B = 4   A→C: C = 5
+ * pass 2:  C→D: D = 7   B→C: 4 − 3 = 1 < 5, C = 1   B→D: 10 vs 7 keep
+ *          A→B: same   A→C: 5 vs 1 keep
+ * pass 3:  C→D: 1 + 2 = 3 < 7, D = 3   B→D: 10 vs 3 keep   A→C: keep
+ * check:   nothing drops — no negative cycle
+ * final:   A 0, B 4, C 1, D 3        (D is A → B → C → D = 4 − 3 + 2)
+ * ```
+ *
+ * Nine comparisons, and D improves twice — once in each pass after the first —
+ * which is exactly why the list has to be walked more than once.
+ */
+object BellmanFordDatasets {
+
+    private val nodes = listOf(
+        GraphNode(id = "A", label = "A", x = 0.04f, y = 0.50f),
+        GraphNode(id = "B", label = "B", x = 0.50f, y = 0.06f),
+        GraphNode(id = "C", label = "C", x = 0.50f, y = 0.94f),
+        GraphNode(id = "D", label = "D", x = 0.96f, y = 0.50f),
+    )
+
+    /** Node positions only: the roads live in [DirectedEdge] lists, which may be negative. */
+    val places = Graph(nodes = nodes, adjacency = emptyMap())
+
+    val watchEdges = listOf(
+        DirectedEdge("C", "D", 2),
+        DirectedEdge("B", "C", -3),
+        DirectedEdge("B", "D", 6),
+        DirectedEdge("A", "B", 4),
+        DirectedEdge("A", "C", 5),
+    )
+
+    /**
+     * TRY: a good order, so pass 1 already finds everything — and pass 2, changing
+     * nothing, is what proves it.
+     *
+     * ```
+     * order: A→B 3, A→C 7, B→C −2, C→D 4, B→D 6          start A
+     *
+     * pass 1:  B = 3, C = 7, then B→C: 3 − 2 = 1 < 7, C = 1, then C→D: D = 5,
+     *          B→D: 9 vs 5 keep
+     * pass 2:  A→C: 7 vs 1 keep   B→D: 9 vs 5 keep   — nothing changed, stop
+     * final:   A 0, B 3, C 1, D 5
+     * ```
+     */
+    val tryEdges = listOf(
+        DirectedEdge("A", "B", 3),
+        DirectedEdge("A", "C", 7),
+        DirectedEdge("B", "C", -2),
+        DirectedEdge("C", "D", 4),
+        DirectedEdge("B", "D", 6),
+    )
+
+    val watch = Dataset(
+        values = emptyList(),
+        label = "watch",
+        graph = places,
+        startNode = "A",
+        directedEdges = watchEdges,
+    )
+
+    val tryIt = Dataset(
+        values = emptyList(),
+        label = "try",
+        graph = places,
+        startNode = "A",
+        directedEdges = tryEdges,
+    )
 }

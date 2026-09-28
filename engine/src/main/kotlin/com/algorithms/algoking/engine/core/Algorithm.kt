@@ -39,6 +39,14 @@ data class Dataset(
      */
     val targetNode: String? = null,
     /**
+     * One-way roads, in the order they are processed — Bellman–Ford's whole input.
+     *
+     * Not [graph]'s edges: those are undirected and must be positive, and
+     * Bellman–Ford exists for roads that are neither. The graph still supplies the
+     * node positions. Empty for every other lesson.
+     */
+    val directedEdges: List<DirectedEdge> = emptyList(),
+    /**
      * A binary search tree, for a lesson whose data is a tree rather than an
      * array or a graph — BST search walks one.
      *
@@ -135,6 +143,10 @@ enum class AlgorithmId {
     // Advanced: shortest distances between every pair at once. One table, and one
     // question asked of every cell, round after round: is going through k shorter?
     FLOYD_WARSHALL,
+
+    // Advanced: Dijkstra's question on roads that can be negative. Nothing is ever
+    // settled; every road is relaxed, pass after pass, until nothing changes.
+    BELLMAN_FORD,
 
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.

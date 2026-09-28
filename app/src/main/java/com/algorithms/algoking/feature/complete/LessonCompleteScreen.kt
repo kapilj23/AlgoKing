@@ -429,6 +429,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "found, so routes through several towns appear without being looked for. " +
             "O(V³) time and O(V²) space — every pair's shortest distance at once."
 
+    AlgorithmId.BELLMAN_FORD ->
+        "You went down the list of roads, pass after pass, lowering any distance a road " +
+            "could beat — even through a negative road, because nothing is ever settled. " +
+            "A pass that changes nothing means every distance is final. At most V − 1 " +
+            "passes; one more that still lowers something means a negative cycle. O(V · E)."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

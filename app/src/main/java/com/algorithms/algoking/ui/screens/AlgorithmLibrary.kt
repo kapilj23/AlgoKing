@@ -129,6 +129,15 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileBars,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.BELLMAN_FORD,
+        title = "Bellman–Ford",
+        description = "Shortest routes that survive a negative road, pass after pass.",
+        // Advanced, and so Pro: access follows the category (ADR-041).
+        category = "Advanced",
+        accent = AlgoAccent.Pink,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",

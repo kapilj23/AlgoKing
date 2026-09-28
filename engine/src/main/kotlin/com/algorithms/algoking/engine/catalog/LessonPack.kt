@@ -38,6 +38,10 @@ import com.algorithms.algoking.engine.dataset.DijkstraDatasets
 import com.algorithms.algoking.engine.dataset.PrimDatasets
 import com.algorithms.algoking.engine.dataset.KruskalDatasets
 import com.algorithms.algoking.engine.dataset.FloydWarshallDatasets
+import com.algorithms.algoking.engine.dataset.BellmanFordDatasets
+import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordAlgorithm
+import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordProjector
+import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordWatchNarrator
 import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallAlgorithm
 import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallProjector
 import com.algorithms.algoking.engine.algorithms.floydwarshall.FloydWarshallWatchNarrator
@@ -360,6 +364,20 @@ object AlgorithmCatalog {
     )
 
     /**
+     * Dijkstra's question on roads that may be negative: relax every road, pass
+     * after pass, until a pass changes nothing.
+     */
+    fun bellmanFord() = LessonPack(
+        id = AlgorithmId.BELLMAN_FORD,
+        displayName = "Bellman–Ford",
+        algorithm = BellmanFordAlgorithm(),
+        projector = BellmanFordProjector(),
+        watchNarrator = BellmanFordWatchNarrator(),
+        watchDataset = BellmanFordDatasets.watch,
+        tryDataset = BellmanFordDatasets.tryIt,
+    )
+
+    /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
      * by reading two cells from the row above.
@@ -600,6 +618,7 @@ object AlgorithmCatalog {
         AlgorithmId.PRIM -> prim()
         AlgorithmId.KRUSKAL -> kruskal()
         AlgorithmId.FLOYD_WARSHALL -> floydWarshall()
+        AlgorithmId.BELLMAN_FORD -> bellmanFord()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()
