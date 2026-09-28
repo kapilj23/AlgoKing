@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.algorithms.algoking.engine.decision.CheapestReadout
+import com.algorithms.algoking.engine.decision.EdgeListReadout
 import com.algorithms.algoking.ui.icons.AlgoIcons
 import com.algorithms.algoking.ui.theme.AlgoAccent
 import com.algorithms.algoking.ui.theme.AlgoColors
@@ -649,5 +650,80 @@ fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier =
                 color = AlgoColors.textSecondary,
             )
         }
+    }
+}
+
+/**
+ * Kruskal's working: every edge, cheapest first, and what happened to it — then
+ * which nodes are already connected.
+ *
+ * ```
+ * All edges, cheapest first
+ * ✓  E – F    1   taken
+ * ✗  B – C    4   loop
+ * ▶  D – E    5   next
+ *    D – F    6
+ * Groups: {A, B, C}  {D}  {E, F}
+ * ```
+ *
+ * The groups line is the evidence every take-or-skip turns on: an edge whose two
+ * ends sit in the same group would only make a loop.
+ */
+@Composable
+fun EdgeListChip(readout: EdgeListReadout, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AlgoColors.primarySoft, Radius.card)
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+    ) {
+        Text(
+            text = "All edges, cheapest first",
+            style = AlgoType.labelMedium,
+            color = AlgoColors.textSecondary,
+        )
+        Gap(Spacing.xs)
+        readout.rows.forEach { row ->
+            val (mark, note, tone) = when (row.status) {
+                EdgeListReadout.Status.TAKEN -> Triple("✓", "taken", AlgoViz.sorted)
+                EdgeListReadout.Status.SKIPPED -> Triple("✗", "loop — skipped", AlgoColors.textMuted)
+                EdgeListReadout.Status.NEXT -> Triple("▶", "next", AlgoViz.next)
+                EdgeListReadout.Status.WAITING -> Triple("", "", AlgoColors.textPrimary)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xxs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = mark,
+                    style = AlgoType.labelMedium,
+                    color = tone,
+                    modifier = Modifier.width(24.dp),
+                )
+                Text(
+                    text = row.label,
+                    style = AlgoType.labelMedium,
+                    color = tone,
+                    modifier = Modifier.width(72.dp),
+                )
+                Text(
+                    text = "${row.weight}",
+                    style = AlgoType.numeralMedium,
+                    color = tone,
+                    modifier = Modifier.width(40.dp),
+                )
+                Text(
+                    text = note,
+                    style = AlgoType.labelMedium,
+                    color = tone,
+                )
+            }
+        }
+        Gap(Spacing.xs)
+        Text(
+            text = "Groups: " + readout.groups.joinToString("  ") { it.joinToString(", ", "{", "}") },
+            style = AlgoType.titleMedium,
+            color = AlgoColors.primary,
+        )
     }
 }

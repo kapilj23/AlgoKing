@@ -44,6 +44,7 @@ import com.algorithms.algoking.ui.components.AlgoHeader
 import com.algorithms.algoking.ui.components.AlgoScreen
 import com.algorithms.algoking.ui.components.CelebrationBanner
 import com.algorithms.algoking.ui.components.CheapestChip
+import com.algorithms.algoking.ui.components.EdgeListChip
 import com.algorithms.algoking.ui.components.DecisionButton
 import com.algorithms.algoking.ui.components.DecisionTone
 import com.algorithms.algoking.ui.components.Gap
@@ -176,6 +177,11 @@ fun <S : Any, A : Action> LessonScreen(
                                 ?.let { it.level >= 3 } == true
                             Gap(Spacing.md)
                             CheapestChip(readout, reveal = plainly)
+                        }
+                        // Kruskal: the sorted list and the groups the question turns on.
+                        ui.decision?.edgeList?.let { readout ->
+                            Gap(Spacing.md)
+                            EdgeListChip(readout)
                         }
 
                         // The decision. Watch answers its own; here the learner does.

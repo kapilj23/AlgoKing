@@ -12,6 +12,7 @@ import com.algorithms.algoking.engine.decision.Decision
 import com.algorithms.algoking.engine.decision.DecisionKind
 import com.algorithms.algoking.engine.decision.DecisionValidation
 import com.algorithms.algoking.engine.decision.CheapestReadout
+import com.algorithms.algoking.engine.decision.EdgeListReadout
 import com.algorithms.algoking.engine.decision.MidpointReadout
 import com.algorithms.algoking.engine.decision.Validation
 import com.algorithms.algoking.engine.event.Metrics
@@ -42,6 +43,8 @@ data class DecisionUi<A : Action>(
     val midpoint: MidpointReadout? = null,
     /** The candidates a "which is cheapest?" decision compares, with their sums. */
     val cheapest: CheapestReadout? = null,
+    /** Kruskal's sorted edge list and groups. */
+    val edgeList: EdgeListReadout? = null,
 )
 
 /**
@@ -249,6 +252,7 @@ class LessonController<S : Any, A : Action>(
         kind = decision.kind,
         midpoint = decision.midpoint,
         cheapest = decision.cheapest,
+        edgeList = decision.edgeList,
         cellActions = decision.options
             .mapNotNull { option -> option.slot?.let { it to option.action } }
             .toMap(),

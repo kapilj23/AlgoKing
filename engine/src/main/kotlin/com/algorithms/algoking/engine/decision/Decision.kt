@@ -100,6 +100,25 @@ data class CheapestReadout(
     val best: Int get() = rows.first(::isWinner).distance
 }
 
+/**
+ * Kruskal's whole working, written out: every edge in the order it will be looked
+ * at — cheapest first — with what happened to each, and which nodes are already
+ * connected to which.
+ *
+ * The groups are the evidence every take-or-skip turns on: an edge whose two ends
+ * are in the same group would only make a loop. Showing them is not giving the
+ * answer away; comparing the two ends against them is still the learner's job.
+ */
+data class EdgeListReadout(
+    val rows: List<Row>,
+    /** Connected groups, each in graph order, the groups ordered by first member. */
+    val groups: List<List<String>>,
+) {
+    enum class Status { TAKEN, SKIPPED, NEXT, WAITING }
+
+    data class Row(val label: String, val weight: Int, val status: Status)
+}
+
 data class Decision<A : Action>(
     val kind: DecisionKind,
     val prompt: NarrationKey,
@@ -141,6 +160,8 @@ data class Decision<A : Action>(
      * each. Shown alongside the question, without saying which one wins.
      */
     val cheapest: CheapestReadout? = null,
+    /** Kruskal's sorted edge list and groups, shown alongside the question. */
+    val edgeList: EdgeListReadout? = null,
     /**
      * True when the *app* may answer this in Try, because it is bookkeeping the
      * learner is not being taught — Binary Search computing `mid`, for instance

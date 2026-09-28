@@ -20,7 +20,7 @@ import org.junit.Test
  */
 class ProAccessTest {
 
-    /** The fifteen the paywall sells, by name, in library order. */
+    /** The sixteen the paywall sells, by name, in library order. */
     private val expectedPro = listOf(
         "Two Pointers",
         "Prefix Sum",
@@ -29,6 +29,7 @@ class ProAccessTest {
         "Dijkstra",
         // Advanced, so Pro by category — no flag, no billing change.
         "Prim's Algorithm",
+        "Kruskal's Algorithm",
         "Binary Search Tree",
         "AVL Tree",
         "Binary Tree — Inorder",
@@ -73,9 +74,9 @@ class ProAccessTest {
         .map { it.title }
 
     @Test
-    fun `exactly fifteen lessons are Pro`() {
+    fun `exactly sixteen lessons are Pro`() {
         val pro = algorithmLibrary.filter { ProAccess.requiresPro(it.category, it.id) }
-        assertEquals(15, pro.size)
+        assertEquals(16, pro.size)
         assertEquals(expectedPro, pro.map { it.title })
         // No duplicates — the paywall's list is what the learner is buying.
         assertEquals(pro.size, pro.map { it.id }.toSet().size)
@@ -90,7 +91,7 @@ class ProAccessTest {
     @Test
     fun `every Advanced lesson is Pro, and no free lesson is Advanced`() {
         val advanced = algorithmLibrary.filter { it.category == ProAccess.PRO_CATEGORY }
-        assertEquals(13, advanced.size)
+        assertEquals(14, advanced.size)
         assertTrue(advanced.all { ProAccess.requiresPro(it.category, it.id) })
         assertTrue(
             algorithmLibrary
@@ -126,9 +127,9 @@ class ProAccessTest {
 
     @Test
     fun `every lesson in the library is either free or Pro, and never both`() {
-        // 29 lessons, and the partition is total: a lesson that fell out of both
+        // 30 lessons, and the partition is total: a lesson that fell out of both
         // sets would be one the access check has no answer for.
-        assertEquals(29, algorithmLibrary.size)
+        assertEquals(30, algorithmLibrary.size)
         val pro = algorithmLibrary.count { ProAccess.requiresPro(it.category, it.id) }
         val free = algorithmLibrary.count { !ProAccess.requiresPro(it.category, it.id) }
         assertEquals(algorithmLibrary.size, pro + free)
@@ -182,7 +183,7 @@ class ProAccessTest {
     @Test
     fun `every Pro lesson in the library resolves to the paywall without Pro`() {
         // The rule applied to the real catalogue rather than to a string: all
-        // fifteen are locked, and none of the fourteen free ones is.
+        // sixteen are locked, and none of the fourteen free ones is.
         for (entry in algorithmLibrary) {
             val expected = if (entry.title in expectedPro) {
                 AccessDecision.ShowPaywall

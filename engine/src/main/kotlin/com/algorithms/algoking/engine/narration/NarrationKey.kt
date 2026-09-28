@@ -508,6 +508,44 @@ enum class NarrationId {
     PRIM_IDEA_4,
     PRIM_IDEA_5,
 
+    // ── Kruskal ───────────────────────────────────────────────────────────────
+    // TAKE and SKIP are the two words on the buttons, and "group" is the one idea
+    // every line leans on: an edge inside one group only makes a loop.
+    KR_OPTION_TAKE,
+    KR_OPTION_SKIP,
+    KR_ASK,
+    KR_TAKEN,
+    KR_SKIPPED,
+    KR_HINT,
+    KR_RETRY_LOOK,
+    KR_RETRY_ASK,
+    KR_RETRY_EXPLAIN_TAKE,
+    KR_RETRY_EXPLAIN_SKIP,
+    KR_WHY_LOOP,
+    KR_WHY_NEEDED,
+    KR_CORRECT_TAKE,
+    KR_CORRECT_SKIP,
+
+    // ── Kruskal — WATCH walkthrough copy ──────────────────────────────────
+    KR_WATCH_SETUP,
+    KR_WATCH_SETUP_SUPPORT,
+    KR_WATCH_TAKE,
+    KR_WATCH_TAKE_WHY,
+    KR_WATCH_SKIP,
+    KR_WATCH_SKIP_WHY,
+    KR_WATCH_DONE,
+    KR_WATCH_DONE_WHY,
+    KR_WATCH_DONE_WHY_ALL,
+    KR_WATCH_INSIGHT,
+    KR_WATCH_INSIGHT_SUPPORT,
+    KR_WATCH_SUMMARY,
+    KR_WATCH_SUMMARY_SUPPORT,
+    KR_IDEA_1,
+    KR_IDEA_2,
+    KR_IDEA_3,
+    KR_IDEA_4,
+    KR_IDEA_5,
+
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.

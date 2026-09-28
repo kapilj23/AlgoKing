@@ -417,6 +417,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "counted, because they only make loops. n nodes, n − 1 edges, and the least " +
             "total cost to connect them all. O(E log V) with a heap."
 
+    AlgorithmId.KRUSKAL ->
+        "You walked the edges cheapest first and asked one question each time: are its " +
+            "two ends already in the same group? Different groups — take it and merge them. " +
+            "Same group — skip it, because it would only make a loop. Stop at n − 1 edges. " +
+            "O(E log E), for the sort — and the same cheapest total Prim finds."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

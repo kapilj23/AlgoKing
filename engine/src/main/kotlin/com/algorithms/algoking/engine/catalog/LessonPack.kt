@@ -36,6 +36,10 @@ import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraProjector
 import com.algorithms.algoking.engine.algorithms.dijkstra.DijkstraWatchNarrator
 import com.algorithms.algoking.engine.dataset.DijkstraDatasets
 import com.algorithms.algoking.engine.dataset.PrimDatasets
+import com.algorithms.algoking.engine.dataset.KruskalDatasets
+import com.algorithms.algoking.engine.algorithms.kruskal.KruskalAlgorithm
+import com.algorithms.algoking.engine.algorithms.kruskal.KruskalProjector
+import com.algorithms.algoking.engine.algorithms.kruskal.KruskalWatchNarrator
 import com.algorithms.algoking.engine.algorithms.prim.PrimAlgorithm
 import com.algorithms.algoking.engine.algorithms.prim.PrimProjector
 import com.algorithms.algoking.engine.algorithms.prim.PrimWatchNarrator
@@ -324,6 +328,20 @@ object AlgorithmCatalog {
     )
 
     /**
+     * Prim's question answered from the other end: sort every edge, take the
+     * cheapest one that does not close a loop, and let separate pieces merge.
+     */
+    fun kruskal() = LessonPack(
+        id = AlgorithmId.KRUSKAL,
+        displayName = "Kruskal's Algorithm",
+        algorithm = KruskalAlgorithm(),
+        projector = KruskalProjector(),
+        watchNarrator = KruskalWatchNarrator(),
+        watchDataset = KruskalDatasets.watch,
+        tryDataset = KruskalDatasets.tryIt,
+    )
+
+    /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
      * by reading two cells from the row above.
@@ -562,6 +580,7 @@ object AlgorithmCatalog {
         AlgorithmId.GRAPH_BFS -> graphBfs()
         AlgorithmId.DIJKSTRA -> dijkstra()
         AlgorithmId.PRIM -> prim()
+        AlgorithmId.KRUSKAL -> kruskal()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()

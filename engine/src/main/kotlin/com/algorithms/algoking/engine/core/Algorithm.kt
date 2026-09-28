@@ -127,6 +127,11 @@ enum class AlgorithmId {
     // — and compares single edges rather than whole routes to do it.
     PRIM,
 
+    // Advanced: the same question as Prim — the cheapest way to connect every
+    // node — answered from the other end. Sort every edge, take the cheapest that
+    // does not close a loop, and let separate pieces merge.
+    KRUSKAL,
+
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.
     BINARY_SEARCH_TREE,

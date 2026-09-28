@@ -111,6 +111,15 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.KRUSKAL,
+        title = "Kruskal's Algorithm",
+        description = "Cheapest edges first, skipping any that would close a loop.",
+        // Advanced, and so Pro: access follows the category (ADR-041).
+        category = "Advanced",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",

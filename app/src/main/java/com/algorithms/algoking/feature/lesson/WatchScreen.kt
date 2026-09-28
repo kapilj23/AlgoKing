@@ -39,6 +39,7 @@ import com.algorithms.algoking.ui.components.AlgoHeader
 import com.algorithms.algoking.ui.components.AlgoScreen
 import com.algorithms.algoking.ui.components.CategoryBadge
 import com.algorithms.algoking.ui.components.CheapestChip
+import com.algorithms.algoking.ui.components.EdgeListChip
 import com.algorithms.algoking.ui.components.ComparisonChip
 import com.algorithms.algoking.ui.components.Gap
 import com.algorithms.algoking.ui.components.HeaderCountChip
@@ -196,6 +197,11 @@ fun <S : Any, A : Action> WatchScreen(
                         step.cheapest?.let { readout ->
                             Gap(Spacing.md)
                             CheapestChip(readout, reveal = true)
+                        }
+                        // Kruskal's sorted list and groups, under the graph.
+                        step.edgeList?.let { readout ->
+                            Gap(Spacing.md)
+                            EdgeListChip(readout)
                         }
                     }
                 }

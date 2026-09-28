@@ -1367,3 +1367,99 @@ object PrimDatasets {
         startNode = "A",
     )
 }
+
+/**
+ * Kruskal teaching data.
+ *
+ * Both graphs share one planar shape — A on the left, F on the right, B and D along
+ * the top, C and E along the bottom, eight edges, no crossings — and differ only in
+ * their weights. Every weight is distinct, so the sorted order is never a matter of
+ * taste.
+ *
+ * ### WATCH
+ *
+ * ```
+ * E–F 1  take   {E, F}             ← first edge is on the far side from A
+ * A–B 2  take   {A, B}
+ * A–C 3  take   {A, B, C}
+ * B–C 4  SKIP   both in {A, B, C}
+ * D–E 5  take   {D, E, F}
+ * D–F 6  SKIP   both in {D, E, F}
+ * C–E 7  take   everything         5 edges — stop
+ * B–D 8  never looked at
+ * total 18
+ * ```
+ *
+ * It shows all three things the lesson is for: two separate pieces growing at once
+ * (the first edge taken is nowhere near A), **two skips**, and an edge that is never
+ * looked at because the tree was finished first.
+ */
+object KruskalDatasets {
+
+    private val nodes = listOf(
+        GraphNode(id = "A", label = "A", x = 0.02f, y = 0.50f),
+        GraphNode(id = "B", label = "B", x = 0.34f, y = 0.08f),
+        GraphNode(id = "C", label = "C", x = 0.34f, y = 0.92f),
+        GraphNode(id = "D", label = "D", x = 0.66f, y = 0.08f),
+        GraphNode(id = "E", label = "E", x = 0.66f, y = 0.92f),
+        GraphNode(id = "F", label = "F", x = 0.98f, y = 0.50f),
+    )
+
+    private val adjacency = mapOf(
+        "A" to listOf("B", "C"),
+        "B" to listOf("A", "C", "D"),
+        "C" to listOf("A", "B", "E"),
+        "D" to listOf("B", "E", "F"),
+        "E" to listOf("C", "D", "F"),
+        "F" to listOf("D", "E"),
+    )
+
+    val teachingGraph = Graph(
+        nodes = nodes,
+        adjacency = adjacency,
+        weights = Graph.weightsOf(
+            Triple("A", "B", 2),
+            Triple("A", "C", 3),
+            Triple("B", "C", 4),
+            Triple("B", "D", 8),
+            Triple("C", "E", 7),
+            Triple("D", "E", 5),
+            Triple("D", "F", 6),
+            Triple("E", "F", 1),
+        ),
+    )
+
+    /**
+     * TRY: the same shape, new weights, so no answer carries over from WATCH.
+     *
+     * ```
+     * B–C 1  take   {B, C}
+     * D–F 2  take   {D, F}
+     * A–B 3  take   {A, B, C}
+     * D–E 4  take   {D, E, F}
+     * A–C 5  SKIP   both in {A, B, C}
+     * E–F 6  SKIP   both in {D, E, F}
+     * C–E 7  take   everything         5 edges — stop
+     * B–D 8  never looked at
+     * total 17
+     * ```
+     */
+    val tryGraph = Graph(
+        nodes = nodes,
+        adjacency = adjacency,
+        weights = Graph.weightsOf(
+            Triple("A", "B", 3),
+            Triple("A", "C", 5),
+            Triple("B", "C", 1),
+            Triple("B", "D", 8),
+            Triple("C", "E", 7),
+            Triple("D", "E", 4),
+            Triple("D", "F", 2),
+            Triple("E", "F", 6),
+        ),
+    )
+
+    val watch = Dataset(values = emptyList(), label = "watch", graph = teachingGraph)
+
+    val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph)
+}

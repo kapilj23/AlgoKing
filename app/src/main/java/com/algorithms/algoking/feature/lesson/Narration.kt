@@ -1020,6 +1020,96 @@ object Narration {
                 "Dijkstra adds up whole routes from the start; Prim only ever reads one " +
                     "edge at a time. Same kind of graph, a different question."
 
+            // ── Kruskal ───────────────────────────────────────────────────
+            // Every line names the two ends and the groups they are in, because
+            // that comparison is the entire decision.
+            NarrationId.KR_OPTION_TAKE -> "TAKE"
+            NarrationId.KR_OPTION_SKIP -> "SKIP"
+            NarrationId.KR_ASK -> "Next cheapest edge: ${arg(0)} (${arg(1)}). Take it, or skip it?"
+            NarrationId.KR_TAKEN -> "${arg(0)} (${arg(1)}) is taken. Total: ${arg(2)}."
+            NarrationId.KR_SKIPPED -> "${arg(0)} (${arg(1)}) is skipped — it would make a loop."
+
+            NarrationId.KR_HINT ->
+                "Find ${arg(0)} and ${arg(1)} in the groups line. Different groups: take it. " +
+                    "Same group: skip it."
+
+            NarrationId.KR_RETRY_LOOK -> "Look at the groups line: where are ${arg(0)} and ${arg(1)}?"
+            NarrationId.KR_RETRY_ASK ->
+                "Are ${arg(0)} and ${arg(1)} already connected — in the same group?"
+
+            NarrationId.KR_RETRY_EXPLAIN_TAKE ->
+                "${arg(0)} is in ${arg(1)} and ${arg(2)} is in ${arg(3)} — different groups. " +
+                    "${arg(4)} joins them, so take it."
+
+            NarrationId.KR_RETRY_EXPLAIN_SKIP ->
+                "${arg(0)} and ${arg(1)} are both in ${arg(2)} already. ${arg(3)} would only make " +
+                    "a loop, so skip it."
+
+            // Each wrong button is the mistake it encodes.
+            NarrationId.KR_WHY_LOOP ->
+                "${arg(0)} and ${arg(1)} are already connected — both are in ${arg(2)}. Taking " +
+                    "${arg(3)} would only make a loop, and a loop adds cost without joining " +
+                    "anything new."
+
+            NarrationId.KR_WHY_NEEDED ->
+                "${arg(0)} is in ${arg(1)} and ${arg(2)} is in ${arg(3)} — nothing connects " +
+                    "them yet. ${arg(4)} is the cheapest edge left, so skipping it would mean " +
+                    "paying more to join them later."
+
+            NarrationId.KR_CORRECT_TAKE ->
+                "${arg(0)} joins ${arg(1)} and ${arg(2)} into ${arg(3)}. Total: ${arg(4)}."
+
+            NarrationId.KR_CORRECT_SKIP ->
+                "${arg(0)} is skipped: ${arg(1)} and ${arg(2)} were already both in ${arg(3)}."
+
+            // ── Kruskal — WATCH ───────────────────────────────────────────
+            NarrationId.KR_WATCH_SETUP -> "Connect every node for the least total cost — cheapest edges first."
+            NarrationId.KR_WATCH_SETUP_SUPPORT ->
+                "Sort every edge from cheapest to most expensive, and walk down the list. " +
+                    "Each node starts in a group of its own. Take an edge if its two ends are " +
+                    "in different groups; skip it if they are already connected. ${arg(0)} " +
+                    "nodes need ${arg(1)} edges."
+
+            NarrationId.KR_WATCH_TAKE -> "Take ${arg(0)} (${arg(1)})."
+            NarrationId.KR_WATCH_TAKE_WHY ->
+                "${arg(0)} was in ${arg(1)} and ${arg(2)} was in ${arg(3)} — different groups, " +
+                    "so this edge joins them into one. Total so far: ${arg(4)}."
+
+            NarrationId.KR_WATCH_SKIP -> "Skip ${arg(0)} (${arg(1)})."
+            NarrationId.KR_WATCH_SKIP_WHY ->
+                "${arg(0)} and ${arg(1)} are both already in ${arg(2)}. Taking it would only " +
+                    "make a loop, so it is skipped — even though it is cheap."
+
+            NarrationId.KR_WATCH_DONE ->
+                "${arg(0)} edges for ${arg(1)} nodes — done. Total cost: ${arg(2)}."
+
+            NarrationId.KR_WATCH_DONE_WHY ->
+                "Every node is in one group now, so the tree is finished. ${arg(0)} " +
+                    "${plural(1, "is", "are")} never even looked at."
+
+            NarrationId.KR_WATCH_DONE_WHY_ALL ->
+                "Every node is in one group now, so the tree is finished."
+
+            NarrationId.KR_WATCH_INSIGHT -> "Cheapest first — but never a loop."
+            NarrationId.KR_WATCH_INSIGHT_SUPPORT ->
+                "Kruskal does not grow from a start node. It takes cheap edges wherever they " +
+                    "are, builds separate pieces, and lets them merge. The only check it ever " +
+                    "makes is whether an edge's two ends are already in the same group."
+
+            NarrationId.KR_WATCH_SUMMARY -> "${arg(0)} — total ${arg(1)}."
+            NarrationId.KR_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.KR_IDEA_1 -> "Sort every edge from cheapest to most expensive."
+            NarrationId.KR_IDEA_2 -> "Every node starts in a group of its own."
+            NarrationId.KR_IDEA_3 ->
+                "Ends in different groups: take the edge, and merge the two groups."
+
+            NarrationId.KR_IDEA_4 ->
+                "Ends in the same group: skip it — it would make a loop. Stop at n − 1 edges."
+
+            NarrationId.KR_IDEA_5 ->
+                "O(E log E), for the sort. Prim grows one tree from a start; Kruskal joins " +
+                    "pieces — and both find the same cheapest total."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

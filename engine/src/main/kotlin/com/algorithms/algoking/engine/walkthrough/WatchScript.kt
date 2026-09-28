@@ -6,6 +6,7 @@ import com.algorithms.algoking.engine.core.Dataset
 import com.algorithms.algoking.engine.core.Frame
 import com.algorithms.algoking.engine.decision.Action
 import com.algorithms.algoking.engine.decision.CheapestReadout
+import com.algorithms.algoking.engine.decision.EdgeListReadout
 import com.algorithms.algoking.engine.decision.MidpointReadout
 import com.algorithms.algoking.engine.event.Metrics
 import com.algorithms.algoking.engine.event.Relation
@@ -37,6 +38,8 @@ data class WatchStep(
     val midpoint: MidpointReadout? = null,
     /** Rendered as a small table: each candidate's sum, then the smallest. */
     val cheapest: CheapestReadout? = null,
+    /** Kruskal's sorted edge list and groups, as a small table. */
+    val edgeList: EdgeListReadout? = null,
     /** The closing recap, as separate lines. */
     val bullets: List<NarrationKey> = emptyList(),
     /** One unscored checkpoint, to prepare the learner for Try. */
@@ -145,6 +148,7 @@ data class PartialStep(
     val comparison: ComparisonReadout? = null,
     val midpoint: MidpointReadout? = null,
     val cheapest: CheapestReadout? = null,
+    val edgeList: EdgeListReadout? = null,
     val bullets: List<NarrationKey> = emptyList(),
     val prediction: WatchPrediction? = null,
 )
@@ -190,6 +194,7 @@ class WatchScriptBuilder<S : Any, A : Action>(
                     comparison = p.comparison,
                     midpoint = p.midpoint,
                     cheapest = p.cheapest,
+                    edgeList = p.edgeList,
                     bullets = p.bullets,
                     prediction = p.prediction,
                 )
