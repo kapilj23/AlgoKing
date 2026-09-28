@@ -90,11 +90,9 @@ private sealed interface Route {
      * The privacy policy, carrying **where it was opened from** so Back returns
      * there.
      *
-     * Two screens link to it — Settings and the paywall — and until this carried
-     * its origin, Back always went to Settings. From the paywall that silently
-     * dropped the learner out of a purchase they were part-way through, which is
-     * the worst place in the app to lose someone. Same shape as [Paywall] carrying
-     * the lesson that opened it, for the same reason.
+     * Only Settings opens it today — the paywall links straight to the published
+     * copy in the browser — but it keeps its origin so that a second entry point
+     * can never silently drop a learner somewhere they did not come from.
      */
     data class Privacy(val from: Route) : Route
 
@@ -330,9 +328,10 @@ private fun AlgoKingApp() {
                     }
                 },
                 onRetry = { subscriptions.refresh() },
-                // Back from here returns to this paywall, with the lesson that
-                // opened it intact — reading the policy is not abandoning a purchase.
-                onPrivacy = { route = Route.Privacy(current) },
+                // The published copy, in the browser — the same link the policy
+                // screen in Settings opens. Another app's job, so the intent is
+                // fired here; the paywall stays where it was, lesson intact.
+                onPrivacy = { openPrivacyPolicyOnline(context) },
             )
         }
 
