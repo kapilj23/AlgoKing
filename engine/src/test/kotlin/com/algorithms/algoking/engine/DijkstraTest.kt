@@ -116,6 +116,54 @@ class DijkstraTest {
     }
 
     @Test
+    fun `every choice of the next node shows the sums it compares`() {
+        // The readout is what makes "take the cheapest" something the learner can
+        // check rather than trust: every waiting node, the sum behind its distance,
+        // and the smallest of them. It has to be right at every selection, on both
+        // graphs, or it teaches the wrong numbers.
+        for ((graph, start, target) in listOf(
+            Triple(teaching, "A", "F"),
+            Triple(tryGraph, "A", "E"),
+        )) {
+            val choices = trace(graph, start, target)
+                .filter { it.current == null && it.frontier.isNotEmpty() && !it.finished }
+            assertTrue("expected at least one selection", choices.isNotEmpty())
+
+            for (state in choices) {
+                val readout = state.cheapestReadout()
+                assertNotNull(readout)
+                readout!!
+                assertEquals(state.frontier.toSet(), readout.rows.map { it.node }.toSet())
+                assertEquals(state.cheapest, readout.chosen)
+                assertEquals(readout.rows.minOf { it.distance }, readout.best)
+                for (row in readout.rows) {
+                    val via = row.via
+                    if (via == null) {
+                        assertEquals(start, row.node)
+                        assertEquals(0, row.distance)
+                    } else {
+                        assertEquals(state.distanceOf(via), row.viaDistance)
+                        assertEquals(graph.weightOf(via, row.node), row.weight)
+                        assertEquals(row.viaDistance + row.weight, row.distance)
+                    }
+                }
+                // In the graph's own order, never sorted by distance — a sorted
+                // list would hand over the answer before anything was compared.
+                val order = graph.ids
+                assertEquals(readout.rows.sortedBy { order.indexOf(it.node) }, readout.rows)
+            }
+        }
+
+        // The first real choice on the teaching graph, spelled out: A → B 0 + 5 = 5
+        // against A → C 0 + 2 = 2, and C wins.
+        val second = trace(teaching, "A", "F")
+            .first { it.current == null && it.processed.size == 1 }
+        val readout = second.cheapestReadout()!!
+        assertEquals("C", readout.chosen)
+        assertEquals(mapOf("B" to 5, "C" to 2), readout.rows.associate { it.node to it.distance })
+    }
+
+    @Test
     fun `the direct edge from A to B loses to the route through C`() {
         // The lesson's opening move: B is reached at 5 and settles at 3, so the
         // first thing the learner watches is a distance being beaten.

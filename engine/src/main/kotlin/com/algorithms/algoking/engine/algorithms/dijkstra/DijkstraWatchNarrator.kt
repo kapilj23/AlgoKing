@@ -76,6 +76,10 @@ class DijkstraWatchNarrator : WatchNarrator<DijkstraState> {
                         },
                         listOf(node, distance, state.predecessors[node] ?: state.start),
                     ),
+                    // The comparison that picked it, written out: every waiting
+                    // node's sum, then the smallest. Read from the state *before*
+                    // the choice, which is the frontier the rule was applied to.
+                    cheapest = previous.cheapestReadout(),
                 ),
             )
         }

@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.algorithms.algoking.engine.decision.CheapestReadout
 import com.algorithms.algoking.ui.icons.AlgoIcons
 import com.algorithms.algoking.ui.theme.AlgoAccent
 import com.algorithms.algoking.ui.theme.AlgoColors
@@ -531,5 +532,85 @@ fun ComparisonChip(left: Int, symbol: String, right: Int, modifier: Modifier = M
         Text(symbol, style = AlgoType.numeralMedium, color = AlgoColors.textSecondary)
         Gap(Spacing.xs)
         Text("$right", style = AlgoType.numeralMedium, color = AlgoColors.primary)
+    }
+}
+
+/**
+ * How Dijkstra picks the next node, written out.
+ *
+ * One line per node that has been reached but not settled, each with the sum that
+ * gave it its distance — `A → C   0 + 2 = 2` — so the learner can see exactly which
+ * numbers are being compared. With [reveal], the smallest is highlighted and the
+ * last line says so: `Smallest: 2 → process C`. Try passes `reveal = false`, so the
+ * working is on screen but the comparison is still the learner's to make.
+ */
+@Composable
+fun CheapestChip(readout: CheapestReadout, reveal: Boolean, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(AlgoColors.primarySoft, Radius.card)
+            .padding(horizontal = Spacing.md, vertical = Spacing.sm),
+    ) {
+        Text(
+            text = "Waiting nodes — distance = previous node + edge",
+            style = AlgoType.labelMedium,
+            color = AlgoColors.textSecondary,
+        )
+        Gap(Spacing.xs)
+        readout.rows.forEach { row ->
+            val winner = reveal && row.node == readout.chosen
+            val tone = if (winner) AlgoColors.primary else AlgoColors.textPrimary
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xxs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = row.via?.let { "$it → ${row.node}" } ?: row.node,
+                    style = AlgoType.labelMedium,
+                    color = tone,
+                    modifier = Modifier.width(72.dp),
+                )
+                Text(
+                    text = if (row.via == null) {
+                        "start"
+                    } else {
+                        "${row.viaDistance} + ${row.weight}"
+                    },
+                    style = AlgoType.numeralMedium,
+                    color = AlgoColors.textSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "= ${row.distance}",
+                    style = AlgoType.numeralMedium,
+                    color = tone,
+                )
+                if (winner) {
+                    Gap(Spacing.xs)
+                    Text("◀ smallest", style = AlgoType.labelMedium, color = AlgoColors.primary)
+                }
+            }
+        }
+        if (reveal) {
+            Gap(Spacing.xs)
+            val values = readout.rows.joinToString(", ") { it.distance.toString() }
+            Text(
+                text = if (readout.rows.size > 1) {
+                    "Smallest of $values is ${readout.best}  →  process ${readout.chosen}"
+                } else {
+                    "Only one waiting: ${readout.best}  →  process ${readout.chosen}"
+                },
+                style = AlgoType.titleMedium,
+                color = AlgoColors.primary,
+            )
+        } else if (readout.rows.size > 1) {
+            Gap(Spacing.xs)
+            Text(
+                text = "Tap the node with the smallest distance.",
+                style = AlgoType.bodyMedium,
+                color = AlgoColors.textSecondary,
+            )
+        }
     }
 }

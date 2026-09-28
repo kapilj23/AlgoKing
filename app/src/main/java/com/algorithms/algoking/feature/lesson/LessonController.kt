@@ -11,6 +11,7 @@ import com.algorithms.algoking.engine.decision.Action
 import com.algorithms.algoking.engine.decision.Decision
 import com.algorithms.algoking.engine.decision.DecisionKind
 import com.algorithms.algoking.engine.decision.DecisionValidation
+import com.algorithms.algoking.engine.decision.CheapestReadout
 import com.algorithms.algoking.engine.decision.MidpointReadout
 import com.algorithms.algoking.engine.decision.Validation
 import com.algorithms.algoking.engine.event.Metrics
@@ -39,6 +40,8 @@ data class DecisionUi<A : Action>(
     val cellActions: Map<Int, A> = emptyMap(),
     /** The working behind the right answer, for decisions that are arithmetic. */
     val midpoint: MidpointReadout? = null,
+    /** The candidates a "which is cheapest?" decision compares, with their sums. */
+    val cheapest: CheapestReadout? = null,
 )
 
 /**
@@ -245,6 +248,7 @@ class LessonController<S : Any, A : Action>(
         options = decision.options.map { OptionUi(Narration.resolve(it.label), it.action) },
         kind = decision.kind,
         midpoint = decision.midpoint,
+        cheapest = decision.cheapest,
         cellActions = decision.options
             .mapNotNull { option -> option.slot?.let { it to option.action } }
             .toMap(),

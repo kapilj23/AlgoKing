@@ -43,6 +43,7 @@ import com.algorithms.algoking.ui.components.AlgoCard
 import com.algorithms.algoking.ui.components.AlgoHeader
 import com.algorithms.algoking.ui.components.AlgoScreen
 import com.algorithms.algoking.ui.components.CelebrationBanner
+import com.algorithms.algoking.ui.components.CheapestChip
 import com.algorithms.algoking.ui.components.DecisionButton
 import com.algorithms.algoking.ui.components.DecisionTone
 import com.algorithms.algoking.ui.components.Gap
@@ -166,6 +167,16 @@ fun <S : Any, A : Action> LessonScreen(
 
                         Gap(Spacing.md)
                         SceneLegend(ui.scene)
+
+                        // The numbers a "which is cheapest?" tap compares, with
+                        // the sum behind each. The winner is only marked once the
+                        // guidance has reached "say it plainly".
+                        ui.decision?.cheapest?.let { readout ->
+                            val plainly = (ui.feedback as? Feedback.Wrong)
+                                ?.let { it.level >= 3 } == true
+                            Gap(Spacing.md)
+                            CheapestChip(readout, reveal = plainly)
+                        }
 
                         // The decision. Watch answers its own; here the learner does.
                         val decision = ui.decision?.takeIf {

@@ -8,6 +8,7 @@ import com.algorithms.algoking.engine.core.Probe
 import com.algorithms.algoking.engine.core.Transition
 import com.algorithms.algoking.engine.decision.Action
 import com.algorithms.algoking.engine.decision.ActionOption
+import com.algorithms.algoking.engine.decision.CheapestReadout
 import com.algorithms.algoking.engine.decision.Decision
 import com.algorithms.algoking.engine.decision.DecisionKind
 import com.algorithms.algoking.engine.event.EliminateReason
@@ -89,6 +90,29 @@ data class DijkstraState(
 
     /** **The selection rule, in one line.** Null when there is nothing left to reach. */
     val cheapest: String? get() = frontier.minByOrNull { distances.getValue(it) }
+
+    /**
+     * **The selection rule, written out.** Every frontier node with the sum that
+     * gave it its distance, in the graph's authored order — so the learner sees
+     * which numbers are being compared, not just the one that won. Null when there
+     * is nothing left to choose from.
+     */
+    fun cheapestReadout(): CheapestReadout? {
+        val chosen = cheapest ?: return null
+        val waiting = frontier.toSet()
+        val rows = graph.ids.filter { it in waiting }.map { node ->
+            val via = predecessors[node]
+            val viaDistance = via?.let { distances[it] } ?: 0
+            CheapestReadout.Row(
+                node = node,
+                via = via,
+                viaDistance = viaDistance,
+                weight = via?.let { graph.weightOf(it, node) } ?: 0,
+                distance = distances.getValue(node),
+            )
+        }
+        return CheapestReadout(rows, chosen)
+    }
 
     /** The neighbours of [current], in the graph's authored order. */
     val currentNeighbours: List<String>
@@ -294,6 +318,7 @@ class DijkstraAlgorithm : Algorithm<DijkstraState, DijkstraAction> {
                 NarrationKey(NarrationId.DIJ_HINT_SELECT),
                 NarrationKey(NarrationId.DIJ_RETRY_SELECT_ASK),
             ),
+            cheapest = state.cheapestReadout(),
             // Which node is cheapest is the rule the algorithm turns on. Never the app's.
             autoInTry = false,
         )

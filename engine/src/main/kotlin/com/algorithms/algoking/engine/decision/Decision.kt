@@ -48,6 +48,33 @@ data class MidpointReadout(val lo: Int, val hi: Int, val mid: Int) {
     val exact: Boolean get() = span % 2 == 1
 }
 
+/**
+ * How "the cheapest node not yet settled" is found, written out so the learner can
+ * see exactly which numbers are being compared.
+ *
+ * One [Row] per frontier node, each carrying where its distance came from —
+ * `A → C: 0 + 2 = 2` — so a distance on the graph is never a number that simply
+ * appeared. The rows are in the graph's own order, **not** sorted: a sorted list
+ * would put the answer at the top before the learner has compared anything.
+ */
+data class CheapestReadout(val rows: List<Row>, val chosen: String) {
+
+    /**
+     * One candidate. [via] is null only for the start, which is 0 by definition
+     * rather than by arithmetic.
+     */
+    data class Row(
+        val node: String,
+        val via: String?,
+        val viaDistance: Int,
+        val weight: Int,
+        val distance: Int,
+    )
+
+    /** The winning distance — the smallest of the rows. */
+    val best: Int get() = rows.first { it.node == chosen }.distance
+}
+
 data class Decision<A : Action>(
     val kind: DecisionKind,
     val prompt: NarrationKey,
@@ -84,6 +111,11 @@ data class Decision<A : Action>(
      * `0 + (11 - 0) / 2`, you can only be shown it once and then do it yourself.
      */
     val midpoint: MidpointReadout? = null,
+    /**
+     * The candidates a "which is cheapest?" decision compares, with the sum behind
+     * each. Shown alongside the question, without saying which one wins.
+     */
+    val cheapest: CheapestReadout? = null,
     /**
      * True when the *app* may answer this in Try, because it is bookkeeping the
      * learner is not being taught — Binary Search computing `mid`, for instance

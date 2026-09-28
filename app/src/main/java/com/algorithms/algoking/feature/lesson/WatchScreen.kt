@@ -38,6 +38,7 @@ import com.algorithms.algoking.ui.components.AlgoCard
 import com.algorithms.algoking.ui.components.AlgoHeader
 import com.algorithms.algoking.ui.components.AlgoScreen
 import com.algorithms.algoking.ui.components.CategoryBadge
+import com.algorithms.algoking.ui.components.CheapestChip
 import com.algorithms.algoking.ui.components.ComparisonChip
 import com.algorithms.algoking.ui.components.Gap
 import com.algorithms.algoking.ui.components.HeaderCountChip
@@ -188,6 +189,14 @@ fun <S : Any, A : Action> WatchScreen(
 
                         Gap(Spacing.md)
                         SceneLegend(step.scene)
+
+                        // Dijkstra's choice, with the working: every waiting
+                        // node's sum, then the smallest. Under the graph, so the
+                        // eye can check each number against the node it names.
+                        step.cheapest?.let { readout ->
+                            Gap(Spacing.md)
+                            CheapestChip(readout, reveal = true)
+                        }
                     }
                 }
 
