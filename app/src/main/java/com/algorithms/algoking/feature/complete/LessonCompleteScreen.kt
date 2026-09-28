@@ -435,6 +435,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "A pass that changes nothing means every distance is final. At most V − 1 " +
             "passes; one more that still lowers something means a negative cycle. O(V · E)."
 
+    AlgorithmId.TOPOLOGICAL_SORT ->
+        "Each time, you took a node with no arrows still coming in — nothing left that " +
+            "had to come before it. Placing it removed its arrows, which is what freed the " +
+            "next nodes. When several were free, any order among them was right. If nodes " +
+            "remain but none is free, the arrows form a cycle. O(V + E)."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +

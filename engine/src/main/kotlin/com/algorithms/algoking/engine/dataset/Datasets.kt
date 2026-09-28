@@ -1646,3 +1646,87 @@ object BellmanFordDatasets {
         directedEdges = tryEdges,
     )
 }
+
+/**
+ * Topological sort teaching data: six tasks, six arrows, laid out left to right so
+ * every arrow points rightwards and none cross.
+ *
+ * The letters are deliberately *not* in dependency order, so the answer is never
+ * just the alphabet.
+ *
+ * ### WATCH
+ *
+ * ```
+ * C → A,  E → A,  E → B,  A → D,  B → D,  B → F
+ *
+ * free {C, E}  → C   (tie: earliest letter)   frees nothing — A still waits on E
+ * free {E}     → E   frees A and B
+ * free {A, B}  → A   (tie)                    frees nothing — D still waits on B
+ * free {B}     → B   frees D and F
+ * free {D, F}  → D   (tie)
+ * free {F}     → F
+ * order: C → E → A → B → D → F
+ * ```
+ *
+ * Three ties, and twice a placement frees nothing — both things a learner has to
+ * see before they stop expecting every step to unlock the next node.
+ */
+object TopologicalSortDatasets {
+
+    val watchGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "C", label = "C", x = 0.04f, y = 0.18f),
+            GraphNode(id = "E", label = "E", x = 0.04f, y = 0.82f),
+            GraphNode(id = "A", label = "A", x = 0.36f, y = 0.18f),
+            GraphNode(id = "B", label = "B", x = 0.36f, y = 0.82f),
+            GraphNode(id = "D", label = "D", x = 0.68f, y = 0.30f),
+            GraphNode(id = "F", label = "F", x = 0.96f, y = 0.82f),
+        ),
+        adjacency = emptyMap(),
+    )
+
+    val watchEdges = listOf(
+        DirectedEdge("C", "A", 1),
+        DirectedEdge("E", "A", 1),
+        DirectedEdge("E", "B", 1),
+        DirectedEdge("A", "D", 1),
+        DirectedEdge("B", "D", 1),
+        DirectedEdge("B", "F", 1),
+    )
+
+    /**
+     * TRY: different tasks, different order.
+     *
+     * ```
+     * D → B,  D → A,  F → A,  A → C,  B → C,  C → E
+     *
+     * free {D, F} → D   frees B        free {B, F} → B   frees nothing
+     * free {F}    → F   frees A        then A → C → E, one at a time
+     * order: D → B → F → A → C → E
+     * ```
+     */
+    val tryGraph = Graph(
+        nodes = listOf(
+            GraphNode(id = "D", label = "D", x = 0.04f, y = 0.18f),
+            GraphNode(id = "F", label = "F", x = 0.04f, y = 0.82f),
+            GraphNode(id = "B", label = "B", x = 0.36f, y = 0.18f),
+            GraphNode(id = "A", label = "A", x = 0.36f, y = 0.82f),
+            GraphNode(id = "C", label = "C", x = 0.66f, y = 0.50f),
+            GraphNode(id = "E", label = "E", x = 0.96f, y = 0.50f),
+        ),
+        adjacency = emptyMap(),
+    )
+
+    val tryEdges = listOf(
+        DirectedEdge("D", "B", 1),
+        DirectedEdge("D", "A", 1),
+        DirectedEdge("F", "A", 1),
+        DirectedEdge("A", "C", 1),
+        DirectedEdge("B", "C", 1),
+        DirectedEdge("C", "E", 1),
+    )
+
+    val watch = Dataset(values = emptyList(), label = "watch", graph = watchGraph, directedEdges = watchEdges)
+
+    val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph, directedEdges = tryEdges)
+}

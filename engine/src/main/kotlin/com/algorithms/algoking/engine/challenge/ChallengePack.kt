@@ -151,6 +151,7 @@ object ChallengeCatalog {
         AlgorithmId.KRUSKAL -> null
         AlgorithmId.FLOYD_WARSHALL -> null
         AlgorithmId.BELLMAN_FORD -> null
+        AlgorithmId.TOPOLOGICAL_SORT -> null
         AlgorithmId.BINARY_SEARCH_TREE -> null
         AlgorithmId.AVL_TREE -> null
         AlgorithmId.TREE_INORDER -> null

@@ -148,6 +148,10 @@ enum class AlgorithmId {
     // settled; every road is relaxed, pass after pass, until nothing changes.
     BELLMAN_FORD,
 
+    // Advanced: an order for tasks with prerequisites. A node can go once nothing
+    // points into it; placing it removes its arrows and frees the next.
+    TOPOLOGICAL_SORT,
+
     // Advanced: Binary Search's decision rule, over a structure that stores the
     // order instead of relying on an array being sorted.
     BINARY_SEARCH_TREE,

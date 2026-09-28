@@ -1339,6 +1339,96 @@ object Narration {
             NarrationId.BF_IDEA_5 ->
                 "O(V · E) time, O(V) space. Slower than Dijkstra — but negative roads are fine."
 
+            // ── Topological sort ──────────────────────────────────────────
+            NarrationId.TS_OPTION_NODE -> arg(0)
+            NarrationId.TS_ASK -> "Which node can go next?"
+            NarrationId.TS_PLACED ->
+                if (count(2) == 0) {
+                    "${arg(0)} is placed."
+                } else {
+                    "${arg(0)} is placed, and ${arg(1)} ${plural(2, "is", "are")} now free."
+                }
+
+            NarrationId.TS_HINT ->
+                "Look for a 0 inside a node: nothing has to come before it. If several have " +
+                    "0, take the earliest letter."
+
+            NarrationId.TS_RETRY_LOOK -> "Look at the numbers inside the nodes again."
+            NarrationId.TS_RETRY_ASK -> "Which node that isn't placed yet has no arrows coming in?"
+            NarrationId.TS_RETRY_EXPLAIN ->
+                "${arg(0)} is the only node with no arrows coming in, so it goes next."
+
+            NarrationId.TS_RETRY_EXPLAIN_TIE ->
+                "${arg(1)} all have no arrows coming in. Any would do — we take the earliest " +
+                    "letter, ${arg(0)}."
+
+            NarrationId.TS_WHY_PLACED -> "${arg(0)} is already in the order."
+            NarrationId.TS_WHY_NOT_FIRST ->
+                "${arg(0)} is free too, and would be a valid choice — but we take the " +
+                    "earliest letter, so everyone builds the same order: ${arg(1)}."
+
+            NarrationId.TS_WHY_WAITING ->
+                "${arg(0)} still has ${arg(1)} ${plural(1, "arrow", "arrows")} coming in, from " +
+                    "${arg(2)}. Those have to come first."
+
+            NarrationId.TS_CORRECT ->
+                if (count(2) == 0) {
+                    "${arg(0)} has nothing coming in, so it goes next. Its arrows are removed."
+                } else {
+                    "${arg(0)} has nothing coming in, so it goes next — and removing its arrows " +
+                        "frees ${arg(1)}."
+                }
+
+            // ── Topological sort — WATCH ──────────────────────────────────
+            NarrationId.TS_WATCH_SETUP -> "Put the tasks in an order where every arrow points forward."
+            NarrationId.TS_WATCH_SETUP_SUPPORT ->
+                "An arrow X → Y means X has to be done before Y. The number inside each " +
+                    "node counts the arrows still coming in — what it is still waiting on. " +
+                    "A node with 0 can go next."
+
+            NarrationId.TS_WATCH_PLACE -> "Place ${arg(0)}."
+            NarrationId.TS_WATCH_PLACE_WHY ->
+                "${arg(0)} is the only node with no arrows coming in. " +
+                    if (count(3) == 0) {
+                        "Removing its arrows frees nothing new yet."
+                    } else {
+                        "Removing its arrows leaves ${arg(2)} with none coming in — now free."
+                    }
+
+            NarrationId.TS_WATCH_PLACE_TIE ->
+                "${arg(1)} all have no arrows coming in, so any could go — we take the " +
+                    "earliest letter, ${arg(0)}. " +
+                    if (count(3) == 0) {
+                        "Removing its arrows frees nothing new yet."
+                    } else {
+                        "Removing its arrows leaves ${arg(2)} with none coming in — now free."
+                    }
+
+            NarrationId.TS_WATCH_DONE -> "Every task placed: ${arg(0)}."
+            NarrationId.TS_WATCH_DONE_WHY ->
+                "Check any arrow: its start comes before its end in this order. That is " +
+                    "what a topological order is."
+
+            NarrationId.TS_WATCH_CYCLE -> "Stuck — every remaining node is waiting on another."
+            NarrationId.TS_WATCH_CYCLE_WHY ->
+                "The arrows go round in a loop, so no order can put every arrow forward."
+
+            NarrationId.TS_WATCH_INSIGHT -> "Take a node only when nothing points into it."
+            NarrationId.TS_WATCH_INSIGHT_SUPPORT ->
+                "Placing it removes its arrows, and that is what frees the next nodes. If " +
+                    "nodes remain but none has 0 coming in, the arrows form a loop — and no " +
+                    "order exists."
+
+            NarrationId.TS_WATCH_SUMMARY -> "${arg(0)}."
+            NarrationId.TS_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.TS_IDEA_1 -> "Count the arrows coming into every node."
+            NarrationId.TS_IDEA_2 -> "Take a node with 0 — nothing has to come before it."
+            NarrationId.TS_IDEA_3 -> "Remove its arrows; any node that drops to 0 is now free."
+            NarrationId.TS_IDEA_4 ->
+                "Several free at once? Any order among them is right. Stuck with nodes left? A cycle."
+
+            NarrationId.TS_IDEA_5 -> "O(V + E) time, O(V) space. Used for build steps, courses and task lists."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

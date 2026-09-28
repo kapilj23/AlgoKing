@@ -39,6 +39,10 @@ import com.algorithms.algoking.engine.dataset.PrimDatasets
 import com.algorithms.algoking.engine.dataset.KruskalDatasets
 import com.algorithms.algoking.engine.dataset.FloydWarshallDatasets
 import com.algorithms.algoking.engine.dataset.BellmanFordDatasets
+import com.algorithms.algoking.engine.dataset.TopologicalSortDatasets
+import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortAlgorithm
+import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortProjector
+import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortWatchNarrator
 import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordAlgorithm
 import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordProjector
 import com.algorithms.algoking.engine.algorithms.bellmanford.BellmanFordWatchNarrator
@@ -378,6 +382,20 @@ object AlgorithmCatalog {
     )
 
     /**
+     * An order for tasks with prerequisites: a node goes once nothing points into
+     * it, and placing it removes its arrows and frees the next.
+     */
+    fun topologicalSort() = LessonPack(
+        id = AlgorithmId.TOPOLOGICAL_SORT,
+        displayName = "Topological Sort",
+        algorithm = TopologicalSortAlgorithm(),
+        projector = TopologicalSortProjector(),
+        watchNarrator = TopologicalSortWatchNarrator(),
+        watchDataset = TopologicalSortDatasets.watch,
+        tryDataset = TopologicalSortDatasets.tryIt,
+    )
+
+    /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
      * by reading two cells from the row above.
@@ -619,6 +637,7 @@ object AlgorithmCatalog {
         AlgorithmId.KRUSKAL -> kruskal()
         AlgorithmId.FLOYD_WARSHALL -> floydWarshall()
         AlgorithmId.BELLMAN_FORD -> bellmanFord()
+        AlgorithmId.TOPOLOGICAL_SORT -> topologicalSort()
         AlgorithmId.BINARY_SEARCH_TREE -> binarySearchTree()
         AlgorithmId.AVL_TREE -> avlTree()
         AlgorithmId.TREE_INORDER -> inorderTraversal()

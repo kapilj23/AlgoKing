@@ -637,6 +637,42 @@ enum class NarrationId {
     BF_IDEA_3,
     BF_IDEA_4,
     BF_IDEA_5,
+
+    // ── Topological sort ──────────────────────────────────────────────────────
+    // "Arrows coming in" rather than "in-degree": the number the learner reads
+    // inside every node, named for what it is.
+    TS_OPTION_NODE,
+    TS_ASK,
+    TS_PLACED,
+    TS_HINT,
+    TS_RETRY_LOOK,
+    TS_RETRY_ASK,
+    TS_RETRY_EXPLAIN,
+    TS_RETRY_EXPLAIN_TIE,
+    TS_WHY_PLACED,
+    TS_WHY_NOT_FIRST,
+    TS_WHY_WAITING,
+    TS_CORRECT,
+
+    // ── Topological sort — WATCH walkthrough copy ─────────────────────────
+    TS_WATCH_SETUP,
+    TS_WATCH_SETUP_SUPPORT,
+    TS_WATCH_PLACE,
+    TS_WATCH_PLACE_WHY,
+    TS_WATCH_PLACE_TIE,
+    TS_WATCH_DONE,
+    TS_WATCH_DONE_WHY,
+    TS_WATCH_CYCLE,
+    TS_WATCH_CYCLE_WHY,
+    TS_WATCH_INSIGHT,
+    TS_WATCH_INSIGHT_SUPPORT,
+    TS_WATCH_SUMMARY,
+    TS_WATCH_SUMMARY_SUPPORT,
+    TS_IDEA_1,
+    TS_IDEA_2,
+    TS_IDEA_3,
+    TS_IDEA_4,
+    TS_IDEA_5,
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.

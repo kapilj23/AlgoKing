@@ -138,6 +138,15 @@ val algorithmLibrary = listOf(
         glyph = AlgoIcons.TileNodes,
     ),
     AlgorithmEntry(
+        id = AlgorithmId.TOPOLOGICAL_SORT,
+        title = "Topological Sort",
+        description = "Order tasks so every arrow points forward.",
+        // Advanced, and so Pro: access follows the category (ADR-041).
+        category = "Advanced",
+        accent = AlgoAccent.Violet,
+        glyph = AlgoIcons.TileNodes,
+    ),
+    AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH_TREE,
         title = "Binary Search Tree",
         description = "One comparison per node, and a whole subtree drops out.",
