@@ -53,6 +53,15 @@ val algorithmCategories = listOf(
 )
 
 val algorithmLibrary = listOf(
+    // First on the shelf: the search every other search is measured against.
+    AlgorithmEntry(
+        id = AlgorithmId.LINEAR_SEARCH,
+        title = "Linear Search",
+        description = "Check every element, one by one, until you find the target.",
+        category = "Searching",
+        accent = AlgoAccent.Orange,
+        glyph = AlgoIcons.TileSearch,
+    ),
     AlgorithmEntry(
         id = AlgorithmId.BINARY_SEARCH,
         title = "Binary Search",

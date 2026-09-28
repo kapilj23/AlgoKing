@@ -40,6 +40,10 @@ import com.algorithms.algoking.engine.dataset.KruskalDatasets
 import com.algorithms.algoking.engine.dataset.FloydWarshallDatasets
 import com.algorithms.algoking.engine.dataset.BellmanFordDatasets
 import com.algorithms.algoking.engine.dataset.TopologicalSortDatasets
+import com.algorithms.algoking.engine.dataset.LinearSearchDatasets
+import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchAlgorithm
+import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchProjector
+import com.algorithms.algoking.engine.algorithms.linearsearch.LinearSearchWatchNarrator
 import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortAlgorithm
 import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortProjector
 import com.algorithms.algoking.engine.algorithms.topo.TopologicalSortWatchNarrator
@@ -395,6 +399,17 @@ object AlgorithmCatalog {
         tryDataset = TopologicalSortDatasets.tryIt,
     )
 
+    /** Check every element in turn — the free search Binary Search is measured against. */
+    fun linearSearch() = LessonPack(
+        id = AlgorithmId.LINEAR_SEARCH,
+        displayName = "Linear Search",
+        algorithm = LinearSearchAlgorithm(),
+        projector = LinearSearchProjector(),
+        watchNarrator = LinearSearchWatchNarrator(),
+        watchDataset = LinearSearchDatasets.watch,
+        tryDataset = LinearSearchDatasets.tryIt,
+    )
+
     /**
      * The first dynamic-programming lesson. Every cell of the table is a smaller
      * bag, solved once, and asks one question — take this item, or leave it? —
@@ -628,6 +643,7 @@ object AlgorithmCatalog {
 
     fun byId(id: AlgorithmId): LessonPack<*, *> = when (id) {
         AlgorithmId.BINARY_SEARCH -> binarySearch()
+        AlgorithmId.LINEAR_SEARCH -> linearSearch()
         AlgorithmId.TWO_POINTERS -> twoPointers()
         AlgorithmId.PREFIX_SUM -> prefixSum()
         AlgorithmId.GRAPH_DFS -> graphDfs()

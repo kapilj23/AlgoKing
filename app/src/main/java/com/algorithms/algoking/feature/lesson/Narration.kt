@@ -1429,6 +1429,65 @@ object Narration {
 
             NarrationId.TS_IDEA_5 -> "O(V + E) time, O(V) space. Used for build steps, courses and task lists."
 
+            // ── Linear Search ─────────────────────────────────────────────
+            // Arguments: 0 the value under i, 1 the target, 2 the index;
+            // WATCH adds 3 checks so far, 4 the array's length.
+            NarrationId.LS_OPTION_NEXT -> "NEXT"
+            NarrationId.LS_OPTION_FOUND -> "FOUND"
+            NarrationId.LS_ASK -> "Index ${arg(2)} holds ${arg(0)}. Is it the target, ${arg(1)}?"
+            NarrationId.LS_NOT_IT -> "${arg(0)} is not ${arg(1)}. Next."
+            NarrationId.LS_FOUND -> "${arg(0)} is the target — found at index ${arg(2)}."
+            NarrationId.LS_HINT ->
+                "Compare the number under i with the target. Same number: FOUND. Different: NEXT."
+
+            NarrationId.LS_RETRY_LOOK -> "Look again: ${arg(0)} under i, and the target ${arg(1)}."
+            NarrationId.LS_RETRY_ASK -> "Is ${arg(0)} exactly ${arg(1)}?"
+            NarrationId.LS_RETRY_EXPLAIN_NEXT -> "${arg(0)} is not ${arg(1)}, so move on to the next element."
+            NarrationId.LS_RETRY_EXPLAIN_FOUND -> "${arg(0)} is ${arg(1)} — this is the target. Stop here."
+            NarrationId.LS_WHY_NOT_IT ->
+                "${arg(0)} is not ${arg(1)}. Only an exact match is the target — keep going."
+
+            NarrationId.LS_WHY_PASSED_IT ->
+                "${arg(0)} is exactly ${arg(1)} — moving on would walk straight past the target."
+
+            NarrationId.LS_CORRECT_NEXT -> "${arg(0)} is not ${arg(1)}, so on to the next one."
+            NarrationId.LS_CORRECT_FOUND -> "${arg(0)} is the target, at index ${arg(2)}. Done."
+
+            // ── Linear Search — WATCH ─────────────────────────────────────
+            NarrationId.LS_WATCH_SETUP -> "Find ${arg(0)}, one element at a time."
+            NarrationId.LS_WATCH_SETUP_SUPPORT ->
+                "Start at the left and compare each of the ${arg(0)} numbers with the target. " +
+                    "The array is not sorted — linear search does not need it to be."
+
+            NarrationId.LS_WATCH_CHECK -> "Index ${arg(2)}: ${arg(0)} — not it."
+            NarrationId.LS_WATCH_CHECK_FIRST ->
+                "${arg(0)} is not ${arg(1)}. It is greyed out — never looked at again — and i " +
+                    "moves one to the right."
+
+            NarrationId.LS_WATCH_CHECK_WHY -> "${arg(0)} is not ${arg(1)}. Next. ${arg(3)} checked so far."
+            NarrationId.LS_WATCH_FOUND -> "Index ${arg(2)}: ${arg(0)} — found!"
+            NarrationId.LS_WATCH_FOUND_WHY ->
+                "It took ${arg(3)} checks: one for every element up to and including the " +
+                    "target. The further right it is, the longer it takes."
+
+            NarrationId.LS_WATCH_MISSING -> "${arg(1)} is not in the array."
+            NarrationId.LS_WATCH_MISSING_WHY ->
+                "All ${arg(4)} were checked. Proving something is missing means looking at " +
+                    "every element."
+
+            NarrationId.LS_WATCH_INSIGHT -> "Check each one, in order."
+            NarrationId.LS_WATCH_INSIGHT_SUPPORT ->
+                "Linear search works on any array — sorted or not. The price: if the target " +
+                    "is last, or missing, it checks all ${arg(0)}. Binary search needs a sorted " +
+                    "array, and in return checks far fewer."
+
+            NarrationId.LS_WATCH_SUMMARY -> "Found in ${arg(0)} checks."
+            NarrationId.LS_WATCH_SUMMARY_SUPPORT -> "The rule"
+            NarrationId.LS_IDEA_1 -> "Start at index 0."
+            NarrationId.LS_IDEA_2 -> "Same as the target: found. Different: move to the next."
+            NarrationId.LS_IDEA_3 -> "Reach the end without a match: the target is not there."
+            NarrationId.LS_IDEA_4 -> "O(n) time, O(1) space. Works on any array — sorted or not."
+
             // ── 0/1 Knapsack ──────────────────────────────────────────────
             // TAKE and SKIP in capitals, because they are the two words on the
             // buttons. Every cell is printed as dp[i][c] beside what it means.

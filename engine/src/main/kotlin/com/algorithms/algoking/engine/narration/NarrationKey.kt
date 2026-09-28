@@ -673,6 +673,42 @@ enum class NarrationId {
     TS_IDEA_3,
     TS_IDEA_4,
     TS_IDEA_5,
+
+    // ── Linear Search ─────────────────────────────────────────────────────────
+    // NEXT and FOUND are the two words on the buttons, so the copy uses them.
+    LS_OPTION_NEXT,
+    LS_OPTION_FOUND,
+    LS_ASK,
+    LS_NOT_IT,
+    LS_FOUND,
+    LS_HINT,
+    LS_RETRY_LOOK,
+    LS_RETRY_ASK,
+    LS_RETRY_EXPLAIN_NEXT,
+    LS_RETRY_EXPLAIN_FOUND,
+    LS_WHY_NOT_IT,
+    LS_WHY_PASSED_IT,
+    LS_CORRECT_NEXT,
+    LS_CORRECT_FOUND,
+
+    // ── Linear Search — WATCH walkthrough copy ────────────────────────────
+    LS_WATCH_SETUP,
+    LS_WATCH_SETUP_SUPPORT,
+    LS_WATCH_CHECK,
+    LS_WATCH_CHECK_FIRST,
+    LS_WATCH_CHECK_WHY,
+    LS_WATCH_FOUND,
+    LS_WATCH_FOUND_WHY,
+    LS_WATCH_MISSING,
+    LS_WATCH_MISSING_WHY,
+    LS_WATCH_INSIGHT,
+    LS_WATCH_INSIGHT_SUPPORT,
+    LS_WATCH_SUMMARY,
+    LS_WATCH_SUMMARY_SUPPORT,
+    LS_IDEA_1,
+    LS_IDEA_2,
+    LS_IDEA_3,
+    LS_IDEA_4,
     // ── 0/1 Knapsack ──────────────────────────────────────────────────────────
     // TAKE and SKIP are the two words on the buttons, so the copy uses them. A
     // cell is always named `dp[i][c]` next to what it means, never as a bare index.

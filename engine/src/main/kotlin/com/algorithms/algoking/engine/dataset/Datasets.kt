@@ -1730,3 +1730,28 @@ object TopologicalSortDatasets {
 
     val tryIt = Dataset(values = emptyList(), label = "try", graph = tryGraph, directedEdges = tryEdges)
 }
+
+/**
+ * Linear Search teaching data. Both arrays are deliberately **unsorted** — the one
+ * thing Binary Search cannot handle and this can.
+ *
+ * WATCH: eight values, target 42 at index 5, so six checks — five "not it"s and a
+ * find, enough for the rhythm to land without dragging.
+ *
+ * TRY: nine values, target 21 at index 6, and a 12 first — the same digits the
+ * other way round — so the very first answer has to be read, not guessed.
+ */
+object LinearSearchDatasets {
+
+    val watch = Dataset(
+        values = listOf(17, 8, 31, 5, 26, 42, 13, 9),
+        target = 42,
+        label = "watch",
+    )
+
+    val tryIt = Dataset(
+        values = listOf(12, 7, 29, 3, 18, 25, 21, 30, 4),
+        target = 21,
+        label = "try",
+    )
+}

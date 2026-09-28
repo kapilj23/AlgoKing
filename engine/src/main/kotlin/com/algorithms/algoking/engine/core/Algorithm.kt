@@ -110,6 +110,10 @@ data class Dataset(
 enum class AlgorithmId {
     BINARY_SEARCH,
 
+    // Searching, free: check every element in turn. Needs nothing from the array —
+    // not even sorted — and costs one check per element. What Binary Search beats.
+    LINEAR_SEARCH,
+
     // Advanced: a technique rather than a named routine. Two cursors walking a
     // sorted array toward each other, discarding a whole column of pairs with
     // every step.

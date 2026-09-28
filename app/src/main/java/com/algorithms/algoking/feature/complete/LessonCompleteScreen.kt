@@ -441,6 +441,12 @@ private fun insightFor(id: AlgorithmId): String = when (id) {
             "next nodes. When several were free, any order among them was right. If nodes " +
             "remain but none is free, the arrows form a cycle. O(V + E)."
 
+    AlgorithmId.LINEAR_SEARCH ->
+        "One comparison per element, left to right, until the target turns up. It needs " +
+            "nothing from the array — not even sorted — and that is its strength. Its cost " +
+            "is the target's position: last, or missing, means checking all of them. O(n). " +
+            "Binary Search does far better, but only on a sorted array."
+
     AlgorithmId.BINARY_SEARCH_TREE ->
         "Each comparison told you which subtree to search next — and ruled the other one " +
             "out entirely. Balanced, that is O(log n); skewed, the tree becomes a list and " +
