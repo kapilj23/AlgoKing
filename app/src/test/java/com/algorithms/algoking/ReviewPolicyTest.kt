@@ -254,34 +254,33 @@ class ReviewPolicyTest {
     }
 
     @Test
-    fun `the completion effect waits for the ad before it asks`() {
-        // The correction's actual mechanism, and it is a sequence rather than a
-        // rule, so this is where it has to be pinned. One effect: settle, then the
-        // ad if there is one, then *suspend until it reports back*, then the
-        // review. `InterstitialAds.show` calls back exactly once however it goes,
-        // so the wait ends on dismissal, on a failed presentation and on the
-        // nothing-to-show path alike.
+    fun `the ad on Go to Home cancels the review before it shows`() {
+        // The mechanism that keeps the two from colliding, and it is a sequence
+        // rather than a rule, so this is where it has to be pinned. The review runs
+        // on its own timer on arrival; the ad runs only on "Go to Home", and that
+        // tap sets `leaving` first — which takes the review's effect out of
+        // composition, cancelling it — before the ad is shown.
         val main = File("src/main/java/com/algorithms/algoking/MainActivity.kt").readText()
 
         assertTrue(
-            "the ad must be awaited, not fired and forgotten",
-            main.contains("suspendCancellableCoroutine"),
+            "the review effect must exist only while the learner is not leaving",
+            main.contains("if (!leaving) LaunchedEffect(completionId, entitlement)"),
         )
 
-        val adShown = main.indexOf("ads.show(host)")
-        val reviewAsked = main.indexOf("reviews.launch(reviewHost)")
-        assertTrue("expected both the ad and the review in the completion flow", adShown > 0)
+        val goHome = main.indexOf("onGoHome = onGoHome@{")
+        val leavingSet = main.indexOf("leaving = true", goHome)
+        val adShown = main.indexOf("ads.show(host)", goHome)
+        assertTrue("expected the ad on the Go to Home tap", goHome > 0 && adShown > goHome)
         assertTrue(
-            "the review must come after the ad in the same sequence",
-            reviewAsked > adShown,
+            "the review must be cancelled before the ad is shown",
+            leavingSet in (goHome + 1) until adShown,
         )
 
-        // And two separate timers would be exactly the thing that lets them
-        // collide, so the review's wait is relative to the ad finishing rather
-        // than added to the ad's own settle.
+        // Home is reached from the ad's own callback, so the learner arrives only
+        // once the ad is completely gone.
         assertTrue(
-            "the review must not re-time itself from the completion",
-            !main.contains("AD_SETTLE_MS + REVIEW_SETTLE_MS"),
+            "Home must wait for the ad to finish",
+            main.contains("ads.show(host) { route = Route.Home }"),
         )
     }
 

@@ -23,8 +23,8 @@ import com.algorithms.algoking.billing.ProEntitlement
  */
 enum class Placement {
     /**
-     * The learner has finished TRY and the Complete screen has shown them how the
-     * run went. The lesson is over; nothing is interrupted.
+     * The learner has finished TRY, read how the run went, and tapped "Go to Home"
+     * on the Complete screen. The lesson is over; nothing is interrupted.
      */
     LESSON_COMPLETE,
 }

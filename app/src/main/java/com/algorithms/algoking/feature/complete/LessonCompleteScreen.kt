@@ -62,7 +62,9 @@ fun LessonCompleteScreen(
     algorithmId: AlgorithmId? = null,
     onWatchAgain: () -> Unit = {},
     onTryAgain: () -> Unit = {},
-    onNextAlgorithm: () -> Unit = {},
+    /** The primary button. The app's one ad may be shown before Home appears. */
+    onGoHome: () -> Unit = {},
+    /** The header's back arrow. Straight to Home, never an ad. */
     onHome: () -> Unit = {},
 ) {
     val clean = metrics.wrongDecisions == 0
@@ -164,10 +166,9 @@ fun LessonCompleteScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
                 PrimaryButton(
-                    label = "Next algorithm",
+                    label = "Go to Home",
                     modifier = Modifier.fillMaxWidth(),
-                    icon = AlgoIcons.ArrowForward,
-                    onClick = onNextAlgorithm,
+                    onClick = onGoHome,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                     SecondaryButton(

@@ -14,7 +14,7 @@
 |---|---|
 | Format | **Interstitial only.** No banner, no rewarded, no native, no app-open, no adaptive anything. |
 | Who | **Free learners only.** A Pro subscriber never sees one, in any state. |
-| When | **After a TRY run is finished**, on the Complete screen, once the learner has had their result. |
+| When | **After a TRY run is finished**, when the learner taps "Go to Home" on the Complete screen. |
 | How often | **At most one per completion.** |
 | Everywhere else | Nothing. Not on Home, Settings, the paywall, navigation, app launch, WATCH, or TRY. |
 
@@ -31,7 +31,7 @@ learner taps "Finish lesson"          <- completionId += 1
         ↓
 COMPLETE screen renders: decisions, comparisons, wrong turns, the takeaway
         ↓
-1.2s settle                            <- the feedback lands first
+learner reads it, then taps "Go to Home"   <- the only trigger
         ↓
 AdPolicy.decide(...)
    Pro?                 -> no ad, ever
@@ -39,21 +39,23 @@ AdPolicy.decide(...)
    nothing loaded?      -> no ad, no wait
    otherwise            -> show the one interstitial
         ↓
-dismissed (or failed, or never shown) -> the learner is back on COMPLETE
+dismissed (or failed, or never shown) -> the learner lands on Home
 ```
 
 The learner **always** receives the completion feedback before anything covers it,
 and the ad never sits between them and a lesson.
 
-### Why on entering COMPLETE rather than on leaving it
+### Why on "Go to Home" rather than on arrival
 
-`PRODUCT_SPEC.md` §9 originally specified "ads fire on exit paths, never forward
-paths", which would put the interstitial on the tap that leaves the Complete
-screen. That is not what shipped, and the difference is deliberate: two of the
-three exits from Complete — *Next algorithm* and *Try again* — go **into** more
-learning, and an ad on those is the forward-path interstitial the same section
-forbids. Firing on arrival, after a settle, is the only placement that is both
-after the learning and not attached to a navigation tap.
+`PRODUCT_SPEC.md` §9 specifies "ads fire on exit paths, never forward paths". The
+Complete screen has one exit that leaves learning — **Go to Home** — and that tap is
+the only trigger. *Watch again* and *Try again* go **into** more learning and never
+show an ad, and nor does the header's back arrow. The screen itself is never covered:
+the learner reads their result for as long as they like, and the ad comes only when
+they choose to leave.
+
+The review prompt runs on its own timer on arrival. Tapping "Go to Home" cancels it if
+it has not fired yet, so the two are never drawn over each other.
 
 ## Duplicate protection
 

@@ -62,7 +62,6 @@ import android.content.ContextWrapper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.launch
 
 /**
@@ -400,75 +399,28 @@ private fun AlgoKingApp() {
         }
 
         is Route.Complete -> LessonFlow(current.algorithm) { pack ->
-            // **What happens after a lesson, in order, in one place.**
+            // **What happens after a lesson.** Two things may follow a finished
+            // run — the app's only review prompt, and its only ad — and they must
+            // never overlap:
             //
-            // Two things may follow a finished run — the app's only ad, and its
-            // only review prompt — and they must never overlap. So this is one
-            // sequential effect rather than two timers that would have to be kept
-            // from colliding by guessing at each other's durations:
+            //  - the review is asked for on its own, after [REVIEW_SETTLE_MS], if
+            //    the learner is still reading the screen;
+            //  - the ad is shown only when the learner taps "Go to Home", and that
+            //    tap cancels the pending review first, so the two can never be
+            //    drawn over each other.
             //
-            //     settle -> [ad, if any] -> wait for it to be gone -> settle
-            //            -> [review, if eligible]
-            //
-            // A Pro learner has no ad step, so their sequence is simply the two
-            // settles and the ask. A free learner gets the review *after* the ad is
-            // fully dismissed — the ad delays the ask, it does not cancel it.
-            LaunchedEffect(completionId, entitlement) {
-                // A beat, so the metrics and the takeaway land before anything
-                // covers them. Completion feedback first; everything else comes
-                // after (docs/ads.md).
-                delay(AD_SETTLE_MS)
+            // `leaving` is what does the cancelling: the review effect exists only
+            // while it is false, so setting it takes the effect out of composition.
+            var leaving by remember(completionId) { mutableStateOf(false) }
 
-                // **The only ad in the app.** Whether it may show is `AdPolicy`'s
-                // decision: no for a Pro subscriber, no for a completion that has
-                // already had its turn, and no when nothing is loaded — in which
-                // case the learner simply carries on.
-                val ads = interstitials
-                val host = activity
-                val decision = AdPolicy.decide(
-                    placement = Placement.LESSON_COMPLETE,
-                    // **Read from the repository, not from the composition.** This
-                    // is the last moment before an ad could be presented, and a
-                    // purchase that completed during the settle above must count.
-                    // `collectAsState` is a snapshot that recomposition has to
-                    // catch up to; `entitlement.value` is the store's own answer as
-                    // it stands right now — the single source of truth.
-                    //
-                    // Through the same debug seam as above, so that a debug build
-                    // told to be FREE can actually reach an ad. Without it this one
-                    // read would bypass the override and see `Unknown`, which since
-                    // ADR-057 suppresses — making the free path untestable on a
-                    // sideloaded build. In release the call is the identity.
-                    entitlement = DebugEntitlement.override(subscriptions.entitlement.value),
-                    completionId = completionId,
-                    lastShownForCompletion = lastAdCompletion,
-                    adReady = ads?.isReady == true,
-                )
-                if (decision is AdDecision.Show && ads != null && host != null) {
-                    // Recorded before the ad opens, so a recomposition while it is
-                    // on screen cannot queue a second one.
-                    lastAdCompletion = completionId
-                    // **Waits for the ad to be completely gone.** `show` calls back
-                    // exactly once however it goes — dismissed, failed to present,
-                    // or nothing to show — so this resumes on every path and the
-                    // review below can never be drawn over an ad. If a callback
-                    // somehow never arrives the effect simply stays suspended, the
-                    // ask is not spent, and the next finished lesson gets it.
-                    suspendCancellableCoroutine { continuation ->
-                        ads.show(host) {
-                            if (continuation.isActive) continuation.resume(Unit) {}
-                        }
-                    }
-                }
-
+            if (!leaving) LaunchedEffect(completionId, entitlement) {
                 // **The one place the app ever asks for a review**, and the only
                 // trigger there is: a lesson the learner actually finished.
                 //
-                // A second beat, now that the screen is the learner's again. It
-                // separates the ask from whatever just closed, and it means a
-                // learner who taps straight on to the next lesson is gone before it
-                // fires — the ask reaches someone who stayed to read how the run
-                // went, which is when it is most honestly earned.
+                // A beat first, so the metrics and the takeaway land before
+                // anything covers them — and so a learner who taps straight on is
+                // gone before it fires. The ask reaches someone who stayed to read
+                // how the run went, which is when it is most honestly earned.
                 delay(REVIEW_SETTLE_MS)
                 val reviewHost = activity ?: return@LaunchedEffect
 
@@ -512,9 +464,47 @@ private fun AlgoKingApp() {
                     attempt += 1
                     route = Route.TryIt(current.algorithm)
                 },
-                onNextAlgorithm = {
-                    attempt = 0
-                    route = Route.Watch(nextAlgorithm(current.algorithm))
+                onGoHome = onGoHome@{
+                    // A second tap while the ad is up, or on its way, does nothing.
+                    if (leaving) return@onGoHome
+                    leaving = true
+
+                    // **The only ad in the app.** Whether it may show is
+                    // `AdPolicy`'s decision: no for a Pro subscriber, no for a
+                    // completion that has already had its turn, and no when nothing
+                    // is loaded — in which case the learner simply goes Home.
+                    val ads = interstitials
+                    val host = activity
+                    val decision = AdPolicy.decide(
+                        placement = Placement.LESSON_COMPLETE,
+                        // **Read from the repository, not from the composition.**
+                        // This is the last moment before an ad could be presented,
+                        // and a purchase that completed while this screen was up
+                        // must count. `collectAsState` is a snapshot that
+                        // recomposition has to catch up to; `entitlement.value` is
+                        // the store's own answer as it stands right now.
+                        //
+                        // Through the debug seam, so that a debug build told to be
+                        // FREE can actually reach an ad. Without it this read would
+                        // see `Unknown`, which since ADR-057 suppresses. In release
+                        // the call is the identity.
+                        entitlement = DebugEntitlement.override(subscriptions.entitlement.value),
+                        completionId = completionId,
+                        lastShownForCompletion = lastAdCompletion,
+                        adReady = ads?.isReady == true,
+                    )
+                    if (decision is AdDecision.Show && ads != null && host != null) {
+                        // Recorded before the ad opens, so nothing can queue a
+                        // second one for this completion.
+                        lastAdCompletion = completionId
+                        // Home arrives once the ad is completely gone. `show` calls
+                        // back exactly once however it goes — dismissed, failed to
+                        // present, or nothing to show — so the learner always
+                        // gets there.
+                        ads.show(host) { route = Route.Home }
+                    } else {
+                        route = Route.Home
+                    }
                 },
             )
         }
@@ -532,83 +522,6 @@ private fun AlgoKingApp() {
     if (proJustUnlocked) {
         ProUnlockedDialog(onStartLearning = { proJustUnlocked = false })
     }
-}
-
-/**
- * The order the library teaches in.
- *
- * Searching first, then the three elementary sorts, then the two divide-and-conquer
- * sorts, then the structures — with Queue immediately after Stack so the contrast
- * lands while the first one is still fresh — and the Advanced shelf last, because a
- * technique reads as a technique only once the named routines are familiar.
- */
-private fun nextAlgorithm(current: AlgorithmId): AlgorithmId = when (current) {
-    AlgorithmId.BINARY_SEARCH -> AlgorithmId.BUBBLE_SORT
-    AlgorithmId.BUBBLE_SORT -> AlgorithmId.SELECTION_SORT
-    AlgorithmId.SELECTION_SORT -> AlgorithmId.INSERTION_SORT
-    AlgorithmId.INSERTION_SORT -> AlgorithmId.MERGE_SORT
-    AlgorithmId.MERGE_SORT -> AlgorithmId.QUICK_SORT
-    // The comparison sorts hand over to the one that does not compare at all.
-    AlgorithmId.QUICK_SORT -> AlgorithmId.COUNTING_SORT
-    AlgorithmId.COUNTING_SORT -> AlgorithmId.STACK
-    AlgorithmId.STACK -> AlgorithmId.QUEUE
-    AlgorithmId.QUEUE -> AlgorithmId.LINKED_LIST
-    AlgorithmId.LINKED_LIST -> AlgorithmId.HASH_MAP
-    // The structures hand over to the two free lessons that are not about finding
-    // or ordering anything — short, self-contained ideas before the Advanced shelf.
-    AlgorithmId.HASH_MAP -> AlgorithmId.CAESAR_CIPHER
-    // Caesar first: it hides a message with arithmetic a learner can do in their
-    // head. XOR then does the same job with one bitwise operation, and adds the
-    // thing Caesar has no equivalent of — the key that undoes itself.
-    AlgorithmId.CAESAR_CIPHER -> AlgorithmId.XOR_CIPHER
-    // The two ciphers hand over to the lesson that is not one. Both of them turn a
-    // message into something else and then turn it back; SHA-256 does not go back,
-    // and that difference only reads as a difference once the learner has watched
-    // the other two do it (ADR-048).
-    AlgorithmId.XOR_CIPHER -> AlgorithmId.SHA_256
-    // The shelf ends on the cipher a real system would actually use. AES comes
-    // last of the four because it is the payoff: two hand-run ciphers and a hash
-    // are what make "four steps, ten times over" read as a technique rather than
-    // as a wall of names (ADR-049). It is also the only one of the four that is
-    // Pro, so a free learner meets the paywall having just finished SHA-256.
-    AlgorithmId.SHA_256 -> AlgorithmId.AES
-    // AES hands over to the lesson that answers the question it cannot: every
-    // cipher up to here shares one key between both sides, and RSA is where two
-    // strangers get one without meeting (ADR-050).
-    AlgorithmId.AES -> AlgorithmId.RSA
-    // ...and then to the Advanced shelf, which is where the library stops teaching
-    // named routines and starts teaching techniques.
-    AlgorithmId.RSA -> AlgorithmId.TWO_POINTERS
-    AlgorithmId.TWO_POINTERS -> AlgorithmId.PREFIX_SUM
-    AlgorithmId.PREFIX_SUM -> AlgorithmId.GRAPH_DFS
-    // BFS immediately after DFS, so the contrast lands while DFS is still fresh —
-    // the same reason Queue follows Stack.
-    AlgorithmId.GRAPH_DFS -> AlgorithmId.GRAPH_BFS
-    // The shelf ends on the Binary Search Tree, which closes the loop: it is
-    // Binary Search's decision rule again, this time held by the structure
-    // instead of recomputed from positions.
-    // BFS hands over to Dijkstra, which is the same idea once edges cost
-    // something — so the contrast lands while BFS is still fresh.
-    AlgorithmId.GRAPH_BFS -> AlgorithmId.DIJKSTRA
-    AlgorithmId.DIJKSTRA -> AlgorithmId.BINARY_SEARCH_TREE
-    // The BST hands over to the tree that keeps itself short — which is the
-    // answer to the caveat that lesson has to end on.
-    AlgorithmId.BINARY_SEARCH_TREE -> AlgorithmId.AVL_TREE
-    // The trees hand over to the three traversals of one.
-    AlgorithmId.AVL_TREE -> AlgorithmId.TREE_INORDER
-    // The three traversals run consecutively, so the contrast lands while the
-    // previous order is still fresh — the same reason Queue follows Stack.
-    AlgorithmId.TREE_INORDER -> AlgorithmId.TREE_PREORDER
-    AlgorithmId.TREE_PREORDER -> AlgorithmId.TREE_POSTORDER
-    // The shelf ends on building answers rather than walking structures: a DP
-    // lesson reads best once Prefix Sum's "build a table once" is behind the learner.
-    //
-    // Fibonacci first of the two, because it is the one that argues DP is worth
-    // having — one rule, one row, and a naive recursion whose cost is watched
-    // rather than asserted. Knapsack then spends that argument on a real choice.
-    AlgorithmId.TREE_POSTORDER -> AlgorithmId.FIBONACCI
-    AlgorithmId.FIBONACCI -> AlgorithmId.ZERO_ONE_KNAPSACK
-    AlgorithmId.ZERO_ONE_KNAPSACK -> AlgorithmId.BINARY_SEARCH
 }
 
 /**
@@ -646,28 +559,15 @@ private fun Context.findActivity(): Activity? {
 }
 
 /**
- * How long the Complete screen has to itself before an ad may cover it.
+ * How long the Complete screen has to itself before the app asks for a review.
  *
- * The rule is that completion feedback comes first (`docs/ads.md`): the learner
- * finished the lesson, and what they earned is the point of the screen. Long
- * enough to read the metric row and register the takeaway; short enough that the
- * ad still reads as part of the same beat rather than as an ambush later on.
+ * Completion feedback comes first: the learner finished the lesson, and what they
+ * earned is the point of the screen. It also quietly selects who gets asked. A
+ * learner who taps straight on is gone before this fires and is never interrupted;
+ * the ask reaches someone who stayed to read how the run went, which is the moment
+ * it is most honestly earned.
+ *
+ * The ad does not run on this timer — it waits for "Go to Home" — and that tap
+ * cancels a review that has not fired yet, so the two can never overlap.
  */
-private const val AD_SETTLE_MS = 1_200L
-
-/**
- * How long the app waits before asking for a review, measured from the point the
- * completion screen is the learner's own again.
- *
- * For a Pro learner that is right after [AD_SETTLE_MS], because nothing else
- * happens. For a free learner who was shown the one interstitial it starts when
- * that ad is **completely dismissed** — the wait is sequential rather than a second
- * timer racing the first, so the review can never be drawn over an ad and an ad can
- * only ever *delay* the ask.
- *
- * It also quietly selects who gets asked. A learner who taps straight on to the
- * next lesson is gone before this fires and is never interrupted; the ask reaches
- * someone who stayed to read how the run went, which is the moment it is most
- * honestly earned.
- */
-private const val REVIEW_SETTLE_MS = 1_800L
+private const val REVIEW_SETTLE_MS = 3_000L
